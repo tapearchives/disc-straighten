@@ -1,6 +1,6 @@
 # Windows CMD quick start
 
-Disc Straighten 0.6.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
+Disc Straighten 0.7.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
 It uses Python, ImageMagick and local Tesseract OCR. No WSL, Apple frameworks or
 cloud OCR account is needed. The download is a source kit with a `.cmd` launcher,
 not a self-contained `.exe`.
@@ -56,6 +56,18 @@ It requires internet access for that setup. Later local-image processing is
 offline. Use a writable folder rather than `Program Files`. Paths with spaces
 must be quoted. Inputs and original metadata are preserved in the source files.
 Do not share a Mac-created `.venv` with Windows; each platform creates its own.
+
+Without `-o`, images and JSON logs go in an `output` subfolder inside each input
+folder. Persistent preferences are available from CMD too:
+
+```bat
+disc-straighten.cmd --set-output-relative output
+disc-straighten.cmd --set-output-fixed "D:\Archive\Prepared"
+disc-straighten.cmd --show-preferences
+```
+
+Settings live in `%APPDATA%\Disc Straighten\preferences.json`. `-o` overrides them
+for one run. The native drag-and-drop interface is currently Mac-only.
 
 Automatic OCR uses Tesseract on Windows. `--ocr tesseract` also selects it on
 macOS for comparison; `--ocr vision` is macOS-only. `eng`/`rus` and `en-US`/`ru-RU`

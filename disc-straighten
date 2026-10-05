@@ -2,6 +2,7 @@
 set -eu
 DISC_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 DISC_PYTHON=${DISC_PYTHON:-python3}
+DISC_ENV=${DISC_STRAIGHTEN_ENV:-"$DISC_ROOT/.venv"}
 if ! command -v "$DISC_PYTHON" >/dev/null 2>&1; then
     echo 'Python 3.12+ is required. On macOS: brew install python imagemagick' >&2
     exit 1
@@ -11,13 +12,13 @@ if ! command -v magick >/dev/null 2>&1; then
     exit 1
 fi
 "$DISC_PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3,12) else "Python 3.12+ is required")'
-if [ ! -x "$DISC_ROOT/.venv/bin/python" ]; then
-    "$DISC_PYTHON" -m venv "$DISC_ROOT/.venv"
+if [ ! -x "$DISC_ENV/bin/python" ]; then
+    "$DISC_PYTHON" -m venv "$DISC_ENV"
 fi
 DISC_STAMP=$(shasum -a 256 "$DISC_ROOT/requirements.lock.txt" | cut -d ' ' -f 1)
-if [ ! -f "$DISC_ROOT/.venv/requirements-$DISC_STAMP" ]; then
-    "$DISC_ROOT/.venv/bin/python" -m pip install --disable-pip-version-check -r "$DISC_ROOT/requirements.lock.txt" >&2
-    touch "$DISC_ROOT/.venv/requirements-$DISC_STAMP"
+if [ ! -f "$DISC_ENV/requirements-$DISC_STAMP" ]; then
+    "$DISC_ENV/bin/python" -m pip install --disable-pip-version-check -r "$DISC_ROOT/requirements.lock.txt" >&2
+    touch "$DISC_ENV/requirements-$DISC_STAMP"
 fi
 export PYTHONPATH="$DISC_ROOT${PYTHONPATH:+:$PYTHONPATH}"
-exec "$DISC_ROOT/.venv/bin/python" -m discstraight "$@"
+exec "$DISC_ENV/bin/python" -m discstraight "$@"

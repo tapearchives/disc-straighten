@@ -1,5 +1,20 @@
 # Changes
 
+## 0.7.0 — October 5, 2026
+
+- Add a native macOS drag-and-drop app with file/folder selection, serial batch
+  processing, media selection, visible progress and review outcomes, and Finder
+  access to results. Embed the same processor source; keep dependencies outside
+  the app and retain Windows CMD support.
+- Default output to `output` inside each input folder, with geometry and
+  orientation logs beside the image. Add persistent relative/fixed output
+  preferences shared by the app and CLI. Explicit `-o` overrides one run.
+- Allow equal basenames in different destinations; reject destination collisions
+  before processing. Preserve originals and existing-result protections. Keep
+  geometry, orientation and resampling behavior unchanged.
+- Add preference persistence, reset, routing, collision and batch failure tests,
+  native app build/signature verification, and a Mac usage guide.
+
 ## 0.6.0 — October 5, 2026
 
 - Automatically search disc corrections from −45° to +45° when local OCR cannot

@@ -13,7 +13,7 @@ from discstraight import __version__
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC_FILES = (
-    'disc-straighten', 'disc-straighten.cmd', 'bootstrap.py', 'WINDOWS.md', 'pyproject.toml', 'requirements.lock.txt', 'README.md',
+    'disc-straighten', 'disc-straighten.cmd', 'bootstrap.py', 'WINDOWS.md', 'MACOS.md', 'build_macos.py', 'pyproject.toml', 'requirements.lock.txt', 'README.md',
     'USAGE.md', 'CASSETTES.md', 'LENS_AND_DEPTH.md', 'IPHONE_CAMERAS.md', 'CONTRIBUTING.md', 'RELEASING.md', 'LICENSE',
     'THIRD_PARTY_NOTICES.md', 'PERSPECTIVE.md', 'PERFORMANCE.md', 'STANDARDS.md',
     'CHANGELOG.md', 'cassette-validation-summary.json', 'validation-report.json', 'package.py', '.gitignore', '.gitattributes',
@@ -29,7 +29,7 @@ PUBLIC_FILES = (
 )
 CODE_FOLDERS = {
     'discstraight': {'.py', '.swift'}, 'tests': {'.py'},
-    'examples': {'.py', '.json'}, 'benchmarks': {'.py'},
+    'examples': {'.py', '.json'}, 'benchmarks': {'.py'}, 'macos': {'.swift'},
 }
 PRIVATE_NOTICE = (
     'PRIVATE TEST ARTWORK - DO NOT PUBLISH THIS ARCHIVE\n'

@@ -1,7 +1,7 @@
 # Dependency and distribution notes
 
 Checked September 30, 2026 against the installed distributions and upstream
-license texts; Tesseract references added October 5, 2026. This is a source distribution of Disc Straighten 0.6.0, licensed
+license texts; Tesseract references added October 5, 2026. This is a source distribution of Disc Straighten 0.7.0, licensed
 under MIT. The custom geometry and orientation code was written for this tool;
 no code from the previously researched deskew, subpixel-edges, circle-fit,
 PaddleOCR, or libvips repositories is included.

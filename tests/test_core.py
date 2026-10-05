@@ -150,7 +150,8 @@ class RenderingTests(unittest.TestCase):
 class CommandTests(unittest.TestCase):
     def test_invalid_usage_is_failure_not_review_status(self):
         with contextlib.redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as result:
-            parser().parse_args([])
+            from discstraight.cli import main
+            main([])
         self.assertEqual(result.exception.code,1)
 
     def test_nonfinite_geometry_rejected(self):

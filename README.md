@@ -4,12 +4,17 @@ A TapeArchives project for archival image preparation. Straighten optical discs 
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.6.0 · macOS and Windows CMD · MIT · beta.** Cassette processing always
+**Version 0.7.0 · macOS app and CLI · Windows CMD · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
 
 ## Quick start
+
+On Mac, open **Disc Straighten.app** and drop in images or folders. By default,
+each input folder gets an **output** subfolder containing the images and JSON
+logs. **Preferences…** chooses a relative folder or one fixed destination.
+The native app uses the same processor as the CLI. [Mac app setup and building](MACOS.md).
 
 On macOS, install Python 3.12+, ImageMagick 7, and Apple's Command Line Tools if needed:
 
@@ -17,6 +22,8 @@ On macOS, install Python 3.12+, ImageMagick 7, and Apple's Command Line Tools if
 brew install python imagemagick
 xcode-select --install
 ./disc-straighten ./cassette-photos --media cassette -o processed --preview
+python3 build_macos.py
+open "dist/Disc Straighten.app"
 ```
 
 The launcher creates a local Python environment, installs pinned dependencies,
@@ -24,6 +31,11 @@ and compiles the included Apple Vision helper on first OCR use. Subsequent
 local-image processing runs offline. Source files remain unchanged. Accepts a
 file, several files, a nonrecursive directory, or quoted HTTP(S) image URLs.
 Existing results require `--overwrite`.
+
+Without `-o`, the CLI also uses `output` beside each input, or your saved output
+preference. `-o` is a one-run override. Use `--show-preferences`,
+`--set-output-relative output`, or `--set-output-fixed "/path/to/results"` to
+manage the same preferences from Terminal. Logs always accompany the image.
 
 ```sh
 ./disc-straighten disc-photo.jpg -o processed --preview
@@ -118,6 +130,7 @@ this release; lens effects can occur even in head-on photographs.
 | Guide | Contents |
 | --- | --- |
 | [Usage](USAGE.md) | Commands, options, coordinate conventions, outputs, overrides |
+| [Mac drag-and-drop app](MACOS.md) | Drop photos, output preferences, build and launch, dependencies |
 | [Windows CMD](WINDOWS.md) | Installation, launcher, Tesseract, paths with spaces, exit codes |
 | [Lens distortion and depth](LENS_AND_DEPTH.md) | Bow versus perspective versus parallax; examples; cassette and disc policy |
 | [iPhone cameras](IPHONE_CAMERAS.md) | iPhone 7 Plus / 15 Pro Max metadata, Apple lens correction, macro switching and calibration limits |
@@ -154,7 +167,7 @@ they informed development and are not a held-out accuracy benchmark. The clear,
 low-resolution shell and weak/cropped edges remain especially uncertain.
 
 The [historical disc validation report](validation-report.json) retains its
-v0.3.0 label. Disc geometry and rendering are unchanged in v0.6.0; OCR now has a
+v0.3.0 label. Disc geometry and rendering are unchanged in v0.7.0; OCR now has a
 portable backend and automatic bounded visual deskew when OCR is unavailable.
 GitHub Actions covers macOS and Windows, both generated-image smoke checks,
 default missing-OCR behavior, the CMD launcher in a path with spaces, a wheel and source export.

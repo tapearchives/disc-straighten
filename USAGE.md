@@ -1,6 +1,6 @@
 # Disc Straighten usage
 
-Applies to version 0.6.0. Disc geometry algorithms are unchanged from 0.3.0.
+Applies to version 0.7.0. Disc geometry algorithms are unchanged from 0.3.0.
 The disc-specific sections below retain their existing conventions.
 Start with the [README](README.md) for installation and a shorter introduction.
 
@@ -24,6 +24,22 @@ open-source projects, with licenses, limitations, and integration recommendation
 Pass one file, multiple files, a folder, or quoted HTTP(S) image URLs. Folder
 scanning is nonrecursive. Existing results are protected unless `--overwrite`
 is supplied. Processing is local; image content is not sent to a cloud service.
+
+Without `-o`, results go to `output` inside each input's folder. Saved preferences
+can choose another relative folder or one fixed location. Geometry/orientation
+logs always go beside the PNG. `-o` overrides the saved destination for that run.
+
+```sh
+./disc-straighten --show-preferences
+./disc-straighten --set-output-relative output
+./disc-straighten --set-output-fixed "/Volumes/Archive/Prepared"
+```
+
+The [Mac app](MACOS.md) shares these preferences and accepts drag-and-drop images
+or folders. Directory scans remain nonrecursive, so the default output subfolder
+is not processed again when dropping its parent. For HTTP(S) sources, a relative
+destination is based on the current working directory. Same-basename inputs may
+use different folders; collisions in one destination are rejected.
 
 ## Cassette photographs
 

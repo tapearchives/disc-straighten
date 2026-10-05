@@ -6,6 +6,8 @@ build/
 dist/
 validation/
 straightened/
+output/
+*.app/
 processed/
 sample-run/
 research/*-evidence/

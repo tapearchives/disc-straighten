@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 import datetime
 import json
 import math
@@ -26,6 +27,7 @@ from .geometry import detect
 from .imaging import gray_pixels, normalize, render, run, sha256
 from .orientation import orient
 from .perspective import detect_perspective, detect_scan_pair, PerspectiveDetectionError
+from .preferences import OutputPreferences, load_preferences, output_folder, preferences_path, save_preferences
 
 EXTENSIONS = {'.jpg','.jpeg','.png','.tif','.tiff','.webp','.bmp'}
 
@@ -68,6 +70,10 @@ def parser() -> argparse.ArgumentParser:
     p = CommandParser(prog='disc-straighten',description='Flatten optical discs and compact cassettes; save transparent PNGs and geometry logs. Originals are preserved.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''Examples (Windows CMD: use disc-straighten.cmd):
+  disc-straighten "tape photos" --media auto --preview
+  disc-straighten --set-output-relative output
+  disc-straighten --set-output-fixed "/Volumes/Archive/Prepared Images"
+  disc-straighten --show-preferences
   disc-straighten "tape photos" --media cassette -o processed --preview
   disc-straighten photo.jpg --media cassette --cassette-crop rectangle -o reviewed
   disc-straighten disc.jpg --media auto --ocr tesseract --languages eng -o processed
@@ -80,9 +86,15 @@ then crop with measured corner arcs when source AR is within 5%.
 Lens correction is off by default. Unsupported corners remain square.
 Discs automatically try -45 to +45 degree visual deskew if OCR cannot run.
 Exit codes: 0 = completed; 2 = images saved, review needed; 1 = failure.
+Default destination: output beside each input; images and JSON logs stay together.
+Saved preferences change that default. -o overrides them for this run only.
 See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
-    p.add_argument('inputs',nargs='+',help='Raster files, directories (nonrecursive), or HTTP(S) image URLs')
-    p.add_argument('-o','--output',type=Path,default=Path('straightened'),help='Output folder (default: straightened)')
+    p.add_argument('inputs',nargs='*',help='Raster files, directories (nonrecursive), or HTTP(S) image URLs')
+    p.add_argument('-o','--output',type=Path,help='Override saved destination for this run; default: output beside each input')
+    preferences = p.add_mutually_exclusive_group()
+    preferences.add_argument('--show-preferences',action='store_true',help='Print shared app/CLI output preferences as JSON')
+    preferences.add_argument('--set-output-relative',metavar='FOLDER',help='Save a destination relative to each input folder (default: output)')
+    preferences.add_argument('--set-output-fixed',type=Path,metavar='FOLDER',help='Save a fixed destination for all inputs')
     p.add_argument('--media',choices=['disc','cassette','auto'],default='disc',help='Disc is the compatibility default; cassette and auto enable the reviewed cassette beta')
     p.add_argument('--debow',choices=['auto','off','conform'],default='off',help='Cassette geometry: straight-line perspective only (default off), or explicit experimental auto/conform')
     p.add_argument('--cassette-corners',type=cassette_corners,help='Reviewed main-body corners in EXIF-normalized source pixels; excludes guide projections')
@@ -335,6 +347,22 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
 
 def main(argv: list[str] | None = None) -> int:
     p = parser(); args = p.parse_args(argv)
+    preference_action = args.show_preferences or args.set_output_relative is not None or args.set_output_fixed is not None
+    if preference_action and args.inputs:
+        p.error('Change or show preferences separately from processing images')
+    try:
+        if args.set_output_relative is not None:
+            save_preferences(OutputPreferences(relative_folder=args.set_output_relative))
+        elif args.set_output_fixed is not None:
+            save_preferences(OutputPreferences(output_mode='fixed', fixed_folder=str(args.set_output_fixed.expanduser().resolve())))
+        preferences = load_preferences() if args.output is None or preference_action else OutputPreferences()
+        if preference_action:
+            print(json.dumps(dict(schema=1, **asdict(preferences), preferences_file=str(preferences_path()))))
+            return 0
+    except (ValueError, OSError) as error:
+        p.error(str(error))
+    if not args.inputs:
+        p.error('Provide images or a folder, or use -h for examples')
     args.languages=','.join(s.strip() for s in args.languages.split(',') if s.strip())
     if not args.languages:p.error('--languages must contain at least one language code')
     if not shutil.which('magick'):
@@ -356,14 +384,17 @@ def main(argv: list[str] | None = None) -> int:
         p.error('No supported raster images found')
     if len(items)>1 and any(v is not None for v in [args.outer,args.hole,args.angle,args.cassette_corners]):
         p.error('Explicit geometry or angle overrides apply to one input at a time')
-    args.output = args.output.resolve(); args.output.mkdir(parents=True,exist_ok=True)
     names = [source_name(item) for item in items]
-    if len({name.casefold() for name in names})!=len(names):
-        p.error('Inputs have colliding output names; run them into separate output folders')
+    destinations = [output_folder(item,args.output,preferences) for item in items]
+    keys = [(str(folder).casefold(),name.casefold()) for folder,name in zip(destinations,names)]
+    if len(set(keys))!=len(keys):
+        p.error('Inputs have colliding output names in the same destination; use separate folders or unique filenames')
     cache = Path(os.environ.get('DISC_STRAIGHTEN_CACHE',Path.home()/'.cache'/'disc-straighten'))
     status = 0
-    for item,name in zip(items,names):
+    for item,name,destination in zip(items,names,destinations):
         try:
+            args.output = destination
+            args.output.mkdir(parents=True,exist_ok=True)
             result = process(item,name,args,cache)
             if result['status']=='review_required' and status==0:
                 status = 2

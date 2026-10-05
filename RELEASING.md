@@ -13,14 +13,19 @@ From the source directory on a supported Mac:
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python examples/synthetic_smoke.py
 .venv/bin/python examples/cassette_smoke.py
-.venv/bin/python package.py --export-tree ../disc-straighten-github-v0.6.0
+.venv/bin/python package.py --export-tree ../disc-straighten-github-v0.7.0
 ```
 
-The last command creates `dist/disc-straighten-0.6.0-source.zip` and a separate
+The last command creates `dist/disc-straighten-0.7.0-source.zip` and a separate
 clean source directory. The export destination must not already exist. Both
 contain SHA-256 manifests. The ZIP preserves the launcher's executable mode.
 No wheels, environments, downloaded standards/patents, source photos, private
 validation derivatives, or unrelated workspace Git history are copied.
+
+Build the native Mac interface with `python3 build_macos.py`; see [Mac app](MACOS.md).
+The app embeds the processor source and notices. Its Python runtime lives in
+Application Support; do not bundle your private runtime or preferences. The app
+is ad-hoc signed for local use, not notarized for unrestricted distribution.
 
 The export is a release snapshot, not a second development authority. Make
 changes in the development source and create a fresh snapshot for a new review.
