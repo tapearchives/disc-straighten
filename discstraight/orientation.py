@@ -173,6 +173,24 @@ def orient(source: Path, outer: dict, work: Path, cache: Path, *, languages: str
            policy: str, minimum_margin: float, progress: Callable[[str],None],
            rectification_matrix: np.ndarray | None = None, spindle: dict | None = None,
            backend: str = 'auto') -> dict:
+    from .deskew import orient_without_ocr
+    from .ocr import OCRUnavailableError
+    try:
+        if backend == 'none':
+            raise OCRUnavailableError('OCR disabled with --ocr none')
+        return _orient_ocr(source, outer, work, cache, languages=languages, policy=policy,
+                           minimum_margin=minimum_margin, progress=progress,
+                           rectification_matrix=rectification_matrix, spindle=spindle, backend=backend)
+    except OCRUnavailableError as error:
+        progress('OCR unavailable; searching visual straightness from -45 to +45 degrees')
+        return orient_without_ocr(source, outer, work, rectification_matrix=rectification_matrix,
+                                  reason=str(error), requested_backend=backend)
+
+
+def _orient_ocr(source: Path, outer: dict, work: Path, cache: Path, *, languages: str,
+                policy: str, minimum_margin: float, progress: Callable[[str],None],
+                rectification_matrix: np.ndarray | None = None, spindle: dict | None = None,
+                backend: str = 'auto') -> dict:
     from .ocr import recognize
     observations = []
     # No privileged original orientation: the same eight-view search is used for

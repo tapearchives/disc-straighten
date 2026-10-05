@@ -37,6 +37,14 @@ Tested on Apple Silicon macOS with Python 3.14.7. OCR uses Apple's system Vision
 framework by default. Windows uses Tesseract 5. The same backend can be selected
 on macOS with `--ocr tesseract`; engine and language differences are logged.
 
+**If OCR cannot run, discs automatically try visual straightening from −45° to
++45°.** No option is required. The fallback aligns text-like marks by horizontal
+projection sharpness; it cannot read the text or resolve upside-down labels.
+Weak or competing evidence leaves the angle unchanged. Every fallback result
+is flagged for review and logs its search range, chosen angle and OCR failure.
+Use `--ocr none` to try it deliberately. Cassettes still need OCR or an explicit
+`--angle 0` / `--angle 180` after body rectification.
+
 On **Windows**, install Python 3.12+, ImageMagick 7 and Tesseract 5, extract the
 source kit, and run from CMD:
 
@@ -145,8 +153,9 @@ low-resolution shell and weak/cropped edges remain especially uncertain.
 
 The [historical disc validation report](validation-report.json) retains its
 v0.3.0 label. Disc geometry and rendering are unchanged in v0.6.0; OCR now has a
-portable backend. GitHub Actions covers macOS and Windows, both generated-image
-smoke checks, the CMD launcher in a path with spaces, a wheel and source export.
+portable backend and automatic bounded visual deskew when OCR is unavailable.
+GitHub Actions covers macOS and Windows, both generated-image smoke checks,
+default missing-OCR behavior, the CMD launcher in a path with spaces, a wheel and source export.
 Actual hosted run results are visible in the repository's Actions tab.
 
 ## License

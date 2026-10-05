@@ -1,5 +1,17 @@
 # Performance and Rust decision
 
+## Version 0.6.0 OCR-free disc fallback
+
+When OCR cannot run, the automatic −45° to +45° fallback creates one temporary
+head-on analysis view and scores at most 60,000 selected pixels at 1° intervals,
+then 0.05° around the best angle. Projection histograms avoid rendering 91 full
+rotated images. The final renderer still samples the original once. This bounded
+NumPy/OpenCV path does not require a Rust port. Its visual straightness scores
+cannot replace OCR's readable-text evidence; every fallback requires review.
+Timing tables below remain historical and do not measure this new fallback.
+
+## Historical optimization measurements
+
 This report measures releases 0.2.0 and 0.2.1. Version 0.3.0 retains those
 optimizations but adds nominal two-ring fitting and mini-disc candidates; its
 images intentionally differ. The old timing and byte-equivalence claims below

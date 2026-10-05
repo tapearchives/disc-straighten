@@ -5,6 +5,7 @@ import json
 import platform
 import re
 import shutil
+import subprocess
 import xml.etree.ElementTree as ET
 from functools import lru_cache
 from pathlib import Path
@@ -16,6 +17,17 @@ from .imaging import run
 
 LANGUAGES={'en':'eng','ru':'rus','de':'deu','fr':'fra','es':'spa','it':'ita','ja':'jpn',
            'ko':'kor','zh':'chi_sim','pt':'por','nl':'nld'}
+
+
+class OCRUnavailableError(ValueError):
+    """The requested local OCR service cannot run with this configuration."""
+
+
+def ocr_run(args: list[str]) -> str:
+    try:
+        return run(args)
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        raise OCRUnavailableError(f'Local OCR could not run: {error}') from error
 
 
 def text_slope(gray: np.ndarray) -> tuple[float,float] | None:
@@ -47,16 +59,16 @@ def select_backend(requested: str = 'auto') -> str:
     if requested=='auto':
         return 'vision' if platform.system()=='Darwin' else 'tesseract'
     if requested=='vision' and platform.system()!='Darwin':
-        raise ValueError('Apple Vision requires macOS. Use --ocr tesseract on Windows.')
+        raise OCRUnavailableError('Apple Vision requires macOS. Use --ocr tesseract on Windows.')
     return requested
 
 
 @lru_cache(maxsize=1)
 def tesseract_info() -> tuple[list[str],str]:
     if not shutil.which('tesseract'):
-        raise ValueError('Tesseract 5 is required for OCR. Install it and add its folder to PATH; see WINDOWS.md. Use --angle for a reviewed manual orientation.')
-    languages=run(['tesseract','--list-langs']).splitlines()[1:]
-    version=run(['tesseract','--version']).splitlines()[0]
+        raise OCRUnavailableError('Tesseract is unavailable on PATH; see WINDOWS.md. Discs use visual deskew; cassettes require OCR or --angle.')
+    languages=ocr_run(['tesseract','--list-langs']).splitlines()[1:]
+    version=ocr_run(['tesseract','--version']).splitlines()[0]
     return [s.strip() for s in languages if s.strip()],version
 
 
@@ -91,17 +103,23 @@ def hocr_rows(document: str, width: int, height: int, gray: np.ndarray | None = 
 
 def recognize(path: Path, languages: str, cache: Path, backend: str = 'auto') -> dict:
     backend=select_backend(backend)
+    if backend=='none':
+        raise OCRUnavailableError('OCR disabled with --ocr none. For cassettes supply --angle 0 or --angle 180.')
     if backend=='vision':
         from .orientation import helper_binary
-        data=json.loads(run([str(helper_binary(cache)),str(path),languages]))
+        try:
+            helper=helper_binary(cache)
+        except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+            raise OCRUnavailableError(f'Apple Vision helper is unavailable: {error}') from error
+        data=json.loads(ocr_run([str(helper),str(path),languages]))
         data.update(engine='Apple Vision accurate',languages=languages.split(','),missing_languages=[])
         return data
     available,version=tesseract_info()
     requested=list(dict.fromkeys(LANGUAGES.get(s.split('-')[0],s) for s in languages.split(',')))
     selected=[s for s in requested if s in available];missing=[s for s in requested if s not in available]
     if not selected:
-        raise ValueError(f'No requested Tesseract language is installed: {requested}. Available: {available}')
-    document=run(['tesseract',str(path),'stdout','-l','+'.join(selected),'--oem','1','--psm','11','hocr'])
+        raise OCRUnavailableError(f'No requested Tesseract language is installed: {requested}. Available: {available}')
+    document=ocr_run(['tesseract',str(path),'stdout','-l','+'.join(selected),'--oem','1','--psm','11','hocr'])
     image=cv2.imread(str(path));height,width=image.shape[:2]
     return dict(rows=hocr_rows(document,width,height,cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)),revision=version,engine='Tesseract LSTM',
                 languages=selected,missing_languages=missing)

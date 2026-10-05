@@ -42,6 +42,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Disc geometry, OCR and rendering
         run: python examples/synthetic_smoke.py
+      - name: Default disc fallback with unavailable OCR
+        run: python examples/synthetic_smoke.py --unavailable-ocr
       - name: Cassette routing, OCR and rendering
         run: python examples/cassette_smoke.py
       - name: Test alternate Tesseract backend on macOS

@@ -10,6 +10,8 @@ not a self-contained `.exe`.
 Install **Python 3.12 or later**, **ImageMagick 7**, and **Tesseract 5**. Include
 Python's launcher and add ImageMagick and Tesseract to PATH during installation.
 Install English Tesseract language data; add Russian data for Russian labels.
+Tesseract is optional for bounded disc straightening: unavailable OCR automatically
+falls back to a −45° to +45° visual search. Cassette automatic orientation needs OCR.
 Close and reopen CMD after changing PATH.
 
 With Windows Package Manager, these commands are an alternative to the installers:
@@ -59,7 +61,11 @@ Automatic OCR uses Tesseract on Windows. `--ocr tesseract` also selects it on
 macOS for comparison; `--ocr vision` is macOS-only. `eng`/`rus` and `en-US`/`ru-RU`
 are accepted by the Tesseract adapter. Missing requested languages are recorded
 and produce a review flag when another requested language is available. If none
-are installed, the command fails with an installation hint.
+are installed, discs automatically use the same visual fallback as missing
+Tesseract. The result is flagged for review because this cannot read text or
+resolve upside-down orientation. Blank or inconclusive discs stay unrotated.
+No flag is required; `--ocr none` explicitly tests this path. For cassettes,
+missing OCR still requires a reviewed manual angle or installing Tesseract.
 
 For a reviewed manual direction, OCR can be bypassed:
 

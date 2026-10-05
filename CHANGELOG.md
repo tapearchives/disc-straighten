@@ -2,6 +2,11 @@
 
 ## 0.6.0 — October 5, 2026
 
+- Automatically search disc corrections from −45° to +45° when local OCR cannot
+  run. Use bounded horizontal-projection deskew, record visual evidence and OCR
+  failure, keep weak/ambiguous cases unrotated, and require review. `--ocr none`
+  deliberately selects the same fallback; explicit angles remain authoritative.
+
 - Tag detected pre-warp body ratios within 5% of 100.4/63.8 as `compact cassette AR`.
   Independently fit outer corner quarter ellipses after the straight-line frame is
   established. Reject unsupported curves, preserve screws and slight outward

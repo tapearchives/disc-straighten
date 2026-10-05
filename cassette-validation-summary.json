@@ -2,13 +2,15 @@
   "tool_version": "0.6.0",
   "date": "2026-10-05",
   "sample_count": 5,
-  "unit_tests_passed": 68,
+  "unit_tests_passed": 77,
   "scope": "Private development photographs, not an independent accuracy benchmark. No artwork, OCR, personal paths, or image hashes in this public summary.",
   "local_smoke": {
     "vision_disc": "passed",
     "vision_cassette": "passed",
     "tesseract_disc": "passed",
-    "tesseract_cassette": "passed"
+    "tesseract_cassette": "passed",
+    "default_unavailable_ocr_disc": "passed",
+    "explicit_no_ocr_disc": "passed"
   },
   "native_windows_validation": "Pending hosted CI; portable OCR was exercised on macOS.",
   "samples": [

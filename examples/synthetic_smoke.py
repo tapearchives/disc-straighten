@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from verify_results import verify_nominal_geometry
 
 
-def smoke(folder: Path) -> dict:
+def smoke(folder: Path, *, unavailable_ocr: bool = False) -> dict:
     image = np.full((720, 720, 3), 255, dtype=np.uint8)
     cv2.circle(image, (360, 360), 300, (230, 230, 230), -1, cv2.LINE_AA)
     cv2.circle(image, (360, 360), 283, (65, 70, 80), -1, cv2.LINE_AA)
@@ -42,9 +42,24 @@ def smoke(folder: Path) -> dict:
     if not cv2.imwrite(str(source), rotated):
         raise RuntimeError('Could not write synthetic input')
     output = folder / 'results'
-    run = subprocess.run([sys.executable, '-m', 'discstraight', str(source),
+    invocation = [sys.executable, '-m', 'discstraight']
+    ocr_args = ['--ocr', os.environ.get('DISC_TEST_OCR', 'auto')]
+    if unavailable_ocr:
+        # Exercise the DEFAULT auto path even on a machine with working OCR.
+        # Only discovery of Tesseract is hidden; ImageMagick still runs normally.
+        invocation = [sys.executable, '-c', '''
+import shutil, sys
+from unittest.mock import patch
+from discstraight.cli import main
+original_which = shutil.which
+with patch('discstraight.ocr.platform.system', return_value='Windows'), \\
+     patch('discstraight.ocr.shutil.which', side_effect=lambda name: None if name == 'tesseract' else original_which(name)):
+    sys.exit(main())
+''']
+        ocr_args = []
+    run = subprocess.run([*invocation, str(source),
                           '-o', str(output), '--media', 'auto', '--disc-size', '120', '--languages', 'en-US',
-                          '--ocr',os.environ.get('DISC_TEST_OCR','auto')],
+                          *ocr_args],
                          cwd=ROOT, capture_output=True, text=True, timeout=180)
     if run.returncode not in (0, 2):
         raise RuntimeError(f'CLI smoke failed: {run.stderr[-4000:]}')
@@ -62,14 +77,24 @@ def smoke(folder: Path) -> dict:
     nominal = verify_nominal_geometry(data, alpha)
     angle = data['rotation']['clockwise_degrees']
     error = abs((angle + 17 + 180) % 360 - 180)
-    assert error < 1, f'OCR failed known orientation: {angle}'
+    assert error < 1, f'Orientation failed known control: {angle}'
+    if unavailable_ocr or os.environ.get('DISC_TEST_OCR') == 'none':
+        assert run.returncode == 2, 'Visual orientation must require review'
+        assert data['rotation']['method'] == 'ocr_free_horizontal_projection'
+        assert data['rotation']['search']['clockwise_range_degrees'] == [-45., 45.]
+        assert not data['rotation']['ocr']['available']
+    if unavailable_ocr:
+        assert 'ocr_unavailable' in data['warnings']
+        assert data['rotation']['ocr']['requested_backend'] == 'auto'
     assert not alpha[0].any() and not alpha[-1].any()
     assert not alpha[:, 0].any() and not alpha[:, -1].any()
     report = dict(tool_version=data['tool']['version'], input='original synthetic disc',
                   clockwise_rotation_degrees=angle, angle_error_degrees=error,
                   status=data['status'], review_reasons=data['warnings'],
                   nominal_geometry=nominal, png_sha256=data['output']['sha256'],
-                  result='geometry, OCR, encoded pixels, hashes, and transparent RGB checks passed',
+                  orientation_method=data['rotation'].get('method', 'OCR'),
+                  automatic_missing_ocr_test=unavailable_ocr,
+                  result='geometry, orientation, encoded pixels, hashes, and transparent RGB checks passed',
                   limitation='Synthetic disc only; not evidence of cassette or broad real-image accuracy')
     (folder / 'smoke-report.json').write_text(json.dumps(report, indent=2) + '\n')
     return report
@@ -78,13 +103,14 @@ def smoke(folder: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, help='Retain a new run directory')
+    parser.add_argument('--unavailable-ocr', action='store_true', help='Test default auto fallback with Tesseract hidden from discovery')
     args = parser.parse_args()
     if args.output:
         args.output.mkdir(parents=True, exist_ok=False)
-        result = smoke(args.output.resolve())
+        result = smoke(args.output.resolve(), unavailable_ocr=args.unavailable_ocr)
     else:
         with tempfile.TemporaryDirectory(prefix='disc-smoke-') as temporary:
-            result = smoke(Path(temporary))
+            result = smoke(Path(temporary), unavailable_ocr=args.unavailable_ocr)
     print(json.dumps(result, indent=2))
 
 

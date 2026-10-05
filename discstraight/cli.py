@@ -71,12 +71,14 @@ def parser() -> argparse.ArgumentParser:
   disc-straighten "tape photos" --media cassette -o processed --preview
   disc-straighten photo.jpg --media cassette --cassette-crop rectangle -o reviewed
   disc-straighten disc.jpg --media auto --ocr tesseract --languages eng -o processed
+  disc-straighten disc.jpg --ocr none -o visual-deskew
   disc-straighten mini-cd.jpg --disc-size 80 -o processed
   disc-straighten tape.jpg --media cassette --angle 0 -o manual
 
 Cassettes: fit straight sides, intersect corners, rectify to 100.4:63.8,
 then crop with measured corner arcs when source AR is within 5%.
 Lens correction is off by default. Unsupported corners remain square.
+Discs automatically try -45 to +45 degree visual deskew if OCR cannot run.
 Exit codes: 0 = completed; 2 = images saved, review needed; 1 = failure.
 See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('inputs',nargs='+',help='Raster files, directories (nonrecursive), or HTTP(S) image URLs')
@@ -85,7 +87,7 @@ See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('--debow',choices=['auto','off','conform'],default='off',help='Cassette geometry: straight-line perspective only (default off), or explicit experimental auto/conform')
     p.add_argument('--cassette-corners',type=cassette_corners,help='Reviewed main-body corners in EXIF-normalized source pixels; excludes guide projections')
     p.add_argument('--cassette-crop',choices=['auto','rectangle'],default='auto',help='Auto fits measured corner arcs for compact cassette AR; rectangle retains square virtual corners')
-    p.add_argument('--ocr',choices=['auto','vision','tesseract'],default='auto',help='Auto uses Apple Vision on macOS, Tesseract on Windows/Linux; --angle bypasses OCR')
+    p.add_argument('--ocr',choices=['auto','vision','tesseract','none'],default='auto',help='Auto uses Vision on macOS, Tesseract elsewhere; unavailable OCR defaults to +/-45 degree visual disc deskew. None forces that fallback; cassettes then need --angle')
     p.add_argument('--languages',default='en-US,ru-RU',help='Comma-separated languages: en-US,ru-RU; Tesseract also accepts eng,rus')
     p.add_argument('--orientation-policy',choices=['balanced','majority'],default='balanced',help='Balanced favors prominent text; majority counts all capped text votes')
     p.add_argument('--min-margin',type=finite,default=.20,help='Review if orientation score margin is below this fraction')
@@ -337,12 +339,6 @@ def main(argv: list[str] | None = None) -> int:
     if not args.languages:p.error('--languages must contain at least one language code')
     if not shutil.which('magick'):
         p.error('ImageMagick 7 must be on PATH. See README.md or WINDOWS.md for installation.')
-    from .ocr import select_backend, tesseract_info
-    if args.angle is None:
-        try:
-            args.ocr=select_backend(args.ocr)
-            if args.ocr=='tesseract':tesseract_info()
-        except ValueError as error:p.error(str(error))
     if not 0<args.feather<=20 or not 0<=args.min_margin<=1:
         p.error('--feather must be in (0,20]; --min-margin must be in [0,1]')
     if args.cassette_corners is not None and args.media!='cassette':

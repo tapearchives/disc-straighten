@@ -103,7 +103,9 @@ processing afterward does not. No system package installation is done silently.
 selects the portable backend explicitly. Language data is installed separately.
 English and Russian are requested by default; Tesseract logs missing languages,
 uses the available requested languages and flags the result. If none are
-available it fails. `--angle` bypasses OCR. Example:
+available, discs automatically use the visual fallback described below;
+cassettes require an explicit `--angle` or working OCR. `--angle` bypasses OCR
+and visual deskew. Example:
 
 ```sh
 ./disc-straighten scan.jpg -o processed --languages en-US,ru-RU
@@ -136,9 +138,43 @@ semantic model of artistic intent. A short title can still lose to a long rotate
 subtitle; curved lettering, unreadable type, or symmetric designs can be ambiguous.
 The score margin is not a calibrated probability or an accuracy percentage.
 
-All rotations use the same search; there are no filename-specific angles, title
+All OCR rotations use the same search; there are no filename-specific angles, title
 dictionaries, manually selected text regions, or sample geometry presets in the
 runtime. Intentional diagonal artwork is preserved when the main text wins.
+
+### Automatic fallback when OCR is unavailable
+
+Missing executables, an unavailable Vision helper, missing requested language
+data, or an OCR engine execution failure automatically trigger a disc-only
+**−45° to +45° clockwise correction search**. This is the default behavior;
+you do not need to enable a flag. `--ocr none` forces this path for comparisons:
+
+```sh
+./disc-straighten disc.jpg -o processed
+./disc-straighten disc.jpg --ocr none -o visual-comparison
+```
+
+The fallback first makes a head-on analysis view using the measured disc
+geometry, downsamples to at most 1000 pixels, excludes the outer 9% of radius
+and central 20%, and selects small text-like contrast components in both
+polarities. It scores horizontal projection-profile sharpness at 1° intervals,
+then refines the best correction in 0.05° steps. Fractional histogram bins reduce
+pixel-grid bias. The 0.05° step is a search resolution, not a promised accuracy.
+At most 60,000 selected pixels are scored per angle. The final output is still
+rendered once from the original; temporary analysis rotations are not chained.
+
+The log records `method: ocr_free_horizontal_projection`, the search limits,
+proposed and applied correction, alternative scores, component/pixel counts,
+and `ocr.fallback_reason`. Fewer than eight useful components, weak score
+contrast, or close competing directions retains 0° with a reason. All fallback
+outputs return review status (exit code 2). An engine that runs but finds no
+readable text retains the existing OCR review outcome; this fallback specifically
+handles unavailable OCR.
+
+This method measures straightness, not meaning: artwork and decorative lettering
+can win. It cannot resolve 180° or correct an arbitrary rotation beyond the
+bounded range. The exclusion zones deliberately ignore curved rim text and hub
+graphics, so a disc with text only in those zones can remain unrotated.
 
 ## Angled photographs
 
