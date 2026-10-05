@@ -74,13 +74,14 @@ class OutputPreferenceTests(unittest.TestCase):
         status, text = self.invoke([str(p) for p in inputs], process)
         self.assertEqual(status, 2)
         self.assertEqual(outputs, [p.parent / 'output' for p in inputs])
-        self.assertEqual(len(text.splitlines()), 2)
-        with self.assertRaises(SystemExit) as error:
-            self.invoke([*[str(p) for p in inputs], '-o', str(self.root / 'shared')], process)
-        self.assertEqual(error.exception.code, 1)
-        self.assertFalse((self.root / 'shared').exists(), 'Reject collisions before writing')
+        self.assertEqual(len([line for line in text.splitlines() if '"image"' in line]), 2)
+        status, text = self.invoke([*[str(p) for p in inputs], '-o', str(self.root / 'shared')], process)
+        self.assertEqual(status, 2)
+        results=[json.loads(line)['image'] for line in text.splitlines() if '"image"' in line]
+        self.assertEqual(len(set(results)),2,'Same-named sources must both be processed')
+        self.assertTrue(all(Path(p).parent==self.root/'shared' for p in results))
 
-    def test_unwritable_destination_does_not_prevent_later_input(self):
+    def test_existing_output_file_is_protected_and_batch_continues(self):
         inputs = [self.root / 'a' / 'first.jpg', self.root / 'b' / 'second.jpg']
         inputs[0].parent.mkdir()
         (inputs[0].parent / 'output').write_text('existing file')
@@ -90,8 +91,9 @@ class OutputPreferenceTests(unittest.TestCase):
             return dict(status='completed', rotation=dict(clockwise_degrees=0),
                         output=dict(file=name + '-straightened.png'), warnings=[])
         status, _ = self.invoke([str(p) for p in inputs], process)
-        self.assertEqual(status, 1)
-        self.assertEqual(calls, [str(inputs[1])])
+        self.assertEqual(status, 0)
+        self.assertEqual(calls, [str(p) for p in inputs])
+        self.assertEqual((inputs[0].parent/'output').read_text(),'existing file')
 
     def test_preferences_action_cannot_accidentally_process_inputs(self):
         with self.assertRaises(SystemExit):

@@ -36,20 +36,19 @@ def sha256(path: Path) -> str:
 
 
 def normalize(source: Path, target: Path) -> dict:
+    raster=str(source)+('[0]' if source.suffix.lower() in {'.heic','.heif'} else '')
     # The CLI only accepts raster extensions and addresses resolved absolute paths.
     meta = run(['magick', 'identify', '-format',
-                '%w|%h|%z|%[colorspace]|%[profiles]|%[orientation]|%[opaque]\n', str(source)])
+                '%w|%h|%z|%[colorspace]|%[profiles]|%[orientation]|%[opaque]\n', raster])
     lines = meta.strip().splitlines()
     if len(lines) != 1:
         raise ValueError('Expected a single raster image, not multiple frames/pages')
     w, h, depth, space, profiles, orientation, opaque = lines[0].split('|')
-    if opaque.lower()!='true':
-        raise ValueError('Input must be an opaque scan; existing transparency needs a separate preservation policy')
-    if int(w)*int(h) > 40_000_000 or min(int(w), int(h)) < 128:
-        raise ValueError('Supported dimensions: at least 128 pixels per side, at most 40 MP')
+    if int(w)*int(h) > 64_000_000 or min(int(w), int(h)) < 128:
+        raise ValueError('Supported dimensions: at least 128 pixels per side, at most 64 MP')
     from .camera import read_camera
     camera = read_camera(source, run)
-    args = ['magick', str(source), '-auto-orient']
+    args = ['magick', raster, '-auto-orient']
     if 'icc' in profiles.lower() or 'icm' in profiles.lower():
         args += ['-profile', str(srgb_profile())]
         color_note = 'Embedded ICC profile converted to system sRGB profile'
@@ -61,6 +60,8 @@ def normalize(source: Path, target: Path) -> dict:
     return dict(width=width, height=height, original_width=int(w), original_height=int(h),
                 original_depth=int(depth), original_colorspace=space,
                 original_exif_orientation=orientation, color_management=color_note,
+                source_has_transparency=opaque.lower()!='true',
+                source_alpha_policy='Preserve existing transparency; intersect it with the final geometric mask',
                 camera=camera)
 
 
@@ -153,11 +154,17 @@ def render(source: Path, target: Path, outer: dict, hole: dict, angle: float,
         matrix = matrix@rectification_matrix
         matrix /= matrix[2,2]
         distortion = ['PerspectiveProjection',projection_arguments(matrix)]
-    args = ['magick', str(source), '-colorspace', 'RGB', '-alpha', 'set',
-            '-channel', 'A', '-fx', alpha_expression(outer, hole, feather,rectification_matrix), '+channel',
+    transparent = run(['magick','identify','-format','%[opaque]',str(source)]).strip().lower()!='true'
+    final_alpha=alpha_expression(out_outer,out_hole,feather)
+    if transparent:
+        # Existing alpha participates in ImageMagick's alpha-aware warp. The
+        # analytical annulus can remove pixels but must never fill a missing one.
+        final_alpha='sourcealpha=a;'+final_alpha+'*sourcealpha'
+    source_mask=[] if transparent else ['-channel','A','-fx',alpha_expression(outer,hole,feather,rectification_matrix),'+channel']
+    args = ['magick', str(source), '-colorspace', 'RGB', '-alpha', 'set', *source_mask,
             '-virtual-pixel', 'transparent', '-filter', 'Lanczos', '-define', 'filter:lobes=3',
             '-define', f'distort:viewport={size}x{size}+0+0', '-distort', *distortion, '+repage',
-            '-channel', 'A', '-fx', alpha_expression(out_outer, out_hole, feather), '+channel',
+            '-channel', 'A', '-fx', final_alpha, '+channel',
             '-colorspace', 'sRGB', '-channel', 'RGB', '-fx', f'a<=1.0/{2**depth-1}?0:u', '+channel',
             '-depth', str(depth), '-define', f'png:bit-depth={depth}',
             '-define', 'png:color-type=6', str(target)]

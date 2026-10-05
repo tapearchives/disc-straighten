@@ -80,5 +80,5 @@ class PortabilityTests(unittest.TestCase):
         output=io.StringIO()
         with contextlib.redirect_stdout(output),self.assertRaises(SystemExit) as caught:parser().parse_args(['-h'])
         self.assertEqual(caught.exception.code,0)
-        for token in ['Examples','disc-straighten.cmd','--cassette-crop','--ocr','2 = images saved']:
+        for token in ['Examples','de-askew.cmd','--cassette-crop','--ocr','2 = images saved']:
             self.assertIn(token,output.getvalue())

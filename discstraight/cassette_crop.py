@@ -20,9 +20,8 @@ def body_crop(gray: np.ndarray, geometry: dict, *, minimum_source_scale: float,
         expected = 0 if i in [0, 3] else (w, h)[axis]
         residuals.append(float(np.percentile(abs(p[:, axis]-expected), 95)))
     from .cassette_corners import fit_corners
-    fits=(fit_corners(gray,geometry) if corners=='auto' and
-          geometry.get('aspect_ratio',{}).get('matched') else [])
-    return dict(method='analytic_body_crop_with_measured_corners' if any(f['applied'] for f in fits) else 'analytic_straight_body_crop_after_rectification',
+    fits=fit_corners(gray,geometry) if corners=='auto' else []
+    return dict(method='analytic_body_crop_with_corner_arcs' if any(f['applied'] for f in fits) else 'analytic_straight_body_crop_after_rectification',
                 coordinate_space='corrected_cassette_plane_before_180_flip',
                 bounds_px=[0., 0., w, h],
                 inset_xy_px=[0., 0.], inset_fraction_per_side=0.,
@@ -35,7 +34,7 @@ def body_crop(gray: np.ndarray, geometry: dict, *, minimum_source_scale: float,
                 outer_boundary_refitted=bool(geometry.get('outer_boundary')),
                 projection_policy='Long main-body edges define the plane; short guide projections outside the final rectangle are cropped.',
                 internal_apertures_removed=False, matte_baked_into_master=False,
-                note='Warp original pixels first. Apply the body rectangle and supported measured corner ellipses. Unsupported corners stay square. No pixel silhouette or color-key alpha.')
+                note='Warp original pixels first. Apply the body rectangle and four tangent corner ellipses. Faint edges use adaptive sensitivity; unresolved arcs use logged sibling or shell-size priors. No pixel silhouette or color-key alpha.')
 
 
 def crop_alpha(x: np.ndarray, y: np.ndarray, crop: dict, feather: float = 1.) -> np.ndarray:

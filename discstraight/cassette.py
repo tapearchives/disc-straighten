@@ -147,6 +147,7 @@ def proposals(gray: np.ndarray) -> list[np.ndarray]:
     for inset in [.015, .055, .105]:
         seeds.append(ordered_quad(np.array([[w*inset, h*inset], [w*(1-inset), h*inset],
                                            [w*(1-inset), h*(1-inset)], [w*inset, h*(1-inset)]])))
+    seeds.extend(straight_line_proposals(gray))
     unique = []
     for q in seeds:
         side = np.linalg.norm(np.roll(q, -1, axis=0)-q, axis=1)
@@ -161,8 +162,67 @@ def proposals(gray: np.ndarray) -> list[np.ndarray]:
     return unique
 
 
+def straight_line_proposals(gray: np.ndarray) -> list[np.ndarray]:
+    """Intersect observed long lines, including off-center objects in a scene.
+
+    Rounded corners and transparent shells often have no closed contour. These
+    are proposals only: edge spans and paired reels must still validate them.
+    """
+    h,w = gray.shape
+    segments = cv2.createLineSegmentDetector().detect(cv2.GaussianBlur(gray,(3,3),.7))[0]
+    segments=np.empty((0,4)) if segments is None else segments.reshape(-1,4)
+    # Hough segments bridge interruptions along a clear plastic edge; unlike
+    # connected contours they do not require one uniform background.
+    joined=cv2.HoughLinesP(cv2.Canny(cv2.GaussianBlur(gray,(0,0),1),8,25),1,np.pi/720,
+                           threshold=int(min(h,w)*.13),minLineLength=min(h,w)*.32,
+                           maxLineGap=min(h,w)*.12)
+    if joined is not None:segments=np.vstack([segments,joined.reshape(-1,4)])
+    if not len(segments):return []
+    delta = segments[:,2:]-segments[:,:2]
+    lengths = np.linalg.norm(delta,axis=1)
+    keep = lengths > min(h,w)*.14
+    segments,delta,lengths = segments[keep],delta[keep],lengths[keep]
+    theta = np.arctan2(delta[:,1],delta[:,0])
+    angle = np.angle(np.sum(lengths*np.exp(4j*theta)))/4
+    groups = [[],[]]
+    for j in np.argsort(-lengths):
+        direction = np.array([math.cos(angle),math.sin(angle)])
+        group = 0 if abs(delta[j]@direction)/lengths[j] > .94 else 1
+        expected = direction if group==0 else np.array([-direction[1],direction[0]])
+        if abs(delta[j]@expected)/lengths[j] < .94:
+            continue
+        l = line(segments[j].reshape(2,2))
+        normal = np.array([-expected[1],expected[0]])
+        if l[:2]@normal<0:l=-l
+        if not any(abs(l[2]-old[2])<5 for old in groups[group]):
+            groups[group].append(l)
+        groups[group] = groups[group][:12]
+    edges = cv2.Canny(gray,10,35)
+    distance = cv2.distanceTransform(255-edges,cv2.DIST_L2,3)
+    sampler = CubicSampler(distance)
+    ranked=[]
+    for a,b in itertools.combinations(groups[0],2):
+        if abs(a[2]-b[2])<min(h,w)*.22:continue
+        for c,d in itertools.combinations(groups[1],2):
+            if abs(c[2]-d[2])<min(h,w)*.22:continue
+            try:q=ordered_quad(np.array([intersect(a,c),intersect(a,d),intersect(b,d),intersect(b,c)]))
+            except ValueError:continue
+            area=abs(cv2.contourArea(q.astype('float32')))
+            sides=np.linalg.norm(np.roll(q,-1,axis=0)-q,axis=1)
+            ratio=(sides[0]+sides[2])/(sides[1]+sides[3])
+            if not 1.15<ratio<2.3 or not .16*h*w<area<h*w:continue
+            if q.min()<0 or np.any(q[:,0]>=w) or np.any(q[:,1]>=h):continue
+            t=np.linspace(.08,.92,70)
+            points=q[:,None]+(np.roll(q,-1,axis=0)-q)[:,None]*t[None,:,None]
+            support=np.mean(sampler.sample([points[...,1],points[...,0]])<2,axis=1)
+            if support.min()<.45:continue
+            ranked.append((float(support.mean())+.12*area/(h*w),q))
+    ranked.sort(key=lambda v:-v[0])
+    return [q for _,q in ranked[:40]]
+
+
 def trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: float,
-               count: int = 220, step: float = .5) -> dict:
+               count: int = 220, step: float = .5, strength_scale: float = 1.) -> dict:
     t = np.linspace(.055, .945, count)
     direction = b-a; normal = np.array([-direction[1], direction[0]])/np.linalg.norm(direction)
     base = a+t[:, None]*direction
@@ -200,7 +260,7 @@ def trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: flo
     correction = np.divide(.5*(left-right), denominator, out=np.zeros_like(middle), where=abs(denominator)>1e-8)
     shifts[valid] += np.clip(correction, -.5, .5)*step
     weight = strength[np.arange(count), indices]
-    valid = inside[np.arange(count), indices] & (weight > max(1.8, np.median(weight)*.13))
+    valid = inside[np.arange(count), indices] & (weight > max(.3,1.8*strength_scale,np.median(weight)*.13))
     points = base+shifts[:, None]*normal
     if valid.sum() < count*.4:
         raise ValueError('Insufficient physical cassette edge support')
@@ -233,7 +293,7 @@ def reel_evidence(gray: np.ndarray, q: np.ndarray) -> dict:
     for contour in contours:
         if len(contour) < 30: continue
         center, axes, angle = cv2.fitEllipse(contour)
-        if not 35 < min(axes) < 105 or not .70 < min(axes)/max(axes) <= 1:
+        if not 35 < min(axes) < 105 or not .82 < min(axes)/max(axes) <= 1:
             continue
         if not .30*382 < center[1] < .69*382: continue
         ellipses.append((np.array(center), float(np.mean(axes))))
@@ -241,7 +301,7 @@ def reel_evidence(gray: np.ndarray, q: np.ndarray) -> dict:
     for (a, da), (b, db) in itertools.combinations(ellipses, 2):
         if a[0] > b[0]: a, b, da, db = b, a, db, da
         spacing = (b[0]-a[0])/599
-        errors = [abs(spacing-42.5/100.4), abs(a[1]-b[1])/382,
+        errors = [2*abs(spacing-42.5/100.4), abs(a[1]-b[1])/382,
                   abs((a[0]+b[0])/2/599-.5), abs(da-db)/max(da, db)*.1]
         cost = sum(errors)
         if best is None or cost < best['cost']:
@@ -300,26 +360,26 @@ def plumb_line_fit(traces: list[dict], shape: tuple[int, int], mode: str) -> dic
                 assumptions='Straight body edges; optical center fixed at image center. Not camera calibration or 3D de-parallax.')
 
 
-def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: float) -> dict:
+def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: float, proposal: bool = False, strength_scale: float = 1.) -> dict:
     """Choose a broadly supported straight ridge, then refine its sample peaks.
 
     Several parallel ridges can describe a clear rim. Prefer the outermost one
     with near-best long-span support, rather than a curved background fringe.
     """
-    t=np.linspace(.08,.92,180);direction=b-a
+    t=np.linspace(.08,.92,90 if proposal else 180);direction=b-a
     normal=np.array([-direction[1],direction[0]])/np.linalg.norm(direction)
-    base=a+t[:,None]*direction;step=.25
+    base=a+t[:,None]*direction;step=.5 if proposal else .25
     offsets=np.arange(-band,band+step/2,step)
     points=base[:,None]+offsets[None,:,None]*normal
     plus=points+normal*.6;minus=points-normal*.6
     strength=abs(sampler.sample([plus[...,1],plus[...,0]])-sampler.sample([minus[...,1],minus[...,0]]))/1.2
     inside=((points[...,0]>.5)&(points[...,0]<sampler.shape[1]-1.5)&
             (points[...,1]>.5)&(points[...,1]<sampler.shape[0]-1.5))
-    peaks=(strength>np.maximum(4.,strength.max(axis=1,keepdims=True)*.2))&inside
+    peaks=(strength>np.maximum(max(.3,1.5*strength_scale),strength.max(axis=1,keepdims=True)*.2))&inside
     peaks[:,1:-1]&=(strength[:,1:-1]>strength[:,:-2])&(strength[:,1:-1]>=strength[:,2:])
     peaks[:,[0,-1]]=False
-    support=cv2.dilate(peaks.astype('uint8'),np.ones((1,5),np.uint8))
-    intercept,slope=np.meshgrid(offsets,np.arange(-band*1.5,band*1.5+.125,.25))
+    support=cv2.dilate(peaks.astype('uint8'),np.ones((1,3 if proposal else 5),np.uint8))
+    intercept,slope=np.meshgrid(offsets,np.arange(-band*1.5,band*1.5+step/2,step))
     hypotheses=intercept.ravel()[:,None]+slope.ravel()[:,None]*(t-.5)
     indices=np.rint((hypotheses+band)/step).astype(int)
     valid=(indices>=0)&(indices<len(offsets))
@@ -346,16 +406,36 @@ def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, 
 
 
 def detect_cassette(gray: np.ndarray, *, debow: str = 'off', corners: np.ndarray | None = None) -> dict:
-    factor = min(1., 900/max(gray.shape)); small = cv2.resize(gray, None, fx=factor, fy=factor)
+    factor = min(1., 900/max(gray.shape))
+    small = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
     seeds = [ordered_quad(corners)*factor] if corners is not None else proposals(small)
+    if corners is None:
+        seeds.extend(reel_body_proposals(small,seeds))
     ranked=[]
+    sampler=CubicSampler(cv2.GaussianBlur(small.astype('float32'),(0,0),.65))
     for seed in seeds:
         try:
-            q, traces = refine(small, seed, band=max(3, min(small.shape)*.019))
+            try:
+                q, traces = refine(small, seed, band=max(3, min(small.shape)*.019))
+            except ValueError:
+                if debow!='off':raise
+                try:
+                    q,traces=refine(small,seed,band=max(5,min(small.shape)*.065))
+                except ValueError:
+                    traces=[straight_trace_edge(sampler,seed[i],seed[(i+1)%4],
+                             band=max(5,min(small.shape)*.065),proposal=True) for i in range(4)]
+                    lines=[line(t['points'][t['inliers']]) for t in traces]
+                    q=np.array([intersect(lines[i-1],lines[i]) for i in range(4)])
             coverage=min(t['coverage'] for t in traces)
             strength=float(np.mean([min(25, t['median_strength']) for t in traces]))
             reel=reel_evidence(small, q)
-            score=coverage*.25+strength/25*.20+reel['score']*.55
+            sides=np.linalg.norm(np.roll(q,-1,axis=0)-q,axis=1)
+            ratio=(sides[0]+sides[2])/(sides[1]+sides[3])
+            # Interior labels often share the reel x-spacing but clip half of
+            # the shell height. The body ratio is a soft prior, not a forced
+            # source rectangle: perspective is still allowed and measured.
+            shape_penalty=.75*abs(math.log(ratio/(BODY_MM[0]/BODY_MM[1])))
+            score=coverage*.25+strength/25*.20+reel['score']*.55-shape_penalty
             ranked.append((score, q, reel, traces))
         except (ValueError, np.linalg.LinAlgError):
             continue
@@ -363,12 +443,24 @@ def detect_cassette(gray: np.ndarray, *, debow: str = 'off', corners: np.ndarray
     if not ranked or (corners is None and (ranked[0][0] < .47 or ranked[0][2]['score'] < .30)):
         raise ValueError('No supported cassette body with a compatible reel pair; use reviewed --cassette-corners')
     score, seed, reel, _ = ranked[0]
-    q, traces=refine(gray, seed/factor, band=max(3, 6/factor), step=.125)
+    # A low-resolution valid line can cross a transparent double edge at full
+    # resolution. Refine its straight ridge directly; don't require a curved
+    # trace to succeed before the default straight-line method can run.
     if debow=='off':
-        sampler=CubicSampler(cv2.GaussianBlur(gray.astype('float32'),(0,0),.65))
+        q=seed/factor
+        sampler=CubicSampler(cv2.GaussianBlur(gray.astype('float32'),(0,0),max(.65,.65/factor)))
+        traces=[]
+        for i in range(4):
+            try:t=straight_trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),strength_scale=factor)
+            except ValueError:t=trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),step=.125,strength_scale=factor)
+            traces.append(t)
+    else:
+        q, traces=refine(gray, seed/factor, band=max(3, 6/factor), step=.125)
+    if debow=='off':
+        sampler=CubicSampler(cv2.GaussianBlur(gray.astype('float32'),(0,0),max(.65,.65/factor)))
         for i in range(4):
             try:
-                traces[i]=straight_trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor))
+                traces[i]=straight_trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),strength_scale=factor)
             except ValueError as error:
                 # A blurred or slightly bowed photographic edge may not have
                 # a subpixel ridge over most of its length. Keep the measured
@@ -382,6 +474,34 @@ def detect_cassette(gray: np.ndarray, *, debow: str = 'off', corners: np.ndarray
     from .cassette_corners import aspect_ratio_tag
     geometry['aspect_ratio']=aspect_ratio_tag(np.array(geometry['undistorted_source_corners_px']))
     return geometry
+
+
+def reel_body_proposals(gray: np.ndarray, seeds: list[np.ndarray]) -> list[np.ndarray]:
+    """Let paired hubs propose the missing clear shell beyond a printed label.
+
+    This never supplies the final corner coordinates: all four external lines
+    must be measured again. Both possible long-edge orientations are proposed.
+    """
+    target=np.array([[0,0],[599,0],[599,380.6],[0,380.6]],np.float32)
+    candidates=[]
+    for q in seeds:
+        evidence=reel_evidence(gray,q)
+        if evidence['cost']>.18:continue
+        a,b=np.array(evidence['centers_canonical_px'])
+        inverse=np.linalg.inv(cv2.getPerspectiveTransform(q.astype('float32'),target))
+        a,b=transform(np.array([a,b]),inverse)
+        tangent=(b-a)/np.linalg.norm(b-a);normal=np.array([-tangent[1],tangent[0]])
+        center=(a+b)/2
+        for width_factor in [.98,1.02]:
+            width=np.linalg.norm(b-a)*100.4/42.5*width_factor;height=width*63.8/100.4
+            for relative_y in [.43,.48,.52,.57]:
+                origin=center-tangent*width/2-normal*relative_y*height
+                body=np.array([origin,origin+tangent*width,origin+tangent*width+normal*height,origin+normal*height])
+                if body.min()<0 or np.any(body[:,0]>=gray.shape[1]) or np.any(body[:,1]>=gray.shape[0]):continue
+                if any(np.sqrt(np.mean((body-old)**2))<5 for _,old in candidates):continue
+                candidates.append((evidence['cost'],body))
+    candidates.sort(key=lambda v:v[0])
+    return [q for _,q in candidates[:60]]
 
 
 def geometry_from_traces(shape: tuple[int, int], traces: list[dict], score: float,

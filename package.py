@@ -13,7 +13,33 @@ from discstraight import __version__
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC_FILES = (
-    'disc-straighten', 'disc-straighten.cmd', 'bootstrap.py', 'WINDOWS.md', 'MACOS.md', 'build_macos.py', 'pyproject.toml', 'requirements.lock.txt', 'README.md',
+    'docs/validation-v0.8.0.json',
+    'discstraight/manual/images/03-after.png',
+    'de-askew-gui.cmd', 'install-windows.ps1', 'assets/de-askew.svg',
+    'assets/de-askew.png', 'assets/de-askew.ico', 'assets/de-askew.icns',
+    'assets/disc-source.png', 'assets/README.md',
+    'discstraight/manual/index.html', 'discstraight/manual/ATTRIBUTION.md',
+    'discstraight/manual/samples.json', 'discstraight/manual/images/app-icon.png',
+    'discstraight/manual/images/01-after.png',
+    'discstraight/manual/images/01-before.jpg',
+    'discstraight/manual/images/02-after.png',
+    'discstraight/manual/images/02-before.jpg',
+    'discstraight/manual/images/03-before.jpg',
+    'discstraight/manual/images/04-after.png',
+    'discstraight/manual/images/04-before.jpg',
+    'discstraight/manual/images/05-after.png',
+    'discstraight/manual/images/05-before.jpg',
+    'discstraight/manual/images/06-after.png',
+    'discstraight/manual/images/06-before.jpg',
+    'discstraight/manual/images/07-before.jpg',
+    'discstraight/manual/images/08-after.png',
+    'discstraight/manual/images/08-before.jpg',
+    'discstraight/manual/images/09-after.png',
+    'discstraight/manual/images/09-before.jpg',
+    'discstraight/manual/images/10-after.png',
+    'discstraight/manual/images/10-before.jpg',
+    'discstraight/manual/images/11-before.jpg',
+    'de-askew', 'de-askew.cmd', 'un-askew', 'un-askew.cmd', 'disc-straighten', 'disc-straighten.cmd', 'bootstrap.py', 'WINDOWS.md', 'MACOS.md', 'build_macos.py', 'pyproject.toml', 'requirements.lock.txt', 'README.md',
     'USAGE.md', 'CASSETTES.md', 'LENS_AND_DEPTH.md', 'IPHONE_CAMERAS.md', 'CONTRIBUTING.md', 'RELEASING.md', 'LICENSE',
     'THIRD_PARTY_NOTICES.md', 'PERSPECTIVE.md', 'PERFORMANCE.md', 'STANDARDS.md',
     'CHANGELOG.md', 'cassette-validation-summary.json', 'validation-report.json', 'package.py', '.gitignore', '.gitattributes',
@@ -70,7 +96,7 @@ def write_archive(target: Path, entries: list[tuple[Path, str]], *, private: boo
             for path, name in entries:
                 info=zipfile.ZipInfo.from_file(path,name)
                 info.create_system=3
-                info.external_attr=(0o100755 if name=='disc-straighten/disc-straighten' else 0o100644)<<16
+                info.external_attr=(0o100755 if Path(name).name in {'disc-straighten','un-askew','de-askew'} else 0o100644)<<16
                 archive.writestr(info,path.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=6)
             for name, value in extra.items():
                 archive.writestr(name, value)
@@ -128,7 +154,7 @@ def main() -> None:
         if not private_paths or any(p.is_symlink() for p in private_paths):
             parser.error('--private-results needs regular PNG/JSON files, with no symlinks')
     entries = [(p, f'disc-straighten/{p.relative_to(ROOT).as_posix()}') for p in paths]
-    base = f'disc-straighten-{__version__}'
+    base = f'de-askew-{__version__}'
     write_archive(args.output_dir / f'{base}-source.zip', entries)
     if private_paths:
         write_archive(args.output_dir / f'{base}-private-tests.zip',

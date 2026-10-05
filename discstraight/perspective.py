@@ -101,7 +101,44 @@ def contour_ellipses(gray: np.ndarray) -> list[dict]:
                 continue
             output.append(dict(ellipse,coverage=len(bins)/72,
                                edge_residual_p95_px=float(np.percentile(abs(errors),95))))
+    # Reflections, cracks and dark cases break a physical circle into separate
+    # contours. Hough votes propose locations; local ellipse-edge measurements
+    # and the independent aperture still decide whether a disc is present.
+    if not any(np.sqrt(np.prod(e['semiaxes_px']))>min(gray.shape)*.22 for e in output):
+        hs=min(1.,900/max(gray.shape))
+        view=cv2.resize(gray,None,fx=hs,fy=hs,interpolation=cv2.INTER_AREA)
+        minimum=min(view.shape)
+        circles=cv2.HoughCircles(cv2.GaussianBlur(view,(5,5),1),cv2.HOUGH_GRADIENT,
+                                 dp=1.5,minDist=minimum*.15,param1=70,param2=30,
+                                 minRadius=int(minimum*.22),maxRadius=int(minimum*.65))
+        if circles is not None:
+            for x,y,r in circles[0][:10]:
+                seed=dict(center_px=[float(x/hs),float(y/hs)],semiaxes_px=[float(r/hs)]*2,angle_radians=0.)
+                try:
+                    ellipse,_=refine_edge(gray,seed,float(r/hs)*.15,0)
+                    if ellipse['coverage']>=.7 and ellipse['edge_residual_p95_px']<max(3,r/hs*.008):
+                        output.append(ellipse)
+                except ValueError:
+                    continue
     return sorted(output,key=lambda e:np.prod(e['semiaxes_px']),reverse=True)
+
+
+def robust_ellipse_seed(points: np.ndarray, seed: dict) -> dict:
+    """RANSAC rejects bright crossing reflections before subpixel refinement."""
+    rng=np.random.default_rng(0);best=None;best_count=0
+    radius=float(np.sqrt(np.prod(seed['semiaxes_px'])))
+    if len(points)<360:return seed
+    for _ in range(300):
+        sample=points[rng.choice(len(points),5,replace=False)].astype('float32')
+        center,axes,angle=cv2.fitEllipse(sample)
+        axes=np.array(axes)/2
+        if min(axes)<radius*.7 or max(axes)>radius*1.3 or np.linalg.norm(np.array(center)-seed['center_px'])>radius*.25:continue
+        trial=dict(center_px=list(center),semiaxes_px=axes.tolist(),angle_radians=math.radians(angle))
+        keep=abs(ellipse_distance(points,trial))<max(1.5,radius*.004)
+        if keep.sum()>best_count:
+            best_count=int(keep.sum());best=(trial,keep)
+    if best is None or best_count<len(points)*.5:return seed
+    return ellipse_fit(points[best[1]],best[0])
 
 
 def refine_edge(gray: np.ndarray, seed: dict, band: float, sign: int,
@@ -134,7 +171,20 @@ def refine_edge(gray: np.ndarray, seed: dict, band: float, sign: int,
         if valid.sum()<360:
             raise ValueError('Incomplete ellipse edge support')
         selected = selected[valid]
+        if band>min(seed['semiaxes_px'])*.08:
+            ellipse=robust_ellipse_seed(selected,ellipse)
+            keep=abs(ellipse_distance(selected,ellipse))<max(2.,min(ellipse['semiaxes_px'])*.012)
+            if keep.sum()>=360:
+                valid[np.flatnonzero(valid)[~keep]]=False
+                selected=selected[keep]
         ellipse = ellipse_fit(selected,ellipse)
+        # Radial glare, printed strokes and a crack are outliers to the rim,
+        # rather than justification to drag the entire ellipse toward them.
+        inliers=abs(ellipse_distance(selected,ellipse))<max(2.,min(ellipse['semiaxes_px'])*.012)
+        if inliers.sum()>=360:
+            valid[np.flatnonzero(valid)[~inliers]]=False
+            selected=selected[inliers]
+            ellipse=ellipse_fit(selected,ellipse)
     ellipse['coverage'] = float(valid.mean())
     return ellipse,selected
 
@@ -310,6 +360,27 @@ def rectify_concentric(outer: dict, inner: dict, *, disc_size: str = 'auto',
 
 
 def detect_perspective(gray: np.ndarray, *, disc_size: str = 'auto', geometry_policy: str = 'measured') -> dict:
+    if max(gray.shape)>2600:
+        stride=math.ceil(max(gray.shape)/2400)
+        # Integer-grid analysis has an exact coordinate mapping. Low-pass first
+        # so sensor noise and demosaicing do not drown faint physical boundaries.
+        small=cv2.GaussianBlur(gray,(0,0),.65*stride)[::stride,::stride]
+        result=detect_perspective(small,disc_size=disc_size,geometry_policy=geometry_policy)
+        def lift(value, key=''):
+            if key=='source_to_plane_matrix':
+                scale=np.diag([stride,stride,1.])
+                return (scale@np.array(value)@np.linalg.inv(scale)).tolist()
+            if key.endswith('_px') and isinstance(value,(int,float,list)):
+                scaled=np.asarray(value)*stride
+                return scaled.tolist() if scaled.ndim else float(scaled)
+            if isinstance(value,dict):return {k:lift(v,k) for k,v in value.items()}
+            if isinstance(value,list):return [lift(v) for v in value]
+            return value
+        result=lift(result)
+        result['diagnostics']['analysis']=dict(stride=stride,width=small.shape[1],height=small.shape[0],
+            coordinate_mapping='source = analysis * stride',subpixel_units='analysis pixels',
+            final_color_resampled_from='full resolution original')
+        return result
     candidates = contour_ellipses(gray)
     minimum = min(gray.shape)
     proposals = [e for e in candidates if np.sqrt(np.prod(e['semiaxes_px']))>minimum*.22]
@@ -326,15 +397,21 @@ def detect_perspective(gray: np.ndarray, *, disc_size: str = 'auto', geometry_po
         radius = np.sqrt(np.prod(outer['semiaxes_px']))
         possible_holes = [e for e in candidates if .08*radius<np.sqrt(np.prod(e['semiaxes_px']))<.24*radius
                           and np.linalg.norm(np.array(e['center_px'])-outer['center_px'])<radius*.55]
+        possible_holes.extend(aperture_proposals(gray,outer))
         solutions = []
         for initial in possible_holes:
             try:
                 hole,hole_edges = refine_edge(gray,initial,max(1.5,radius*.004),0)
+                if initial.get('proposal')=='hough_aperture' and hole['coverage']<.82:
+                    continue
                 rectification = rectify_concentric(outer,hole,disc_size=disc_size,geometry_policy=geometry_policy,
                                                     outer_edges=outer_edges,inner_edges=hole_edges)
             except ValueError:
                 continue
-            score = abs(rectification['disc_profile']['relative_ratio_deviation'])+rectification['spindle_conic_mismatch_fraction']
+            score = (abs(rectification['disc_profile']['relative_ratio_deviation'])
+                     +rectification['spindle_conic_mismatch_fraction']
+                     +.15*np.linalg.norm(np.array(hole['center_px'])-outer['center_px'])/radius
+                     +(.05 if initial.get('proposal')=='hough_aperture' else 0))
             solutions.append((score,hole,hole_edges,rectification))
         if solutions:
             best_score,hole,hole_edges,rectification = min(solutions,key=lambda c:c[0])
@@ -347,6 +424,30 @@ def detect_perspective(gray: np.ndarray, *, disc_size: str = 'auto', geometry_po
             return assessed_pair(gray,outer,hole,rectification,diagnostics,warnings)
     raise PerspectiveDetectionError('Could not establish a physical rim/aperture pair for perspective correction',
                                     suspected=suspected)
+
+
+def aperture_proposals(gray: np.ndarray, outer: dict) -> list[dict]:
+    """Recover broken spindle contours in a small central search region."""
+    radius=float(np.sqrt(np.prod(outer['semiaxes_px'])))
+    x,y=outer['center_px'];band=radius*.55
+    left,top=max(0,int(x-band)),max(0,int(y-band))
+    crop=gray[top:min(gray.shape[0],int(y+band)),left:min(gray.shape[1],int(x+band))]
+    scale=min(1,350/max(crop.shape));crop=cv2.resize(crop,None,fx=scale,fy=scale)
+    output=[]
+    for ratio in [.125,.1875]:
+        circles=cv2.HoughCircles(cv2.GaussianBlur(crop,(3,3),.7),cv2.HOUGH_GRADIENT,
+                                 dp=1,minDist=max(6,radius*scale*.10),param1=60,param2=12,
+                                 minRadius=max(4,int(radius*scale*(ratio-.022))),
+                                 maxRadius=max(6,int(radius*scale*(ratio+.022))))
+        if circles is None:continue
+        for cx,cy,r in circles[0][:12]:
+            center=np.array([cx/scale+left,cy/scale+top])
+            if np.linalg.norm(center-[x,y])>radius*.35:continue
+            output.append(dict(center_px=center.tolist(),semiaxes_px=[float(r/scale)]*2,
+                               angle_radians=0.,proposal='hough_aperture'))
+            output.append(dict(center_px=center.tolist(),semiaxes_px=[radius*ratio]*2,
+                               angle_radians=0.,proposal='hough_aperture'))
+    return output
 
 
 def assessed_pair(gray: np.ndarray, outer: dict, hole: dict, rectification: dict,
@@ -401,3 +502,20 @@ def detect_scan_pair(gray: np.ndarray, *, disc_size: str = 'auto') -> dict:
     diagnostics = dict(circles['diagnostics'],selection='scan proposals followed by independent ellipse-edge refinement',
                        scan_circle_proposals={k:circles[k] for k in ['outer_circle','spindle_circle']})
     return assessed_pair(gray,outer,hole,rectification,diagnostics,circles['warnings'])
+
+
+def detect_contrast_pair(gray: np.ndarray, *, disc_size: str = 'auto', geometry_policy: str = 'nominal') -> dict:
+    """Contrast only proposes edges; remeasure them on unchanged source luminance."""
+    if max(gray.shape)>2600:
+        raise PerspectiveDetectionError('Contrast rescue requires a smaller reviewed input')
+    enhanced=cv2.createCLAHE(clipLimit=1.5,tileGridSize=(8,8)).apply(gray)
+    proposal=detect_perspective(enhanced,disc_size=disc_size,geometry_policy=geometry_policy)
+    radius=float(np.sqrt(np.prod(proposal['outer_ellipse']['semiaxes_px'])))
+    outer,outer_edges=refine_edge(gray,proposal['outer_ellipse'],max(1.5,radius*.006),0)
+    hole,hole_edges=refine_edge(gray,proposal['spindle_ellipse'],max(1.5,radius*.006),0)
+    if hole['coverage']<.82:
+        raise PerspectiveDetectionError('Insufficient independent aperture support after contrast rescue')
+    rectification=rectify_concentric(outer,hole,disc_size=disc_size,geometry_policy=geometry_policy,
+                                    outer_edges=outer_edges,inner_edges=hole_edges)
+    diagnostics=dict(selection='contrast-assisted proposals; physical edges refitted on original luminance')
+    return assessed_pair(gray,outer,hole,rectification,diagnostics,['contrast_assisted_geometry_review'])

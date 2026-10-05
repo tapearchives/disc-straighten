@@ -53,10 +53,17 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     start=time.perf_counter();progress('Warping original pixels once, then applying the feathered rectangle')
     output=work/'output.png'
     mapped=render_cassette(normalized,output,gray.shape,geometry,mask,flip=flip,feather=args.feather,depth=args.depth)
+    from .finishing import finish
+    from .outputs import before_preview
+    source=next(p for p in work.glob('input.*') if p.is_file())
+    finishing=finish(source,output,args,work)
+    if finishing['metadata']['enabled']:
+        finishing['metadata']['source_inventory_file']=targets['metadata'].name
     times['render_seconds']=time.perf_counter()-start
     preview=work/'preview.png';make_preview=args.preview or (args.overwrite and targets['preview'].exists())
     if make_preview:
-        run(['magick',str(output),'-background','white','-alpha','remove','-alpha','off','-resize','1100x800>','-depth','8',str(preview)])
+        before_preview(normalized,work/'before.png')
+        run(['magick',str(output),'-background','white','-alpha','remove','-alpha','off','-resize','700x500>','-strip','-depth','8',str(preview)])
     for edge,points in zip(geometry['edges'],geometry['diagnostics']['edge_source_points_px']):
         corrected=source_to_plane(np.array(points),geometry)
         i=['top','right','bottom','left'].index(edge['side']);axis=1 if i%2==0 else 0
@@ -72,9 +79,9 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
         warnings.append('rectified_frame_reaches_original_photo_boundary')
     if max(mask['residual_edge_p95_px']) > 1.:
         warnings.append('residual_edge_alignment_requires_review')
-    if mask['corner_fits'] and any(not f['applied'] for f in mask['corner_fits']):
-        warnings.append('some_corner_arcs_unresolved_kept_square')
-    result=dict(schema_version=7,tool=dict(name='disc-straighten',version=__version__),
+    if any(f.get('evidence')=='inferred' for f in mask['corner_fits']):
+        warnings.append('some_corner_arcs_inferred_from_geometry_review_crop')
+    result=dict(schema_version=7,tool=dict(name='de-askew',version=__version__),
                 created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),media='cassette',
                 media_selection=dict(requested=args.media,selected='cassette',score=geometry['detection_score'],
                                      calibrated_probability=False),
@@ -82,10 +89,11 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
                 geometry={k:v for k,v in geometry.items() if k!='diagnostics'},
                 rotation=dict(clockwise_degrees=source_angle,canonical_flip_degrees=orientation['clockwise_degrees'],
                               note='Source long-axis rotation summary; the full transform is projective and may include nonlinear bow correction.'),
-                output=dict(file=targets['image'].name,sha256=sha256(output),depth=args.depth,color_space='sRGB',alpha='straight/unassociated RGBA',**mapped),
+                finishing=finishing,
+                output=dict(file=targets['image'].relative_to(args.output).as_posix(),sha256=sha256(output),depth=args.depth,color_space='sRGB',alpha='straight/unassociated RGBA',**mapped),
                 mask=mask,
                 transform_notes=['Main shell face is corner-pinned to nominal 100.4 by 63.8 mm.',
-                                 'All original pixels are warped before the final feathered body crop and supported measured corner arcs. No guessed radii, color-key or pixel silhouette alpha.',
+                                 'All original pixels are warped before the final feathered body crop. Measured and inferred corner arcs are identified separately; no color-key or pixel silhouette alpha.',
                                  'Raised front, recessed reels and visible sidewalls retain depth parallax.',
                                  'Closed transparent material and photographed content behind openings are retained.',
                                  'No hidden geometry, texture, or sharp detail is synthesized.']+
@@ -94,6 +102,9 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     write_json(work/'orientation.json',dict(**orientation,geometry_diagnostics=geometry['diagnostics'],body_crop=mask))
     write_json(work/'result.json',result)
     output.replace(targets['image']);(work/'orientation.json').replace(targets['orientation'])
-    if make_preview:preview.replace(targets['preview'])
+    if make_preview:
+        preview.replace(targets['preview'])
+        (work/'before.png').replace(targets['before'])
+    if args.keep_metadata:(work/'source-metadata.json').replace(targets['metadata'])
     (work/'result.json').replace(targets['log'])
     return result

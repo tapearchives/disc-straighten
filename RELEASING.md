@@ -9,17 +9,17 @@ publishing release assets are separate steps after verification.
 From the source directory on a supported Mac:
 
 ```sh
-./disc-straighten --help
+./de-askew --help
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python examples/synthetic_smoke.py
 .venv/bin/python examples/cassette_smoke.py
-.venv/bin/python package.py --export-tree ../disc-straighten-github-v0.7.0
+.venv/bin/python package.py --export-tree ../de-askew-github-v0.8.0
 ```
 
-The last command creates `dist/disc-straighten-0.7.0-source.zip` and a separate
+The last command creates `dist/de-askew-0.8.0-source.zip` and a separate
 clean source directory. The export destination must not already exist. Both
 contain SHA-256 manifests. The ZIP preserves the launcher's executable mode.
-No wheels, environments, downloaded standards/patents, source photos, private
+No wheels, environments, downloaded standards/patents, original source photos, private
 validation derivatives, or unrelated workspace Git history are copied.
 
 Build the native Mac interface with `python3 build_macos.py`; see [Mac app](MACOS.md).
@@ -70,3 +70,7 @@ together. Keep historical benchmark and sample reports labeled with the version
 that actually produced them. Recheck generated source contents and hashes after
 any change. Record the new smoke result separately rather than relabeling an old
 run as current validation.
+
+The allowlist includes a small illustrated manual with explicitly credited
+Wikimedia and owner-requested sample derivatives. These images retain their
+separate licenses in `discstraight/manual/ATTRIBUTION.md`; MIT covers code.

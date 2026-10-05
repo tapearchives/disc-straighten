@@ -1,0 +1,145 @@
+{
+  "version": "0.8.0",
+  "checks": "RGBA, transparent RGB, hashes, concentric analytic disc ratios, four corner arcs",
+  "results": [
+    {
+      "input": "Compact_Cassette_07.jpg",
+      "media": "cassette",
+      "status": "review_required",
+      "output_size": [
+        3017,
+        1919
+      ],
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "residual_edge_alignment_requires_review"
+      ]
+    },
+    {
+      "input": "Disc_Crack_From_Case.jpg",
+      "media": "disc",
+      "status": "review_required",
+      "output_size": [
+        446,
+        446
+      ],
+      "warnings": [
+        "contrast_assisted_geometry_review",
+        "ellipse_incomplete_edge_support",
+        "no_readable_text"
+      ],
+      "ratio": 0.125
+    },
+    {
+      "input": "Nanay_Folk_Tales_and_Legends_(Disc).png",
+      "media": "disc",
+      "status": "review_required",
+      "output_size": [
+        440,
+        440
+      ],
+      "warnings": [
+        "contrast_assisted_geometry_review"
+      ],
+      "ratio": 0.125
+    },
+    {
+      "input": "DVD.png",
+      "media": "disc",
+      "status": "review_required",
+      "output_size": [
+        950,
+        950
+      ],
+      "warnings": [
+        "no_readable_text"
+      ],
+      "ratio": 0.125
+    },
+    {
+      "input": "IMG_2794.jpg",
+      "media": "cassette",
+      "status": "review_required",
+      "output_size": [
+        1548,
+        986
+      ],
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "some_corner_arcs_inferred_from_geometry_review_crop"
+      ]
+    },
+    {
+      "input": "Audio-Kassette_und_IPod.jpg",
+      "media": "cassette",
+      "status": "review_required",
+      "output_size": [
+        1501,
+        956
+      ],
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "residual_edge_alignment_requires_review"
+      ]
+    },
+    {
+      "input": "IMG_2726.jpg",
+      "media": "cassette",
+      "status": "review_required",
+      "output_size": [
+        1491,
+        950
+      ],
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "some_corner_arcs_inferred_from_geometry_review_crop"
+      ]
+    },
+    {
+      "input": "CPT_4200_cassette.jpg",
+      "media": "cassette",
+      "status": "review_required",
+      "output_size": [
+        745,
+        476
+      ],
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete"
+      ]
+    },
+    {
+      "input": "DVD-Video_bottom-side.jpg",
+      "media": "disc",
+      "status": "review_required",
+      "output_size": [
+        1432,
+        1432
+      ],
+      "warnings": [
+        "disc_size_ambiguous",
+        "too_little_readable_text",
+        "insufficient_orientation_evidence_kept_original_angle"
+      ],
+      "ratio": 0.125
+    },
+    {
+      "input": "Đĩa_DVD.jpg",
+      "status": "failed",
+      "error": "Automatic geometry needs a plain light background; supply --outer and --hole"
+    },
+    {
+      "input": "Flexplay_disc.png",
+      "status": "failed",
+      "error": "Automatic geometry needs a plain light background; supply --outer and --hole"
+    }
+  ],
+  "unit_tests": {
+    "passed": 94
+  },
+  "gui_validation": "Native macOS AppKit: recursive HEIC/JPEG folder, three before/after cards, repeat folder with fresh timestamped roots. Windows launch exercised by CI."
+}

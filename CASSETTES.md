@@ -152,13 +152,15 @@ the homography. Its nominal ratio is 100.4/63.8 (1.5736677) with a 5% relative
 tolerance. Perspective can invalidate that input ratio even for a real cassette;
 the tag is a bounded heuristic alongside the existing reel and edge checks.
 
-For tagged images, `--cassette-crop auto` samples each corner in the rectified
+For all rectified cassettes, `--cassette-crop auto` samples each corner in the rectified
 plane, mapping samples back to the unmasked source. It finds the outermost
 broadly supported gradient arc and refines a tangent quarter ellipse. It does
 not copy a universal corner radius or use an interior screw's high contrast as
 the shell outline. Small outward uncertainty protects the edge. Each fit logs
-its radii, source points, support and residual. Unresolved corners remain square
-and produce `some_corner_arcs_unresolved_kept_square`. The rectangle-only mode
+its radii, source points, support and residual. Unresolved corners inherit a measured sibling radius (bounded to 4.5% of
+body height), or a 2 mm nominal prior. The log identifies these as inferred
+and produces `some_corner_arcs_inferred_from_geometry_review_crop`.
+The prior is a conservative default, not a verified universal shell dimension. The rectangle-only mode
 is available as `--cassette-crop rectangle`.
 
 Short guide projections outside the main-body
@@ -214,7 +216,7 @@ residual and review the reference plane or obtain a calibrated lens profile.
 
 The final alpha is analytic geometry: straight sides plus supported quarter
 ellipses, never a pixel-wise color mask. Weak corner evidence in a small JPEG
-may leave some corners square. Background noise, a shadow, or a molded bevel
+uses explicitly logged radius priors for unresolved corners. Background noise, a shadow, or a molded bevel
 can still mislead any single-photo detector; review the corner-fit diagnostics.
 Experimental boundary conformance remains a 2D approximation, not calibrated
 optical correction. It is separate from the new corner crop.

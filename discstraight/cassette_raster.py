@@ -11,7 +11,7 @@ import numpy as np
 from .cassette import plane_to_source
 from .cassette_crop import crop_alpha
 from .imaging import run, standardize_png_metadata
-from .ocr import recognize
+from .ocr import recognize, OCRUnavailableError
 
 
 def analyze_orientation(rgb: np.ndarray, geometry: dict, work: Path, cache: Path, languages: str,
@@ -26,7 +26,14 @@ def analyze_orientation(rgb: np.ndarray, geometry: dict, work: Path, cache: Path
     for angle in [0,180]:
         image=view if angle==0 else view[::-1,::-1]
         path=work/f'cassette-ocr-{angle}.png';cv2.imwrite(str(path),cv2.cvtColor(image,cv2.COLOR_RGB2BGR))
-        data=recognize(path,languages,cache,backend);rows=[]
+        try:
+            data=recognize(path,languages,cache,backend)
+        except OCRUnavailableError as error:
+            return dict(clockwise_degrees=0.,status='review_required',
+                        reasons=['ocr_unavailable','cassette_upright_direction_unverified'],candidates=[],
+                        fine_text_rotation_applied=False,ocr=dict(engine=backend,error=str(error)),
+                        note='Body edges determine the horizontal axis; without OCR the 180-degree choice is unverified.')
+        rows=[]
         for row in data['rows']:
             text=row['text'];letters=sum(c.isalpha() for c in text)
             p=np.array([row['bottom_left'],row['bottom_right'],row['top_right'],row['top_left']])*[ow,oh]
@@ -95,11 +102,12 @@ def map_metrics(geometry: dict) -> dict:
 def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int], geometry: dict,
                     crop: dict, *, flip: bool, feather: float = 1, depth: int = 16) -> dict:
     h,w=source_shape;metrics=map_metrics(geometry)
-    raw=run(['magick',str(normalized),'-colorspace','RGB','-depth','16','-endian','LSB','rgb:-'],binary=True)
-    rgb=np.frombuffer(raw,dtype='<u2').reshape(h,w,3).astype('float32')/65535;del raw
+    raw=run(['magick',str(normalized),'-colorspace','RGB','-alpha','set','-depth','16','-endian','LSB','rgba:-'],binary=True)
+    image=np.frombuffer(raw,dtype='<u2').reshape(h,w,4).astype('float32')/65535;del raw
     # Every original pixel participates. This fourth channel records source
     # image availability only; no object mask or color key precedes the warp.
-    image=np.dstack([rgb,np.ones(source_shape,np.float32)]);del rgb
+    transparent=bool(np.any(image[...,3]<1))
+    image[...,:3]*=image[...,3,None]
     bw,bh=geometry['plane_size_px']
     left,top,right,bottom=crop['bounds_px'];pad=max(2,math.ceil(feather/2)+1)
     if flip:
@@ -130,7 +138,9 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
                                             source[...,1]+.5,h-.5-source[...,1]]),0,1)
         source_clipped += int(np.count_nonzero((a>0)&(coverage<1)))
         a *= coverage
-        if np.any((a>1e-4)&(total[...,3]<=1e-6)):
+        if transparent:
+            a*=np.clip(total[...,3],0,1)
+        if not transparent and np.any((a>1e-4)&(total[...,3]<=1e-6)):
             raise ValueError('Straight crop contains pixels without source color support')
         linear=np.divide(total[...,:3],total[...,3,None],out=np.zeros_like(total[...,:3]),where=total[...,3,None]>1e-6)
         linear=np.clip(linear,0,1)

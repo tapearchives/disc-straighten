@@ -1,11 +1,11 @@
 # Mac drag-and-drop app
 
-Disc Straighten 0.7.0 includes a native macOS app and the existing command line.
+de-askew 0.8.0 includes a native macOS app and the existing command line.
 They use the same image processor and saved output preferences.
 
 ## Open and use
 
-Open **Disc Straighten.app**. Drop images or folders into its large drop area,
+Open **de-askew.app**. Drop images or folders into its large drop area,
 or onto its Finder/Dock icon. **Choose Images or Folders…** does the same thing.
 Folders are scanned once, without descending into subfolders. JPEG, PNG, TIFF,
 WebP and BMP are supported; HEIC and raw camera files need conversion first.
@@ -73,7 +73,7 @@ are needed to build the app and compile the Vision OCR helper on its first use:
 brew install python imagemagick
 xcode-select --install
 python3 build_macos.py
-open "dist/Disc Straighten.app"
+open "dist/de-askew.app"
 ```
 
 Build again with `python3 build_macos.py --replace`. The build is for the Mac's
@@ -92,9 +92,20 @@ Source CLI runs still use `.venv` in the source directory by default.
 
 The built app can be moved to Applications; its bundled processor moves with it.
 Keep prerequisites installed. Moving it does not move your saved preferences or
-images. The Windows CMD launcher remains supported; this native interface is Mac
-only. Geometry, lens-correction policy, resampling and confidence limits are
+images. The Windows CMD launcher remains supported; this AppKit interface is Mac
+only; Windows has a separate Tk front end using the same CLI. Geometry, lens-correction policy, resampling and confidence limits are
 unchanged by the interface.
 
 Implementation uses Apple's [native drag destination API](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/DragandDrop/Tasks/acceptingdrags.html)
 and [Process output pipes](https://developer.apple.com/documentation/foundation/process/standardoutput).
+
+## Processing cards and finishing controls
+
+A separate scrollable window adds before/after pairs as each file completes,
+with filename and local date/time. It keeps previous cards visible while new
+ones arrive. Contrast, Brightness, Color, All adjustments and Keep metadata
+start off. Preferences select relative/fixed output roots; existing folders
+receive timestamp suffixes. The root contains output-images, output-previews,
+and output-json. Help opens the bundled illustrated guide without networking.
+The application name and icon are **de-askew**. Internal preferences/runtime
+folders keep their older name to preserve existing settings.

@@ -1,6 +1,6 @@
-# Disc Straighten usage
+# de-askew usage
 
-Applies to version 0.7.0. Disc geometry algorithms are unchanged from 0.3.0.
+Applies to version 0.8.0.
 The disc-specific sections below retain their existing conventions.
 Start with the [README](README.md) for installation and a shorter introduction.
 
@@ -18,38 +18,38 @@ The [archivist tool catalog](research/ARCHIVIST_TOOLS.md) compares 18 related
 open-source projects, with licenses, limitations, and integration recommendations.
 
 ```sh
-./disc-straighten /path/to/disc-images --output ./processed --preview
+./de-askew /path/to/disc-images --output ./processed --preview
 ```
 
 Pass one file, multiple files, a folder, or quoted HTTP(S) image URLs. Folder
-scanning is nonrecursive. Existing results are protected unless `--overwrite`
-is supplied. Processing is local; image content is not sent to a cloud service.
+scanning is recursive. Generated output trees, hidden paths and symlinks are
+excluded. An occupied destination receives a timestamp suffix; `--overwrite`
+explicitly reuses it. Processing is local; image content is not sent to a cloud service.
 
 Without `-o`, results go to `output` inside each input's folder. Saved preferences
 can choose another relative folder or one fixed location. Geometry/orientation
-logs always go beside the PNG. `-o` overrides the saved destination for that run.
+logs go in `output-json`, images in `output-images`, previews in `output-previews`. `-o` overrides the saved destination for that run.
 
 ```sh
-./disc-straighten --show-preferences
-./disc-straighten --set-output-relative output
-./disc-straighten --set-output-fixed "/Volumes/Archive/Prepared"
+./de-askew --show-preferences
+./de-askew --set-output-relative output
+./de-askew --set-output-fixed "/Volumes/Archive/Prepared"
 ```
 
 The [Mac app](MACOS.md) shares these preferences and accepts drag-and-drop images
-or folders. Directory scans remain nonrecursive, so the default output subfolder
-is not processed again when dropping its parent. For HTTP(S) sources, a relative
+or folders. Directory scans are recursive and exclude marked generated output folders. For HTTP(S) sources, a relative
 destination is based on the current working directory. Same-basename inputs may
-use different folders; collisions in one destination are rejected.
+use different folders; collisions in one destination gain a deterministic source-address hash suffix.
 
 ## Cassette photographs
 
 ```sh
-./disc-straighten photos --media cassette -o processed --preview
-./disc-straighten photo.jpg --media cassette --debow off -o perspective-only
-./disc-straighten mixed-photos --media auto -o processed
+./de-askew photos --media cassette -o processed --preview
+./de-askew photo.jpg --media cassette --debow off -o perspective-only
+./de-askew mixed-photos --media auto -o processed
 ```
 
-The default media type is `disc`. Cassette processing fits the nominal
+The default media type is `auto`. Cassette processing fits the nominal
 100.4 × 63.8 mm body, excludes short guide-rail excursions from calibration,
 applies the final body/corner crop after correction, and chooses between two opposed text directions. It keeps
 body edges horizontal rather than rotating them to follow slanted artwork.
@@ -77,13 +77,13 @@ it is not a source-image rotation.
 Cassette `--feather 1` applies a one-output-pixel transition centered on the
 final body rectangle and any measured corner arcs. Larger values widen this transition; smaller values are
 unsupported. All original pixels are warped before this crop. There is no safety
-inset, guessed corner radius, color key, or pixel-wise edge removal. The default
-`--cassette-crop auto` uses measured quarter ellipses when the observed, pre-warp
-body ratio is within 5% of 100.4/63.8. The geometry log tags this as
-`compact cassette AR`; the tag is not produced merely because the output was
-forced to that ratio. Each curve is fitted independently, with small outward
-uncertainty to protect the plastic edge. Unsupported corners stay square and
-are flagged. `--cassette-crop rectangle` retains all four virtual square corners.
+inset, color key, or pixel-wise edge removal. The default `--cassette-crop auto`
+measures four quarter ellipses, progressively increasing sensitivity for faint
+edges. A failed measurement inherits a conservative sibling radius or a 2 mm
+shell-size prior. Each is logged as `measured` or `inferred`; review inferred
+corners because shell radii vary. `--cassette-crop rectangle` disables arcs.
+The pre-warp `compact cassette AR` tag uses a 5% tolerance independently of this
+corner policy; a forced output ratio does not count as observed agreement.
 Guide projections outside the main body are cropped. The nominal body and crop share the exact
 continuous ratio, with pixel-grid rounding in the encoded alpha extent.
 Disc-specific rim, hole, size, and perspective options do not configure cassettes.
@@ -125,11 +125,11 @@ Ambiguous visual evidence adds no views. The log records `visual_seed` and
 English and Russian are requested by default; Tesseract logs missing languages,
 uses the available requested languages and flags the result. If none are
 available, discs automatically use the visual fallback described below;
-cassettes require an explicit `--angle` or working OCR. `--angle` bypasses OCR
+cassettes retain the initial body orientation and flag the unresolved 180-degree choice. `--angle` bypasses OCR
 and visual deskew. Example:
 
 ```sh
-./disc-straighten scan.jpg -o processed --languages en-US,ru-RU
+./de-askew scan.jpg -o processed --languages en-US,ru-RU
 ```
 
 ## How discs choose the top
@@ -171,8 +171,8 @@ data, or an OCR engine execution failure automatically trigger a disc-only
 you do not need to enable a flag. `--ocr none` forces this path for comparisons:
 
 ```sh
-./disc-straighten disc.jpg -o processed
-./disc-straighten disc.jpg --ocr none -o visual-comparison
+./de-askew disc.jpg -o processed
+./de-askew disc.jpg --ocr none -o visual-comparison
 ```
 
 The fallback first makes a head-on analysis view using the measured disc
@@ -202,7 +202,7 @@ graphics, so a disc with text only in those zones can remain unrotated.
 Perspective detection is automatic. The same command handles scans and photos:
 
 ```sh
-./disc-straighten photo.jpg --output processed --preview
+./de-askew photo.jpg --output processed --preview
 ```
 
 The detector fits the physical outer rim and spindle opening as separate ellipses,
@@ -320,13 +320,13 @@ summary on stderr and no newly published successful-result log.
 To supply reviewed geometry or an angle, use one input per command:
 
 ```sh
-./disc-straighten scan.jpg -o reviewed --geometry-policy measured --outer 967.7,974.2,951.05 --hole 963.8,976.2,118.67
-./disc-straighten scan.jpg -o reviewed-angle --angle -6.7
-./disc-straighten mini-cd.jpg -o processed --disc-size 80
+./de-askew scan.jpg -o reviewed --geometry-policy measured --outer 967.7,974.2,951.05 --hole 963.8,976.2,118.67
+./de-askew scan.jpg -o reviewed-angle --angle -6.7
+./de-askew mini-cd.jpg -o processed --disc-size 80
 ```
 
 Other controls: `--feather`, `--outer-inset`, `--hole-expansion`, `--depth 8`,
-`--min-margin`, and `--preview`. Run `./disc-straighten --help` for details.
+`--min-margin`, and `--preview`. Run `./de-askew --help` for details.
 
 ## Validation and distribution
 
@@ -371,3 +371,18 @@ terms. No numerical-library binaries, Apple framework binaries, or copyrighted
 sample artwork are included in the source bundle. Private test derivatives are
 included only when explicitly requested during packaging and must not be uploaded
 as a public release. Sample source links and hashes are in `examples/sources.json`.
+
+## Optional final adjustments and metadata
+
+`--auto-contrast`, `--auto-brightness`, `--auto-color`, or `--auto-adjust` (all three)
+run after the final crop. They default off, preserve alpha, and log coefficients.
+Color uses bounded neutral-pixel balance; no neutral evidence means unchanged
+color. `--keep-metadata` also defaults off and requires ExifTool. Writable source
+tags are copied, geometric/color fields corrected, stale previews omitted, and
+a readable source inventory saved to `output-json/*-source-metadata.json`.
+The source container cannot be copied wholesale into PNG; consult the copy
+warnings and inventory. GPS is included when copying is enabled.
+
+HEIC/HEIF inputs require an ImageMagick build with its HEIC delegate. Only the
+primary still is processed; HDR gain maps, depth and motion are not applied.
+Use `magick -list format` to check HEIC support. Original files are untouched.

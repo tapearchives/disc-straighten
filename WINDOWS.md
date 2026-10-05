@@ -1,6 +1,6 @@
 # Windows CMD quick start
 
-Disc Straighten 0.7.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
+de-askew 0.8.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
 It uses Python, ImageMagick and local Tesseract OCR. No WSL, Apple frameworks or
 cloud OCR account is needed. The download is a source kit with a `.cmd` launcher,
 not a self-contained `.exe`.
@@ -11,7 +11,7 @@ Install **Python 3.12 or later**, **ImageMagick 7**, and **Tesseract 5**. Includ
 Python's launcher and add ImageMagick and Tesseract to PATH during installation.
 Install English Tesseract language data; add Russian data for Russian labels.
 Tesseract is optional for bounded disc straightening: unavailable OCR automatically
-falls back to a −45° to +45° visual search. Cassette automatic orientation needs OCR.
+falls back to a −45° to +45° visual search. Without OCR, cassettes flatten and flag the unresolved opposed direction.
 Close and reopen CMD after changing PATH.
 
 With Windows Package Manager, these commands are an alternative to the installers:
@@ -44,11 +44,11 @@ Extract the release ZIP into a writable folder. Run these commands from its
 `disc-straighten` directory:
 
 ```bat
-disc-straighten.cmd -h
-disc-straighten.cmd "C:\Photos\Cassette scans" --media cassette -o "C:\Photos\Prepared" --preview
-disc-straighten.cmd "C:\Photos\disc.jpg" --media auto --languages eng -o processed
-disc-straighten.cmd "C:\Photos\mini cd.jpg" --disc-size 80 -o processed
-disc-straighten.cmd "C:\Photos\Russian disc.jpg" --languages eng,rus -o processed
+de-askew.cmd -h
+de-askew.cmd "C:\Photos\Cassette scans" --media cassette -o "C:\Photos\Prepared" --preview
+de-askew.cmd "C:\Photos\disc.jpg" --media auto --languages eng -o processed
+de-askew.cmd "C:\Photos\mini cd.jpg" --disc-size 80 -o processed
+de-askew.cmd "C:\Photos\Russian disc.jpg" --languages eng,rus -o processed
 ```
 
 The first launch creates `.venv` and installs the pinned Python dependencies.
@@ -61,13 +61,13 @@ Without `-o`, images and JSON logs go in an `output` subfolder inside each input
 folder. Persistent preferences are available from CMD too:
 
 ```bat
-disc-straighten.cmd --set-output-relative output
-disc-straighten.cmd --set-output-fixed "D:\Archive\Prepared"
-disc-straighten.cmd --show-preferences
+de-askew.cmd --set-output-relative output
+de-askew.cmd --set-output-fixed "D:\Archive\Prepared"
+de-askew.cmd --show-preferences
 ```
 
 Settings live in `%APPDATA%\Disc Straighten\preferences.json`. `-o` overrides them
-for one run. The native drag-and-drop interface is currently Mac-only.
+for one run. Run `de-askew-gui.cmd` for the Windows drag-and-drop interface.
 
 Automatic OCR uses Tesseract on Windows. `--ocr tesseract` also selects it on
 macOS for comparison; `--ocr vision` is macOS-only. `eng`/`rus` and `en-US`/`ru-RU`
@@ -77,13 +77,13 @@ are installed, discs automatically use the same visual fallback as missing
 Tesseract. The result is flagged for review because this cannot read text or
 resolve upside-down orientation. Blank or inconclusive discs stay unrotated.
 No flag is required; `--ocr none` explicitly tests this path. For cassettes,
-missing OCR still requires a reviewed manual angle or installing Tesseract.
+missing OCR keeps the initial direction and logs a review notice.
 
 For a reviewed manual direction, OCR can be bypassed:
 
 ```bat
-disc-straighten.cmd tape.jpg --media cassette --angle 0 -o reviewed
-disc-straighten.cmd disc.jpg --angle -17 -o reviewed
+de-askew.cmd tape.jpg --media cassette --angle 0 -o reviewed
+de-askew.cmd disc.jpg --angle -17 -o reviewed
 ```
 
 Cassette angles select 0 or 180 degrees **after** body rectification. Disc angles
@@ -99,7 +99,7 @@ measured corner-arc mask for a comparison.
 Inside another `.cmd`/`.bat` script use `call`:
 
 ```bat
-call disc-straighten.cmd "C:\Photos\Tapes" --media cassette -o processed
+call de-askew.cmd "C:\Photos\Tapes" --media cassette -o processed
 set "DISC_RESULT=%ERRORLEVEL%"
 if "%DISC_RESULT%"=="2" echo Images saved; review the JSON warnings.
 if "%DISC_RESULT%"=="1" echo At least one image failed; read its error.
@@ -129,3 +129,30 @@ set "DISC_SRGB_PROFILE=C:\Color Profiles\sRGB.icc"
 Tesseract and Apple Vision can choose different text directions. Their engine,
 languages and missing-language flags are logged. Neither engine proves the
 artist's intended primary orientation. Preserve and review the original image.
+
+## Windows drop window and icon
+
+Double-click `de-askew-gui.cmd`. First use installs the optional MIT-licensed
+TkinterDnD2 0.6.3 wrapper and its bundled TkDnD extension. Python must include
+Tcl/Tk (the standard Windows installer does). Drop several files, a folder,
+or several folders; nested inputs are processed serially. The scrolling pane
+adds small Before/After cards with filename and completion date/time. Individual
+failures are shown without stopping the remaining batch. Preferences select a
+relative or fixed destination. All finishing/metadata checkboxes start off.
+
+To create a desktop shortcut named **de-askew**, run from PowerShell in the kit:
+
+```powershell
+.\install-windows.ps1
+```
+
+The shortcut uses the supplied `.ico`. Keep the source kit in place afterward.
+This is an installed-Python app, not a bundled EXE. If local PowerShell policy
+blocks scripts, create a shortcut to `de-askew-gui.cmd` manually and choose
+`assets/de-askew.ico` via its Properties; do not change system security policy.
+
+HEIC needs ImageMagick's HEIC/libheif decoder. Optional Keep metadata needs
+`exiftool.exe` on PATH. Download ExifTool from its official project and follow
+its Windows installation instructions. These dependencies are not bundled.
+The normal processing path does not need ExifTool. Existing output roots gain
+a timestamp suffix, with separate output-images, output-previews, output-json.

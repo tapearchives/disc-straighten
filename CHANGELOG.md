@@ -1,5 +1,18 @@
 # Changes
 
+## 0.8.0 — de-askew
+
+- Rename the app and canonical command; retain legacy command aliases/settings.
+- Auto media routing and recursive, deduplicated multi-folder batches by default.
+- HEIC/HEIF primary-still input, source alpha preservation, up to 64 MP input.
+- Optional final contrast/brightness/color/all and ExifTool metadata copy, all off.
+- Fresh timestamped destinations; distinct images, previews and JSON folders.
+- Four cassette arcs: adaptive measurement, explicit inferred geometric fallbacks.
+- Faint disc aperture rescue with contrast proposals and original-edge refitting.
+- Scrolling Mac/Windows comparison cards, illustrated offline guide and disc icon.
+- Hard photographs can still require reviewed geometry; see the sample guide.
+
+
 ## 0.7.0 — October 5, 2026
 
 - When Tesseract reads too little or conflicting text at the coarse angles, use

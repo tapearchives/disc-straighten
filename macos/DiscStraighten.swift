@@ -1,6 +1,11 @@
 // Native drop target; the existing CLI owns all image processing and logs.
 import Cocoa
 import UniformTypeIdentifiers
+import WebKit
+
+final class ComparisonDocument: NSView {
+    override var isFlipped: Bool { true }
+}
 
 struct CommandResult {
     let code: Int32
@@ -27,7 +32,7 @@ final class Engine {
     func run(_ arguments: [String], onLine: ((String) -> Void)? = nil) -> CommandResult {
         let process = Process()
         let pipe = Pipe()
-        process.executableURL = root.appendingPathComponent("disc-straighten")
+        process.executableURL = root.appendingPathComponent("de-askew")
         process.arguments = arguments
         process.environment = environment
         process.currentDirectoryURL = FileManager.default.homeDirectoryForCurrentUser
@@ -101,7 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let engine = Engine()
     let worker = DispatchQueue(label: "org.tapearchives.disc-straighten.processing", qos: .userInitiated)
     var window: NSWindow!
-    let destinationLabel = NSTextField(wrappingLabelWithString: "Output: output inside each input folder · images and JSON logs together")
+    let destinationLabel = NSTextField(wrappingLabelWithString: "Output: output inside each input folder · separate image, preview and JSON folders")
     let statusLabel = NSTextField(labelWithString: "Ready. Originals stay unchanged.")
     let activity = NSTextView()
     let progress = NSProgressIndicator()
@@ -115,6 +120,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var latestOutput: URL?
     var saved: [String: Any] = [:]
     var preferencesSheet: NSWindow?
+    var helpWindow: NSWindow?
+    var comparisonsWindow: NSWindow?
+    var comparisonsScroll: NSScrollView?
+    let comparisons = ComparisonDocument()
+    var comparisonCount = 0
+    let autoContrast = NSButton(checkboxWithTitle: "Contrast", target: nil, action: nil)
+    let autoBrightness = NSButton(checkboxWithTitle: "Brightness", target: nil, action: nil)
+    let autoColor = NSButton(checkboxWithTitle: "Color", target: nil, action: nil)
+    let autoAll = NSButton(checkboxWithTitle: "All adjustments", target: nil, action: nil)
+    let keepMetadata = NSButton(checkboxWithTitle: "Keep metadata", target: nil, action: nil)
     var relativeField: NSTextField!
     var fixedField: NSTextField!
     var mode: NSPopUpButton!
@@ -150,11 +165,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "Preferences…", action: #selector(showPreferences), keyEquivalent: ",").target = self
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit Disc Straighten", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "Quit de-askew", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu; bar.addItem(appItem)
         let fileItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
         let fileMenu = NSMenu(title: "File")
         fileMenu.addItem(withTitle: "Add Images or Folders…", action: #selector(chooseFiles), keyEquivalent: "o").target = self
+        fileMenu.addItem(withTitle: "Processing Comparisons", action: #selector(showComparisons), keyEquivalent: "r").target = self
         fileItem.submenu = fileMenu; bar.addItem(fileItem)
         let editItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
         let editMenu = NSMenu(title: "Edit")
@@ -162,16 +178,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             editMenu.addItem(withTitle: name, action: selector, keyEquivalent: key)
         }
         editItem.submenu = editMenu; bar.addItem(editItem)
+        let helpItem = NSMenuItem(title: "Help", action: nil, keyEquivalent: "")
+        let helpMenu = NSMenu(title: "Help")
+        helpMenu.addItem(withTitle: "de-askew User Guide", action: #selector(showHelp), keyEquivalent: "?").target = self
+        helpItem.submenu = helpMenu; bar.addItem(helpItem)
+        NSApp.helpMenu = helpMenu
         NSApp.mainMenu = bar
+    }
+
+    @objc func showHelp() {
+        if helpWindow == nil {
+            let guide = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 760),
+                                 styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            guide.title = "de-askew User Guide"
+            guide.isReleasedWhenClosed = false
+            guide.minSize = NSSize(width: 560, height: 440)
+            let configuration = WKWebViewConfiguration()
+            configuration.defaultWebpagePreferences.allowsContentJavaScript = false
+            let web = WKWebView(frame: guide.contentView!.bounds, configuration: configuration)
+            web.autoresizingMask = [.width, .height]
+            guide.contentView!.addSubview(web)
+            let root = Bundle.main.resourceURL!.appendingPathComponent("manual")
+            web.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo: root)
+            helpWindow = guide
+            guide.center()
+        }
+        helpWindow!.makeKeyAndOrderFront(nil)
     }
 
     func button(_ title: String, _ action: Selector) -> NSButton {
         NSButton(title: title, target: self, action: action)
     }
     func makeWindow() {
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 600),
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 660),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "Disc Straighten · TapeArchives"
+        window.title = "de-askew"
         window.minSize = NSSize(width: 660, height: 520)
         window.isReleasedWhenClosed = false
         window.center()
@@ -184,10 +225,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24),
             stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 22),
             stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -22)])
-        let title = NSTextField(labelWithString: "Straighten your archive photos")
+        let title = NSTextField(labelWithString: "de-askew")
         title.font = .systemFont(ofSize: 23, weight: .semibold)
         stack.addArrangedSubview(title)
-        let subtitle = NSTextField(wrappingLabelWithString: "Flatten discs and compact cassettes, orient the artwork, and save transparent images with transformation logs.")
+        let subtitle = NSTextField(wrappingLabelWithString: "A Media Image Straightener · Drop a selection of photos or folders. Each image is identified automatically.")
         subtitle.textColor = .secondaryLabelColor
         stack.addArrangedSubview(subtitle)
         let drop = DropView(frame: .zero)
@@ -209,6 +250,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         preferencesButton = button("Preferences…", #selector(showPreferences))
         controls.addArrangedSubview(preferencesButton)
         stack.addArrangedSubview(controls)
+        let options = NSStackView(views: [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata])
+        options.spacing = 12
+        keepMetadata.toolTip = "Copies supported EXIF/XMP/IPTC, including location tags. Requires ExifTool. Defaults off."
+        autoAll.toolTip = "Apply all three adjustments to the final cropped pixels. Defaults off."
+        stack.addArrangedSubview(options)
         destinationLabel.font = .systemFont(ofSize: 12)
         destinationLabel.textColor = .secondaryLabelColor
         stack.addArrangedSubview(destinationLabel)
@@ -236,7 +282,74 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for view in [subtitle, drop, destinationLabel, progress, scroll] as [NSView] {
             view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         }
-        append("JPEG, PNG, TIFF, WebP and BMP. Folder scans do not include subfolders.\nExisting outputs are protected. Results marked ‘Review needed’ still include saved images and logs.")
+        append("JPEG, PNG, TIFF, WebP, BMP and HEIC/HEIF. Folders include subfolders; generated outputs are excluded.\nEach batch uses a fresh output folder with separate image, preview and JSON folders. Adjustments and metadata copying are off by default.")
+    }
+
+    @objc func showComparisons() {
+        if comparisonsWindow == nil {
+            let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 790),
+                                 styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            panel.title = "de-askew · Processing Comparisons"
+            panel.isReleasedWhenClosed = false
+            panel.minSize = NSSize(width: 540, height: 360)
+            let scroll = NSScrollView(frame: panel.contentView!.bounds)
+            scroll.autoresizingMask = [.width, .height]
+            scroll.hasVerticalScroller = true
+            scroll.hasHorizontalScroller = true
+            scroll.autohidesScrollers = false
+            comparisons.frame = NSRect(x: 0, y: 0, width: scroll.contentSize.width, height: 0)
+            comparisons.autoresizingMask = [.width]
+            scroll.documentView = comparisons
+            panel.contentView!.addSubview(scroll)
+            comparisonsWindow = panel
+            comparisonsScroll = scroll
+            panel.center()
+        }
+        comparisonsWindow!.makeKeyAndOrderFront(nil)
+    }
+
+    func addComparison(_ json: [String: Any]) {
+        guard let before = json["before_preview"] as? String,
+              let after = json["preview"] as? String else { return }
+        if comparisonsWindow == nil { showComparisons() }
+        let card = NSStackView()
+        card.orientation = .vertical; card.alignment = .leading; card.spacing = 4
+        card.wantsLayer = true
+        card.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        card.layer?.cornerRadius = 8
+        card.edgeInsets = NSEdgeInsets(top: 8, left: 10, bottom: 8, right: 10)
+        let filename = URL(fileURLWithPath: json["input"] as? String ?? "Image").lastPathComponent
+        let time = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
+        let header = NSTextField(labelWithString: "\(filename)  ·  \(time)")
+        header.font = .systemFont(ofSize: 12, weight: .semibold)
+        card.addArrangedSubview(header)
+        let pair = NSStackView(); pair.distribution = .fillEqually; pair.spacing = 10
+        for (label, path) in [("Before", before), ("After", after)] {
+            let column = NSStackView(); column.orientation = .vertical; column.spacing = 2
+            let caption = NSTextField(labelWithString: label); caption.font = .systemFont(ofSize: 11)
+            let image = NSImageView()
+            image.image = NSImage(contentsOfFile: path)
+            image.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            image.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            image.imageScaling = .scaleProportionallyUpOrDown
+            image.heightAnchor.constraint(equalToConstant: 150).isActive = true
+            image.setAccessibilityLabel("\(label): \(filename)")
+            column.addArrangedSubview(caption); column.addArrangedSubview(image)
+            image.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true
+            pair.addArrangedSubview(column)
+        }
+        card.addArrangedSubview(pair)
+        card.translatesAutoresizingMaskIntoConstraints = false
+        comparisons.addSubview(card)
+        card.topAnchor.constraint(equalTo: comparisons.topAnchor, constant: 12 + CGFloat(comparisonCount) * 214).isActive = true
+        card.leadingAnchor.constraint(equalTo: comparisons.leadingAnchor, constant: 12).isActive = true
+        card.heightAnchor.constraint(equalToConstant: 204).isActive = true
+        card.widthAnchor.constraint(equalTo: comparisons.widthAnchor, constant: -24).isActive = true
+        pair.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -20).isActive = true
+        comparisonCount += 1
+        comparisons.setFrameSize(NSSize(width: comparisonsScroll!.contentSize.width, height: 24 + CGFloat(comparisonCount) * 214))
+        comparisons.layoutSubtreeIfNeeded()
+        card.scrollToVisible(card.bounds)
     }
 
     @objc func chooseFiles() {
@@ -267,7 +380,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         busy = true; setBusyUI(true)
         statusLabel.stringValue = "Processing \(files.first!.lastPathComponent)…"
         // '--' keeps a filename from being interpreted as an option.
-        let arguments = ["--media", kind, "--preview", "--"] + files.map(\.path)
+        var arguments = ["--media", kind, "--preview"]
+        for (control, flag) in [(autoContrast, "--auto-contrast"), (autoBrightness, "--auto-brightness"),
+                                (autoColor, "--auto-color"), (autoAll, "--auto-adjust"), (keepMetadata, "--keep-metadata")] {
+            if control.state == .on { arguments.append(flag) }
+        }
+        arguments += ["--"] + files.map(\.path)
+        showComparisons()
         worker.async {
             let result = self.engine.run(arguments) { line in
                 DispatchQueue.main.async { self.received(line) }
@@ -290,8 +409,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 latestOutput = URL(fileURLWithPath: image); revealButton.isEnabled = true
                 let review = json["status"] as? String == "review_required"
                 append("\(review ? "Review needed" : "Saved"): \(image)")
+                addComparison(json)
                 if let warnings = json["warnings"] as? [String], !warnings.isEmpty { append("  " + warnings.joined(separator: ", ")) }
             } else if let error = json["error"] as? String { append("Could not process \(json["input"] ?? "image"): \(error)") }
+            else if json["status"] as? String == "processing", let input = json["input"] as? String {
+                statusLabel.stringValue = "Processing \(URL(fileURLWithPath: input).lastPathComponent)…"
+            }
         } else { append(line) }
     }
     func append(_ text: String) {
@@ -301,6 +424,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func setBusyUI(_ value: Bool) {
         preferencesButton.isEnabled = !value; media.isEnabled = !value
+        for control in [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata] { control.isEnabled = !value }
         clearQueueButton.isEnabled = value && !queue.isEmpty
         value ? progress.startAnimation(nil) : progress.stopAnimation(nil)
     }
@@ -321,7 +445,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let data = line.data(using: .utf8), let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["schema"] as? Int == 1 {
                 saved = json
                 let location = json["output_mode"] as? String == "fixed" ? (json["fixed_folder"] as? String ?? "") : "\(json["relative_folder"] as? String ?? "output") relative to each input folder"
-                destinationLabel.stringValue = "Output: \(location) · images and JSON logs together"
+                destinationLabel.stringValue = "Output: \(location) · separate image, preview and JSON folders"
                 break
             }
         }

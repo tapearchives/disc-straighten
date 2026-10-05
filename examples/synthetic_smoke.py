@@ -63,7 +63,7 @@ with patch('discstraight.ocr.platform.system', return_value='Windows'), \\
                          cwd=ROOT, capture_output=True, text=True, timeout=180)
     if run.returncode not in (0, 2):
         raise RuntimeError(f'CLI smoke failed: {run.stderr[-4000:]}')
-    data = json.loads((output / 'synthetic-disc-straightened.json').read_text())
+    data = json.loads((output / 'output-json' / 'synthetic-disc-straightened.json').read_text())
     assert data['media'] == 'disc', 'Auto selection must retain a disc'
     png = output / data['output']['file']
     payload = png.read_bytes()

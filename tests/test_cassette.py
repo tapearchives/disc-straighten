@@ -84,7 +84,7 @@ class CassetteGeometryTests(unittest.TestCase):
     def test_low_resolution_frame_preserves_features_next_to_boundary(self):
         image = cv2.resize(fixture(projections=False), (390, 260), interpolation=cv2.INTER_AREA)
         g = detect_cassette(image)
-        mask = body_crop(image, g, minimum_source_scale=map_metrics(g)['minimum_source_pixels_per_output_pixel'])
+        mask = body_crop(image, g, minimum_source_scale=map_metrics(g)['minimum_source_pixels_per_output_pixel'], corners='rectangle')
         w, h = g['plane_size_px']
         # Edge-adjacent screw rims must survive rather than lose a fixed
         # two-source-pixel guard plus aspect-ratio-amplified side margins.

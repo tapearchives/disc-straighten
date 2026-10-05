@@ -218,3 +218,23 @@ the same stage exclusions described above. Full-size color resampling remains
 the main cost; the corrected masking adds no new library or OCR pass. The native
 sampler recommendation still holds. A whole-program Rust rewrite remains
 unjustified by these measurements.
+
+## 0.8.0 sample timings and next optimizations
+
+The five requested cassette examples on the development Apple Silicon Mac took
+about 3.6–10.6 s for geometry, 0.06–0.22 s for corner analysis, 0.34–0.52 s for
+orientation, and 1.5–24.9 s for final rendering. These are development-run timings,
+not a controlled benchmark; image size and active machine work differ. The large
+transparent Denon source spends most time in the quality-preserving raster warp.
+
+Keep the Python orchestration with native NumPy/SciPy/OpenCV/ImageMagick for now.
+A wholesale Rust port would not accelerate external OCR or image codecs by itself.
+Useful next steps are profiling the large-image sampler, bounded tile parallelism
+without nested-thread oversubscription, fewer duplicate geometry proposals, and
+optional smaller derivatives when archival full resolution is unnecessary.
+Do not replace one composed high-quality warp with repeated cheap resizes.
+
+Already applied: anti-aliased bounded geometry analysis, resolution-scaled faint
+edge thresholds, cached interpolation coefficients, small preview cards, and
+serial batches to bound raster memory. GUI history grows with the number of
+small previews; very long unattended runs should use the CLI without --preview.

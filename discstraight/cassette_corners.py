@@ -1,6 +1,7 @@
 """Fit small shell corner arcs in the established cassette plane.
 
-No corner radius is taken from a format template. Unsupported corners stay square.
+Faint arcs use adaptive sensitivity. Unresolved arcs inherit a conservative
+measured sibling radius or a clearly logged shell-size prior.
 """
 from __future__ import annotations
 
@@ -46,24 +47,35 @@ def fit_corners(gray: np.ndarray, geometry: dict) -> list[dict]:
         scores=np.mean(np.minimum(gradients,6),axis=1)
         peak=float(scores.max())
         peaks=find_peaks(scores,prominence=.07)[0]
-        eligible=[i for i in peaks if scores[i]>=max(.7,peak*.15) and np.mean(gradients[i]>.5)>=.65]
         result=dict(corner=['top_left','top_right','bottom_right','bottom_left'][index],
                     applied=False,model='tangent_quarter_ellipse',reason='insufficient_arc_evidence')
-        if not len(eligible):
-            fits.append(result);continue
-        for candidate in eligible:
-            fitted=_refine_arc(sample,directions,float(radii[candidate]),float(scores[candidate]),span)
-            if fitted['applied']:
+        for sensitivity in [1.,.5,.25]:
+            eligible=[i for i in peaks if scores[i]>=max(.7*sensitivity,peak*.15*sensitivity)
+                      and np.mean(gradients[i]>.5*sensitivity)>=.65]
+            for candidate in eligible:
+                fitted=_refine_arc(sample,directions,float(radii[candidate]),float(scores[candidate]),span,sensitivity)
                 result.update(fitted)
-                points=result.pop('plane_points')
-                result['source_points_px']=plane_to_source(origin+sign*points,geometry).tolist()
-                break
-            result.update(fitted)
+                if fitted['applied']:
+                    points=result.pop('plane_points')
+                    result['source_points_px']=plane_to_source(origin+sign*points,geometry).tolist()
+                    result.update(evidence='measured',sensitivity=sensitivity)
+                    break
+            if result['applied']:break
         fits.append(result)
+    measured=[f['radii_xy_px'] for f in fits if f['applied']]
+    prior=(np.minimum(np.median(measured,axis=0),span*.045) if measured
+           else np.array([span*2./63.8]*2))
+    for fit in fits:
+        if fit['applied']:continue
+        fit.update(applied=True,reason='inferred_sibling_arc' if measured else 'inferred_shell_size_arc',
+                   evidence='inferred',radii_xy_px=prior.tolist(),
+                   prior_nominal_radius_mm=2.,
+                   note='Geometric fallback, not a measured boundary. Shell corner radii vary; review this crop.')
     return fits
 
 
-def _refine_arc(sample, directions: np.ndarray, radius: float, peak: float, span: float) -> dict:
+def _refine_arc(sample, directions: np.ndarray, radius: float, peak: float, span: float,
+                sensitivity: float = 1.) -> dict:
     radius_xy=np.array([radius,radius]);band=max(1.5,min(4.,span*.002))
     offsets=np.arange(-band,band+.125,.25)
     for _ in range(4):
@@ -74,7 +86,7 @@ def _refine_arc(sample, directions: np.ndarray, radius: float, peak: float, span
         objective=np.log1p(strength)-.15*(offsets[None]/band)**2
         ids=objective.argmax(axis=1);shifts=offsets[ids]
         values=strength[np.arange(len(ids)),ids]
-        valid=(ids>0)&(ids<len(offsets)-1)&(values>max(.45,peak*.15))
+        valid=(ids>0)&(ids<len(offsets)-1)&(values>max(.45,peak*.15)*sensitivity)
         observed=p+shifts[:,None]*normals
         if valid.mean()<.4:
             return dict(applied=False,reason='insufficient_arc_evidence',coverage=float(valid.mean()))

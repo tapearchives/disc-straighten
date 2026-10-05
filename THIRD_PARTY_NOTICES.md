@@ -1,7 +1,7 @@
 # Dependency and distribution notes
 
 Checked September 30, 2026 against the installed distributions and upstream
-license texts; Tesseract references added October 5, 2026. This is a source distribution of Disc Straighten 0.7.0, licensed
+license texts; Tesseract references added October 5, 2026. This is a source distribution of de-askew 0.8.0, licensed
 under MIT. The custom geometry and orientation code was written for this tool;
 no code from the previously researched deskew, subpixel-edges, circle-fit,
 PaddleOCR, or libvips repositories is included.
@@ -54,3 +54,20 @@ dimensional facts; they are not copies of standards drawings. No cassette
 algorithm or dependency was added in version 0.3.1.
 
 Version 0.4.0 adds original cassette geometry and raster code, with no new runtime dependencies. The five supplied cassette photographs, derivatives, OCR logs, and private review gallery are excluded from public source exports. Their rights are separate from the software license.
+
+## 0.8.0 additions
+
+The optional Windows GUI downloads TkinterDnD2 0.6.3 (MIT wrapper with bundled
+TkDnD binaries under their upstream permissive terms); its wheel license is
+retained in `licenses/tkinterdnd2`. Python and Tcl/Tk are installed separately.
+See https://github.com/Eliav2/tkinterdnd2 and https://github.com/petasis/tkdnd.
+ExifTool is an optional external executable for requested metadata copying;
+it is not distributed by this kit. See https://exiftool.org/ for its Perl
+Artistic/GPL terms. HEIC support uses the user's ImageMagick/libheif installation,
+not a bundled codec. Delegates retain their own licensing.
+
+The illustrated manual now includes the owner-requested sample images.
+`discstraight/manual/ATTRIBUTION.md` records authors, source pages, changes and
+per-image licenses, including CC BY-SA for applicable derivatives. These images
+are not MIT-licensed by this program. The icon derives from the public-domain
+DVD-Video_bottom-side photograph identified in that attribution file.

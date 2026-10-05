@@ -21,7 +21,15 @@ def main() -> int:
         subprocess.run([str(python),'-m','pip','install','--disable-pip-version-check','-r',str(requirements)],check=True)
         stamp.touch()
     env=os.environ.copy();env['PYTHONPATH']=str(ROOT)+(os.pathsep+env['PYTHONPATH'] if env.get('PYTHONPATH') else '')
-    return subprocess.run([str(python),'-m','discstraight',*sys.argv[1:]],env=env).returncode
+    arguments=sys.argv[1:]
+    module='discstraight'
+    if arguments and arguments[0]=='--gui':
+        arguments=arguments[1:];module='discstraight.windows_gui'
+        gui_stamp=venv/'tkinterdnd2-0.6.3'
+        if not gui_stamp.exists():
+            subprocess.run([str(python),'-m','pip','install','tkinterdnd2==0.6.3'],check=True)
+            gui_stamp.touch()
+    return subprocess.run([str(python),'-m',module,*arguments],env=env).returncode
 
 
 if __name__=='__main__':

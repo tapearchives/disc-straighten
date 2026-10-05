@@ -40,12 +40,16 @@ def build(destination: Path, replace: bool = False) -> None:
         for source in (ROOT / 'discstraight').iterdir():
             if source.suffix in {'.py', '.swift'} and source.is_file() and not source.is_symlink():
                 shutil.copy2(source, engine / 'discstraight' / source.name)
-        for name in ['disc-straighten', 'requirements.lock.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md']:
+        for name in ['de-askew', 'un-askew', 'disc-straighten', 'requirements.lock.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md']:
             shutil.copy2(ROOT / name, engine / name)
         (engine / 'disc-straighten').chmod(0o755)
+        (engine / 'un-askew').chmod(0o755)
+        (engine / 'de-askew').chmod(0o755)
+        shutil.copytree(ROOT / 'discstraight' / 'manual', contents / 'Resources' / 'manual')
+        shutil.copy2(ROOT / 'assets' / 'de-askew.icns', contents / 'Resources' / 'de-askew.icns')
         shutil.copytree(ROOT / 'licenses', engine / 'licenses')
-        plist = dict(CFBundleIdentifier=BUNDLE_ID, CFBundleName='Disc Straighten',
-                     CFBundleDisplayName='Disc Straighten', CFBundleExecutable='DiscStraighten',
+        plist = dict(CFBundleIdentifier=BUNDLE_ID, CFBundleName='de-askew',
+                     CFBundleDisplayName='de-askew', CFBundleExecutable='DiscStraighten', CFBundleIconFile='de-askew.icns',
                      CFBundlePackageType='APPL', CFBundleShortVersionString=__version__, CFBundleVersion=__version__,
                      LSMinimumSystemVersion='13.0', NSHighResolutionCapable=True,
                      NSHumanReadableCopyright='MIT · TapeArchives',
@@ -53,7 +57,7 @@ def build(destination: Path, replace: bool = False) -> None:
                                                 LSHandlerRank='Alternate', LSItemContentTypes=['public.image', 'public.folder'])])
         (contents / 'Info.plist').write_bytes(plistlib.dumps(plist))
         subprocess.run(['xcrun', 'swiftc', '-O', '-swift-version', '5', '-framework', 'Cocoa',
-                        '-framework', 'UniformTypeIdentifiers', '-module-cache-path', str(Path(temporary) / 'cache'),
+                        '-framework', 'UniformTypeIdentifiers', '-framework', 'WebKit', '-module-cache-path', str(Path(temporary) / 'cache'),
                         '-target', f'{platform.machine()}-apple-macosx13.0',
                         str(ROOT / 'macos' / 'DiscStraighten.swift'), '-o', str(binary)], check=True)
         subprocess.run(['codesign', '--force', '--sign', '-', str(stage)], check=True)
@@ -73,7 +77,7 @@ def build(destination: Path, replace: bool = False) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / 'Disc Straighten.app')
+    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / 'de-askew.app')
     parser.add_argument('--replace', action='store_true', help='Replace an existing app with the same bundle identifier')
     args = parser.parse_args()
     build(args.output, args.replace)

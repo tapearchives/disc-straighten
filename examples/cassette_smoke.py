@@ -34,9 +34,10 @@ def smoke(folder: Path) -> dict:
     run=subprocess.run([sys.executable,'-m','discstraight',str(source),'--media','auto',
                         '--languages','en-US','--ocr',os.environ.get('DISC_TEST_OCR','auto'),'-o',str(output)],cwd=ROOT,capture_output=True,text=True,timeout=120)
     if run.returncode!=2:raise RuntimeError(f'Expected a reviewable cassette derivative: {run.returncode}: {run.stderr}')
-    log=json.loads((output/'synthetic-cassette-straightened.json').read_text())
+    log=json.loads((output/'output-json'/'synthetic-cassette-straightened.json').read_text())
     assert log['media']=='cassette' and log['schema_version']==7
-    assert log['mask']['method']=='analytic_straight_body_crop_after_rectification'
+    assert len(log['mask']['corner_fits'])==4
+    assert all(f['applied'] for f in log['mask']['corner_fits'])
     assert log['source']['camera']['metadata_status']=='absent'
     assert abs(log['rotation']['clockwise_degrees']+90)<.2
     assert 'cassette_single_plane_approximation' in log['warnings']

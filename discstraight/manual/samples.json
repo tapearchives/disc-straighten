@@ -1,0 +1,265 @@
+[
+  {
+    "id": "01",
+    "source_file": "Audio-Kassette_und_IPod.jpg",
+    "before": "01-before.jpg",
+    "after": "01-after.png",
+    "status": "review required",
+    "note": "cassette single plane approximation; cassette edge incomplete; residual edge alignment requires review. Corner arcs: 4 measured; 0 inferred.",
+    "credit": {
+      "file": "Audio-Kassette_und_IPod.jpg",
+      "author": "Martina",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Audio-Kassette_und_IPod.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "ba79a5b3544ac9f88084710a94cff4db54eb171ef8c5ffa92084f9e6447062c9",
+      "log_summary": {
+        "media": "cassette",
+        "status": "review_required",
+        "warnings": [
+          "cassette_single_plane_approximation",
+          "cassette_edge_incomplete",
+          "residual_edge_alignment_requires_review"
+        ]
+      }
+    }
+  },
+  {
+    "id": "02",
+    "source_file": "CPT_4200_cassette.jpg",
+    "before": "02-before.jpg",
+    "after": "02-after.png",
+    "status": "review required",
+    "note": "cassette single plane approximation; cassette edge incomplete. Corner arcs: 4 measured; 0 inferred.",
+    "credit": {
+      "file": "CPT_4200_cassette.jpg",
+      "author": "That-RickWeller",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:CPT_4200_cassette.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "b16885c90d0d0ca49afa6495fc9aedc50a006b5a73a54b1a9922c61013cba810",
+      "log_summary": {
+        "media": "cassette",
+        "status": "review_required",
+        "warnings": [
+          "cassette_single_plane_approximation",
+          "cassette_edge_incomplete"
+        ]
+      }
+    }
+  },
+  {
+    "id": "03",
+    "source_file": "Compact_Cassette_07.jpg",
+    "before": "03-before.jpg",
+    "after": "03-after.png",
+    "status": "review required",
+    "note": "cassette single plane approximation; cassette edge incomplete; residual edge alignment requires review. Corner arcs: 4 measured; 0 inferred.",
+    "credit": {
+      "file": "Compact_Cassette_07.jpg",
+      "author": "Shams948",
+      "license": "CC0",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Compact_Cassette_07.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "59ad8b0e43013bf02d0e490df5c457f26fd6dcb4967eff087f8e47ad72c27261",
+      "log_summary": {
+        "media": "cassette",
+        "status": "review_required",
+        "warnings": [
+          "cassette_single_plane_approximation",
+          "cassette_edge_incomplete",
+          "residual_edge_alignment_requires_review"
+        ]
+      }
+    }
+  },
+  {
+    "id": "04",
+    "source_file": "DVD-Video_bottom-side.jpg",
+    "before": "04-before.jpg",
+    "after": "04-after.png",
+    "status": "review required",
+    "note": "disc size ambiguous; too little readable text; insufficient orientation evidence kept original angle",
+    "credit": {
+      "file": "DVD-Video_bottom-side.jpg",
+      "author": "Ocrho",
+      "license": "Public domain",
+      "license_url": "",
+      "source": "https://commons.wikimedia.org/wiki/File:DVD-Video_bottom-side.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "92654a09a8cfc6b74aadf2d4cab24a76dfce817be735217454c61f8f3d839419",
+      "log_summary": {
+        "media": "disc",
+        "status": "review_required",
+        "warnings": [
+          "disc_size_ambiguous",
+          "too_little_readable_text",
+          "insufficient_orientation_evidence_kept_original_angle"
+        ]
+      }
+    }
+  },
+  {
+    "id": "05",
+    "source_file": "DVD.png",
+    "before": "05-before.jpg",
+    "after": "05-after.png",
+    "status": "review required",
+    "note": "no readable text",
+    "credit": {
+      "file": "DVD.png",
+      "author": "User:Wanted, User:Lorian",
+      "license": "CC BY-SA 3.0",
+      "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:DVD.png",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "b1bd227273177431f10c60ea520714985bf9153482640b9314b72e85167b7568",
+      "log_summary": {
+        "media": "disc",
+        "status": "review_required",
+        "warnings": [
+          "no_readable_text"
+        ]
+      }
+    }
+  },
+  {
+    "id": "06",
+    "source_file": "Disc_Crack_From_Case.jpg",
+    "before": "06-before.jpg",
+    "after": "06-after.png",
+    "status": "review required",
+    "note": "contrast assisted geometry review; ellipse incomplete edge support; no readable text",
+    "credit": {
+      "file": "Disc_Crack_From_Case.jpg",
+      "author": "CRTGAMER",
+      "license": "Public domain",
+      "license_url": "",
+      "source": "https://commons.wikimedia.org/wiki/File:Disc_Crack_From_Case.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "a8a4aeba9ea1a7d30efaa0f06567cc7e0959e2bc77928af21180e7d1f4f93d26",
+      "log_summary": {
+        "media": "disc",
+        "status": "review_required",
+        "warnings": [
+          "contrast_assisted_geometry_review",
+          "ellipse_incomplete_edge_support",
+          "no_readable_text"
+        ]
+      }
+    }
+  },
+  {
+    "id": "07",
+    "source_file": "Flexplay_disc.png",
+    "before": "07-before.jpg",
+    "after": null,
+    "status": "Automatic geometry unresolved",
+    "note": "The sleeve creates crossing reflections and conceals the rim. Remove the sleeve and recapture; no invented edge or cleaned artwork is shown.",
+    "credit": {
+      "file": "Flexplay_disc.png",
+      "author": "Museum of Obsolete Media",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Flexplay_disc.png",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "60cfafb952dfdbb63053835a3d379e579b6ceeaee0acbb424774bdef9abc74af"
+    }
+  },
+  {
+    "id": "08",
+    "source_file": "IMG_2726.jpg",
+    "before": "08-before.jpg",
+    "after": "08-after.png",
+    "status": "review required",
+    "note": "cassette single plane approximation; cassette edge incomplete; some corner arcs inferred from geometry review crop. Corner arcs: 2 measured; 2 inferred.",
+    "credit": {
+      "file": "IMG_2726.jpg",
+      "author": "Provided by TapeArchives",
+      "license": "Owner-provided sample; separate image rights retained",
+      "license_url": "",
+      "source": "",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": null,
+      "log_summary": {
+        "media": "cassette",
+        "status": "review_required",
+        "warnings": [
+          "cassette_single_plane_approximation",
+          "cassette_edge_incomplete",
+          "some_corner_arcs_inferred_from_geometry_review_crop"
+        ]
+      }
+    }
+  },
+  {
+    "id": "09",
+    "source_file": "IMG_2794.jpg",
+    "before": "09-before.jpg",
+    "after": "09-after.png",
+    "status": "review required",
+    "note": "cassette single plane approximation; cassette edge incomplete; some corner arcs inferred from geometry review crop. Corner arcs: 3 measured; 1 inferred.",
+    "credit": {
+      "file": "IMG_2794.jpg",
+      "author": "Provided by TapeArchives",
+      "license": "Owner-provided sample; separate image rights retained",
+      "license_url": "",
+      "source": "",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": null,
+      "log_summary": {
+        "media": "cassette",
+        "status": "review_required",
+        "warnings": [
+          "cassette_single_plane_approximation",
+          "cassette_edge_incomplete",
+          "some_corner_arcs_inferred_from_geometry_review_crop"
+        ]
+      }
+    }
+  },
+  {
+    "id": "10",
+    "source_file": "Nanay_Folk_Tales_and_Legends_(Disc).png",
+    "before": "10-before.jpg",
+    "after": "10-after.png",
+    "status": "review required",
+    "note": "contrast assisted geometry review",
+    "credit": {
+      "file": "Nanay_Folk_Tales_and_Legends_(Disc).png",
+      "author": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "license_url": "",
+      "source": "https://commons.wikimedia.org/wiki/File:Nanay_Folk_Tales_and_Legends_(Disc).png",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "abd3ffefc0001a6979d7d4982b1ef75ebec6b113e38c8c2de95288980886ffd1",
+      "log_summary": {
+        "media": "disc",
+        "status": "review_required",
+        "warnings": [
+          "contrast_assisted_geometry_review"
+        ]
+      }
+    }
+  },
+  {
+    "id": "11",
+    "source_file": "Đĩa_DVD.jpg",
+    "before": "11-before.jpg",
+    "after": null,
+    "status": "Automatic geometry unresolved",
+    "note": "The hole is obscured by a support. Its larger visible hub ring can be mistaken for an 80 mm-disc aperture. A complete visible physical hole is needed; a perfect output mask would not prove a correct calibration.",
+    "credit": {
+      "file": "Đĩa_DVD.jpg",
+      "author": "Lê Huỳnh Bộ",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:%C4%90%C4%A9a_DVD.jpg",
+      "changes": "EXIF-normalized, resized before; geometric rectification, crop, alpha and orientation after. No finishing adjustments.",
+      "source_sha256": "2cefcd31efd0879c7baf6063bf0f22fb56d5d38cbcdf7ad0a94154f244eea776"
+    }
+  }
+]

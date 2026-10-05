@@ -29,7 +29,7 @@ from .orientation import orient
 from .perspective import detect_perspective, detect_scan_pair, PerspectiveDetectionError
 from .preferences import OutputPreferences, load_preferences, output_folder, preferences_path, save_preferences
 
-EXTENSIONS = {'.jpg','.jpeg','.png','.tif','.tiff','.webp','.bmp'}
+EXTENSIONS = {'.jpg','.jpeg','.png','.tif','.tiff','.webp','.bmp','.heic','.heif'}
 
 
 class CommandParser(argparse.ArgumentParser):
@@ -67,39 +67,42 @@ def cassette_corners(value: str) -> np.ndarray:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = CommandParser(prog='disc-straighten',description='Flatten optical discs and compact cassettes; save transparent PNGs and geometry logs. Originals are preserved.',
+    p = CommandParser(prog='de-askew',description='Flatten optical discs and compact cassettes; save transparent PNGs and geometry logs. Originals are preserved.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''Examples (Windows CMD: use disc-straighten.cmd):
-  disc-straighten "tape photos" --media auto --preview
-  disc-straighten --set-output-relative output
-  disc-straighten --set-output-fixed "/Volumes/Archive/Prepared Images"
-  disc-straighten --show-preferences
-  disc-straighten "tape photos" --media cassette -o processed --preview
-  disc-straighten photo.jpg --media cassette --cassette-crop rectangle -o reviewed
-  disc-straighten disc.jpg --media auto --ocr tesseract --languages eng -o processed
-  disc-straighten disc.jpg --ocr none -o visual-deskew
-  disc-straighten mini-cd.jpg --disc-size 80 -o processed
-  disc-straighten tape.jpg --media cassette --angle 0 -o manual
+        epilog='''Examples (Windows CMD: use de-askew.cmd):
+  de-askew "tape photos" --media auto --preview
+  de-askew --set-output-relative output
+  de-askew --set-output-fixed "/Volumes/Archive/Prepared Images"
+  de-askew --show-preferences
+  de-askew "tape photos" --media cassette -o processed --preview
+  de-askew photo.jpg --media cassette --cassette-crop rectangle -o reviewed
+  de-askew disc.jpg --media auto --ocr tesseract --languages eng -o processed
+  de-askew disc.jpg --ocr none -o visual-deskew
+  de-askew mini-cd.jpg --disc-size 80 -o processed
+  de-askew tape.jpg --media cassette --angle 0 -o manual
 
 Cassettes: fit straight sides, intersect corners, rectify to 100.4:63.8,
-then crop with measured corner arcs when source AR is within 5%.
-Lens correction is off by default. Unsupported corners remain square.
+then crop with measured corner arcs, using logged geometry priors for faint corners.
+Lens correction is off by default. Use --cassette-crop rectangle for square corners.
 Discs automatically try -45 to +45 degree visual deskew if OCR cannot run.
 Exit codes: 0 = completed; 2 = images saved, review needed; 1 = failure.
-Default destination: output beside each input; images and JSON logs stay together.
+Default destination: output beside each input; an existing folder gets a timestamp suffix.
+Images, previews and JSON logs have separate subfolders inside that destination.
+HEIC/HEIF need ImageMagick's HEIC delegate. Adjustments and metadata copying default off.
+Use --auto-adjust for all finishing adjustments; --keep-metadata requires ExifTool.
 Saved preferences change that default. -o overrides them for this run only.
 See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
-    p.add_argument('inputs',nargs='*',help='Raster files, directories (nonrecursive), or HTTP(S) image URLs')
+    p.add_argument('inputs',nargs='*',help='Raster files, folders (recursive; outputs excluded), or HTTP(S) image URLs')
     p.add_argument('-o','--output',type=Path,help='Override saved destination for this run; default: output beside each input')
     preferences = p.add_mutually_exclusive_group()
     preferences.add_argument('--show-preferences',action='store_true',help='Print shared app/CLI output preferences as JSON')
     preferences.add_argument('--set-output-relative',metavar='FOLDER',help='Save a destination relative to each input folder (default: output)')
     preferences.add_argument('--set-output-fixed',type=Path,metavar='FOLDER',help='Save a fixed destination for all inputs')
-    p.add_argument('--media',choices=['disc','cassette','auto'],default='disc',help='Disc is the compatibility default; cassette and auto enable the reviewed cassette beta')
+    p.add_argument('--media',choices=['disc','cassette','auto'],default='auto',help='Automatically identify each disc or compact cassette (default); override for reviewed inputs')
     p.add_argument('--debow',choices=['auto','off','conform'],default='off',help='Cassette geometry: straight-line perspective only (default off), or explicit experimental auto/conform')
     p.add_argument('--cassette-corners',type=cassette_corners,help='Reviewed main-body corners in EXIF-normalized source pixels; excludes guide projections')
-    p.add_argument('--cassette-crop',choices=['auto','rectangle'],default='auto',help='Auto fits measured corner arcs for compact cassette AR; rectangle retains square virtual corners')
-    p.add_argument('--ocr',choices=['auto','vision','tesseract','none'],default='auto',help='Auto uses Vision on macOS, Tesseract elsewhere; unavailable OCR defaults to +/-45 degree visual disc deskew. None forces that fallback; cassettes then need --angle')
+    p.add_argument('--cassette-crop',choices=['auto','rectangle'],default='auto',help='Auto fits all four corner arcs after rectification, with logged geometry priors for faint corners; rectangle retains square virtual corners')
+    p.add_argument('--ocr',choices=['auto','vision','tesseract','none'],default='auto',help='Auto uses Vision on macOS, Tesseract elsewhere; unavailable OCR defaults to +/-45 degree visual disc deskew. None forces that fallback; cassettes keep the body axis and flag the 180-degree choice for review')
     p.add_argument('--languages',default='en-US,ru-RU',help='Comma-separated languages: en-US,ru-RU; Tesseract also accepts eng,rus')
     p.add_argument('--orientation-policy',choices=['balanced','majority'],default='balanced',help='Balanced favors prominent text; majority counts all capped text votes')
     p.add_argument('--min-margin',type=finite,default=.20,help='Review if orientation score margin is below this fraction')
@@ -117,19 +120,38 @@ See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('--hole-expansion',type=finite,default=0,help='Disc hole-radius increase in pixels (default: 0)')
     p.add_argument('--depth',type=int,choices=[8,16],default=16,help='PNG bits per channel (default: 16)')
     p.add_argument('--preview',action='store_true',help='Also export a small preview (white background for cassettes)')
+    p.add_argument('--auto-adjust',action='store_true',help='Enable automatic contrast, brightness and color together (default off)')
+    p.add_argument('--auto-contrast',action='store_true',help='Adjust contrast using only the final cropped image (default off)')
+    p.add_argument('--auto-brightness',action='store_true',help='Adjust exposure using only the final cropped image (default off)')
+    p.add_argument('--auto-color',action='store_true',help='Conservative neutral-pixel color balance after cropping (default off)')
+    p.add_argument('--keep-metadata',action='store_true',help='Copy supported EXIF/XMP/IPTC, including GPS, using ExifTool; save complete readable inventory (default off)')
     p.add_argument('--overwrite',action='store_true',help='Replace this tool\'s existing outputs')
     p.add_argument('--version',action='version',version=__version__)
+    p.add_argument('--manual',action='store_true',help='Print the path to the illustrated offline user guide')
     return p
 
 
-def expand(inputs: list[str]) -> list[str]:
+def expand(inputs: list[str], *, preferences: OutputPreferences | None = None,
+           output: Path | None = None) -> list[str]:
+    """Snapshot recursive input files before processing; never ingest our outputs."""
+    preferences = preferences or OutputPreferences()
     expanded = []
     for item in inputs:
         if urlsplit(item).scheme.lower() in {'http','https'}:
             expanded.append(item)
         elif Path(item).is_dir():
-            expanded.extend(str(p.resolve()) for p in sorted(Path(item).iterdir())
-                            if p.is_file() and p.suffix.lower() in EXTENSIONS)
+            root = Path(item).resolve()
+            for directory, dirs, files in os.walk(root, followlinks=False):
+                parent = Path(directory)
+                destination = output_folder(str(parent / 'input.jpg'), output, preferences)
+                dirs[:] = sorted(d for d in dirs if not d.startswith('.')
+                                 and not (parent/d).is_symlink()
+                                 and (parent/d).resolve() != destination.resolve()
+                                 and not ((parent/d)/'.un-askew-output').exists())
+                expanded.extend(str((parent/name).resolve()) for name in sorted(files)
+                                if not name.startswith('.') and Path(name).suffix.lower() in EXTENSIONS
+                                and not re.search(r'-(straightened|preview|before)\.[^.]+$', name, re.I)
+                                and not (parent/name).is_symlink())
         else:
             expanded.append(str(Path(item).resolve()))
     return list(dict.fromkeys(expanded))
@@ -148,7 +170,7 @@ def acquire(item: str, work: Path) -> tuple[Path,dict]:
     remote = parts.scheme.lower() in {'http','https'}
     suffix = Path(unquote(parts.path) if remote else item).suffix.lower()
     if suffix not in EXTENSIONS:
-        raise ValueError('Expected JPEG, PNG, TIFF, WebP, or BMP input')
+        raise ValueError('Expected JPEG, PNG, TIFF, WebP, BMP, HEIC, or HEIF input')
     source = work/f'input{suffix}'
     if remote:
         url = urlunsplit((parts.scheme,parts.netloc,quote(unquote(parts.path),safe='/'),parts.query,''))
@@ -169,7 +191,7 @@ def acquire(item: str, work: Path) -> tuple[Path,dict]:
 
 
 def write_json(path: Path, value: dict) -> None:
-    path.write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+'\n')
+    path.write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
 
 
 def measure_geometry(gray: np.ndarray, args: argparse.Namespace) -> tuple[dict,dict,np.ndarray | None]:
@@ -193,8 +215,13 @@ def measure_geometry(gray: np.ndarray, args: argparse.Namespace) -> tuple[dict,d
             suspected = error.suspected
             attempt.update(reason='no_usable_concentric_pair',detail=str(error))
             if args.geometry_policy=='nominal':
-                pair = detect_scan_pair(gray,disc_size=args.disc_size)
-                attempt['reason'] = 'scan_seeded_physical_ellipse_pair'
+                from .perspective import detect_contrast_pair
+                try:
+                    pair=detect_contrast_pair(gray,disc_size=args.disc_size,geometry_policy=args.geometry_policy)
+                    attempt['reason']='contrast_assisted_physical_ellipse_pair'
+                except ValueError:
+                    pair = detect_scan_pair(gray,disc_size=args.disc_size)
+                    attempt['reason'] = 'scan_seeded_physical_ellipse_pair'
             elif mode=='on':
                 raise
     if pair is None or (mode=='auto' and not pair['needs_rectification']):
@@ -226,9 +253,9 @@ def measure_geometry(gray: np.ndarray, args: argparse.Namespace) -> tuple[dict,d
 
 
 def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict:
-    targets = {key:args.output/f'{stem}{suffix}' for key,suffix in
-               [('image','-straightened.png'),('log','-straightened.json'),
-                ('orientation','-orientation.json'),('preview','-preview.png')]}
+    from .outputs import targets as make_targets, before_preview
+    from .finishing import finish
+    targets = make_targets(args.output,stem)
     if not args.overwrite and any(path.exists() for path in targets.values()):
         raise FileExistsError(f'Output already exists for {stem}; use --overwrite or a new output folder')
     if any(Path(item).resolve()==path.resolve() for path in targets.values()):
@@ -250,7 +277,10 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
             except ValueError:
                 selected_media='disc'
             else:
-                selected_media='cassette' if candidate['detection_score']>=.65 else 'disc'
+                # The detector has already required four shell edges and a
+                # compatible reel pair. Weak accepted evidence stays a cassette
+                # with review warnings, rather than being misrouted as a disc.
+                selected_media='cassette'
                 cassette_geometry=candidate if selected_media=='cassette' else None
             selection_seconds=time.perf_counter()-selection_started
         if selected_media=='cassette':
@@ -269,6 +299,10 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         else:
             orientation = dict(clockwise_degrees=args.angle,status='user_override',
                                reasons=[],candidates=[],mixed_directions=None)
+        if args.angle is None and 'too_little_readable_text' in orientation.get('reasons',[]):
+            orientation['unapplied_low_evidence_angle']=orientation['clockwise_degrees']
+            orientation['clockwise_degrees']=0.
+            orientation['reasons'].append('insufficient_orientation_evidence_kept_original_angle')
         angle = orientation['clockwise_degrees']
         orientation['rotation_coordinate_space'] = geometry['coordinate_space']
         outer = dict(center_px=geometry['outer_circle']['center_px'],
@@ -285,16 +319,20 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         output = work/'output.png'
         mapped = render(normalized,output,outer,hole,angle,size=size,feather=args.feather,depth=args.depth,
                         rectification_matrix=matrix)
+        finishing=finish(source,output,args,work)
+        if finishing['metadata']['enabled']:
+            finishing['metadata']['source_inventory_file']=targets['metadata'].name
         preview = work/'preview.png'
         make_preview = args.preview or (args.overwrite and targets['preview'].exists())
         if make_preview:
+            before_preview(normalized,work/'before.png')
             run(['magick',str(output),'-background','#20252c','-alpha','remove','-alpha','off',
-                 '-resize','900x900>','-depth','8',str(preview)])
+                 '-resize','700x500>','-strip','-depth','8',str(preview)])
         warnings = geometry['warnings']+orientation.get('reasons',[])
         summary = {k:v for k,v in orientation.items() if k!='unique_text_regions'}
         profile = geometry['disc_profile']
         applied_ratio = hole['radius_px']/outer['radius_px']
-        result = dict(schema_version=4,tool=dict(name='disc-straighten',version=__version__),
+        result = dict(schema_version=4,tool=dict(name='de-askew',version=__version__),
                       created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),media='disc',
                       status='review_required' if warnings else 'accepted',warnings=warnings,
                       source=source_log,
@@ -319,7 +357,8 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
                                      feather_full_width_px=args.feather,
                                      radius_definition='50 percent alpha contour; cubic smoothstep'),
                       rotation=summary,
-                      output=dict(file=targets['image'].name,sha256=sha256(output),depth=args.depth,
+                      finishing=finishing,
+                      output=dict(file=targets['image'].relative_to(args.output).as_posix(),sha256=sha256(output),depth=args.depth,
                                   color_space='sRGB',alpha='straight/unassociated RGBA',
                                   circle_definition='Analytic Euclidean circles sampled on the output pixel grid; '
                                                     'radius is the continuous 50 percent alpha contour',**mapped),
@@ -341,12 +380,18 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         (work/'orientation.json').replace(targets['orientation'])
         if make_preview:
             preview.replace(targets['preview'])
+            (work/'before.png').replace(targets['before'])
+        if args.keep_metadata:
+            (work/'source-metadata.json').replace(targets['metadata'])
         (work/'result.json').replace(targets['log'])
         return result
 
 
 def main(argv: list[str] | None = None) -> int:
     p = parser(); args = p.parse_args(argv)
+    if args.manual:
+        print(Path(__file__).resolve().parent/'manual'/'index.html')
+        return 0
     preference_action = args.show_preferences or args.set_output_relative is not None or args.set_output_fixed is not None
     if preference_action and args.inputs:
         p.error('Change or show preferences separately from processing images')
@@ -367,6 +412,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.languages:p.error('--languages must contain at least one language code')
     if not shutil.which('magick'):
         p.error('ImageMagick 7 must be on PATH. See README.md or WINDOWS.md for installation.')
+    if args.keep_metadata and not shutil.which('exiftool'):
+        p.error('--keep-metadata requires ExifTool on PATH; all other processing works without it.')
     if not 0<args.feather<=20 or not 0<=args.min_margin<=1:
         p.error('--feather must be in (0,20]; --min-margin must be in [0,1]')
     if args.cassette_corners is not None and args.media!='cassette':
@@ -379,7 +426,7 @@ def main(argv: list[str] | None = None) -> int:
         p.error('--perspective on cannot use source-circle overrides; use automatic ellipses or --perspective off')
     if args.geometry_policy=='nominal' and (args.perspective=='off' or args.outer or args.hole):
         p.error('Source-circle overrides and --perspective off require --geometry-policy measured')
-    items = expand(args.inputs)
+    items = expand(args.inputs, preferences=preferences, output=args.output)
     if not items:
         p.error('No supported raster images found')
     if len(items)>1 and any(v is not None for v in [args.outer,args.hole,args.angle,args.cassette_corners]):
@@ -387,21 +434,42 @@ def main(argv: list[str] | None = None) -> int:
     names = [source_name(item) for item in items]
     destinations = [output_folder(item,args.output,preferences) for item in items]
     keys = [(str(folder).casefold(),name.casefold()) for folder,name in zip(destinations,names)]
-    if len(set(keys))!=len(keys):
-        p.error('Inputs have colliding output names in the same destination; use separate folders or unique filenames')
+    # Separate same-named photos from several folders in one fixed destination.
+    # Stable source-address suffixes make repeat drops deterministic.
+    import hashlib
+    from collections import Counter
+    counts = Counter(keys)
+    names = [name + '-' + hashlib.sha256(item.encode()).hexdigest()[:12] if counts[key]>1 else name
+             for item,name,key in zip(items,names,keys)]
     cache = Path(os.environ.get('DISC_STRAIGHTEN_CACHE',Path.home()/'.cache'/'disc-straighten'))
     status = 0
+    from .outputs import reserve_folder, targets as make_targets
+    reserved = {}
     for item,name,destination in zip(items,names,destinations):
         try:
-            args.output = destination
-            args.output.mkdir(parents=True,exist_ok=True)
+            if destination not in reserved:
+                reserved[destination]=reserve_folder(destination,overwrite=args.overwrite)
+            args.output = reserved[destination]
+            print(json.dumps(dict(input=item,status='processing',output_folder=str(args.output))),flush=True)
             result = process(item,name,args,cache)
+            paths=make_targets(args.output,name)
             if result['status']=='review_required' and status==0:
                 status = 2
             print(json.dumps(dict(input=item,status=result['status'],
                                   clockwise_degrees=result['rotation']['clockwise_degrees'],
-                                  image=str(args.output/result['output']['file']),warnings=result['warnings'])))
+                                  image=str(args.output/result['output']['file']),
+                                  before_preview=str(paths['before']) if paths['before'].exists() else None,
+                                  preview=str(paths['preview']) if paths['preview'].exists() else None,
+                                  completed_utc=result.get('created_utc'),warnings=result['warnings'])),flush=True)
         except (ValueError,RuntimeError,OSError,subprocess.SubprocessError) as error:
             status = 1
-            print(json.dumps(dict(input=item,status='failed',error=str(error))),file=sys.stderr)
+            failure = dict(input=item,status='failed',error=str(error))
+            # Batch errors are reviewable beside the successful image logs.
+            try:
+                root=reserved.get(destination,destination)
+                (root/'output-json').mkdir(parents=True,exist_ok=True)
+                write_json(root/'output-json'/(name+'-failure.json'), failure)
+            except OSError:
+                pass
+            print(json.dumps(failure),file=sys.stderr)
     return status

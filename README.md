@@ -1,19 +1,19 @@
-# Disc Straighten
+# de-askew
 
 A TapeArchives project for archival image preparation. Straighten optical discs and
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.7.0 · macOS app and CLI · Windows CMD · MIT · beta.** Cassette processing always
+**Version 0.8.0 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
 
 ## Quick start
 
-On Mac, open **Disc Straighten.app** and drop in images or folders. By default,
-each input folder gets an **output** subfolder containing the images and JSON
-logs. **Preferences…** chooses a relative folder or one fixed destination.
+On Mac, open **de-askew.app** and drop in images or folders. By default,
+each input folder gets a fresh **output** folder. Existing destinations receive a
+date/time suffix. Images, previews and JSON logs have separate subfolders. **Preferences…** chooses a relative folder or one fixed destination.
 The native app uses the same processor as the CLI. [Mac app setup and building](MACOS.md).
 
 On macOS, install Python 3.12+, ImageMagick 7, and Apple's Command Line Tools if needed:
@@ -21,16 +21,16 @@ On macOS, install Python 3.12+, ImageMagick 7, and Apple's Command Line Tools if
 ```sh
 brew install python imagemagick
 xcode-select --install
-./disc-straighten ./cassette-photos --media cassette -o processed --preview
+./de-askew ./cassette-photos --media cassette -o processed --preview
 python3 build_macos.py
-open "dist/Disc Straighten.app"
+open "dist/de-askew.app"
 ```
 
 The launcher creates a local Python environment, installs pinned dependencies,
 and compiles the included Apple Vision helper on first OCR use. Subsequent
 local-image processing runs offline. Source files remain unchanged. Accepts a
-file, several files, a nonrecursive directory, or quoted HTTP(S) image URLs.
-Existing results require `--overwrite`.
+file, several files, recursive folders, or quoted HTTP(S) image URLs.
+Existing folders are preserved unless you explicitly pass `--overwrite`.
 
 Without `-o`, the CLI also uses `output` beside each input, or your saved output
 preference. `-o` is a one-run override. Use `--show-preferences`,
@@ -38,13 +38,13 @@ preference. `-o` is a one-run override. Use `--show-preferences`,
 manage the same preferences from Terminal. Logs always accompany the image.
 
 ```sh
-./disc-straighten disc-photo.jpg -o processed --preview
-./disc-straighten mini-cd.jpg -o processed --disc-size 80
-./disc-straighten mixed-photos --media auto -o processed --preview
-./disc-straighten cassette.jpg --media cassette --debow off -o perspective-only
+./de-askew disc-photo.jpg -o processed --preview
+./de-askew mini-cd.jpg -o processed --disc-size 80
+./de-askew mixed-photos --media auto -o processed --preview
+./de-askew cassette.jpg --media cassette --debow off -o perspective-only
 ```
 
-`--media disc` remains the default. Automatic selection is experimental: it tests
+`--media auto` is the default. Automatic selection is experimental: it tests
 body-edge and reel-pair evidence, then tries the disc detector if that evidence
 is insufficient. It can reject an input and does not handle multiple objects.
 Tested on Apple Silicon macOS with Python 3.14.7. OCR uses Apple's system Vision
@@ -60,36 +60,68 @@ text still chooses the final direction; the extra views are logged separately.
 projection sharpness; it cannot read the text or resolve upside-down labels.
 Weak or competing evidence leaves the angle unchanged. Every fallback result
 is flagged for review and logs its search range, chosen angle and OCR failure.
-Use `--ocr none` to try it deliberately. Cassettes still need OCR or an explicit
-`--angle 0` / `--angle 180` after body rectification.
+Use `--ocr none` to try it deliberately. Cassettes without OCR still flatten the body, retain its initial 0/180 direction,
+and log the unresolved text orientation. `--angle 0` / `--angle 180` overrides it.
 
 On **Windows**, install Python 3.12+, ImageMagick 7 and Tesseract 5, extract the
 source kit, and run from CMD:
 
 ```bat
-disc-straighten.cmd -h
-disc-straighten.cmd "C:\Photos\Tapes" --media cassette -o processed --preview
-disc-straighten.cmd disc.jpg --languages eng --media auto -o processed
+de-askew.cmd -h
+de-askew.cmd "C:\Photos\Tapes" --media cassette -o processed --preview
+de-askew.cmd disc.jpg --languages eng --media auto -o processed
 ```
 
 The launcher creates its local environment on first use. This is a source kit,
-not a standalone executable. [Windows installation and troubleshooting](WINDOWS.md)
+not a standalone executable. Run `de-askew-gui.cmd` for the Windows drop window;
+`install-windows.ps1` adds a **de-askew** desktop shortcut and icon. [Windows installation and troubleshooting](WINDOWS.md)
 includes PATH, language data, batch exit codes and color management.
+
+## Finishing, HEIC and metadata
+
+JPEG, PNG, TIFF, WebP, BMP, HEIC and HEIF are accepted. HEIC uses ImageMagick
+with libheif; only the primary still image is processed. HDR/gain-map and Live
+Photo motion are not reconstructed. Inputs support up to 64 megapixels.
+
+**Contrast**, **Brightness**, **Color**, and **All adjustments** are optional and
+start **off**. They operate on the final cropped derivative, measure opaque
+pixels only, preserve alpha, and log the applied coefficients. Automatic color
+balance is bounded and leaves color unchanged if no reliable neutral sample
+exists. These controls are visual adjustments, not calibrated restoration.
+
+**Keep metadata** starts **off**. Install ExifTool (`brew install exiftool` on
+Mac) to copy writable EXIF/XMP/IPTC and other compatible tags. Orientation,
+dimensions and color declarations are updated; stale embedded previews are
+omitted. PNG cannot carry every JPEG/HEIF container tag. A companion metadata
+JSON preserves ExifTool’s readable source inventory, including unsupported
+fields. GPS and other private tags are included when this option is on.
+
+```sh
+./de-askew photos --preview --auto-adjust
+./de-askew photo.heic --auto-contrast --auto-color --keep-metadata
+```
+
+The app’s scrolling processing view adds a compact before/after card, filename
+and completion timestamp for each finished image. The
+[illustrated offline guide](discstraight/manual/index.html) includes all eleven
+requested examples, their actual outcomes, and image credits. Open it from
+**Help → User Guide** in the app; `--manual` prints its location.
 
 ## What changes in the image
 
 | Input | Geometry and orientation | Transparency |
 | --- | --- | --- |
 | Optical disc | Fit the physical rim and spindle aperture, normalize to concentric circles at nominal 15/120 or 15/80 ratio, then align the strongest text family | Remove exterior and spindle aperture; preserve the clear hub and matrix artwork |
-| Compact cassette | Fit long body edges and intersect them; map to 100.4 × 63.8 mm; choose between opposed OCR orientations | Crop after correction, with measured corner arcs and a slight centered feather; preserve photographed interior openings |
+| Compact cassette | Fit long body edges and intersect them; map to 100.4 × 63.8 mm; choose between opposed OCR orientations | Crop after correction, with measured/inferred corner arcs and a slight centered feather; preserve photographed interior openings |
 
 The cassette default (`--debow off`) fits four straight main-body lines and
 intersects adjacent lines to obtain the corners. One homography maps that frame
 to the nominal rectangle, followed by the final crop and feather. A detected
 pre-warp aspect ratio within 5% of **1.5736677:1** is tagged **compact cassette AR**.
-It enables independent matching of each outer corner curve. Supported quarter
-ellipses remove exterior corner background; uncertain corners remain square and
-are flagged. No radius is assumed from the format name. `--cassette-crop rectangle`
+Each corner is matched independently after rectification, even when perspective
+changes the source ratio. Faint arcs get three sensitivity passes. Unresolved
+corners use a measured sibling radius or a conservative 2 mm size prior,
+explicitly tagged **inferred** for review. This is not a universal shell standard. `--cassette-crop rectangle`
 provides the previous rectangle-only comparison. No lens or
 nonlinear bow correction is applied. Explicit experimental `auto` and `conform`
 modes remain available for reviewed comparisons. A single plane cannot remove
@@ -99,7 +131,7 @@ the depth parallax of a raised lip, recessed reel, or hole wall.
 Final pixels come from one composed warp of the original, in linear RGB with
 premultiplied alpha: native EWA Lanczos3 for discs; continuous-phase Lanczos3 with
 bounded footprint supersampling for cassettes. The default is 16-bit RGBA with
-slightly feathered boundaries. No missing detail is synthesized.
+slightly feathered boundaries. Source transparency is retained. No missing detail is synthesized.
 
 Straight-edge selection uses long-span gradient evidence, avoiding short guide
 rails and faint divergent background fringes. Rounded corners do not locate the
@@ -108,8 +140,10 @@ reviewable. See [crop assumptions](CASSETTES.md#low-resolution-crop-preservation
 
 ## Results and review
 
-Each input produces `*-straightened.png`, `*-straightened.json`, and
-`*-orientation.json`; `--preview` adds a white-background cassette preview (dark
+Each run uses `output` (or `output_YYYYMMDD_HHMMSS` if occupied):
+`output-images/*-straightened.png`, `output-json/*-straightened.json` and
+`output-json/*-orientation.json`. `--preview` adds `*-before.png` and
+`*-preview.png` in `output-previews`, including a white-background cassette preview (dark
 background for discs). No background color or outline is added to the RGBA master. Logs record
 hashes, coordinates, transforms, geometry evidence, orientation alternatives,
 versions, and limitations. Cassette logs also distinguish radial correction,
@@ -162,6 +196,10 @@ spacing; provisional pin-hole dimensions are not forced onto photographs.
 .venv/bin/python examples/cassette_smoke.py
 .venv/bin/python package.py
 ```
+
+[Current sample validation](docs/validation-v0.8.0.json): 94 unit checks, nine
+reviewable derivatives out of the eleven requested photographs. The sleeved
+Flexplay disc and the DVD with an obscured aperture remain unresolved.
 
 Original synthetic controls exercise perspective, independent interior landmarks,
 short guide projections, mixed background contrast, radial distortion, nonlinear
