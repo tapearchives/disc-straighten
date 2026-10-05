@@ -103,3 +103,35 @@ class FallbackRoutingTests(unittest.TestCase):
              patch('discstraight.ocr.run', side_effect=RuntimeError('engine initialization failed')), \
              self.assertRaisesRegex(OCRUnavailableError, 'initialization failed'):
             recognize(Path('unused.png'), 'en-US', Path('.'), 'tesseract')
+
+    def test_sparse_tesseract_retries_level_views_but_keeps_ocr_as_evidence(self):
+        angles = []
+        def view(source, target, angle, center, radius, matrix):
+            angles.append(angle)
+            return dict(size=720, scale=1, center=center, angle=angle)
+        row = dict(text='TAPE ARCHIVES', confidence=.95, bottom_left=[.2,.55],
+                   bottom_right=[.8,.55], top_left=[.2,.61], top_right=[.8,.61])
+        def recognize(*args):
+            return dict(rows=[row] if len(angles)==9 else [], engine='Tesseract LSTM',
+                        languages=['eng'], revision='test', missing_languages=[])
+        visual = dict(clockwise_degrees=-17., reasons=['ocr_free_upright_direction_unverified'], search={})
+        with patch('discstraight.orientation.ocr_view', side_effect=view), \
+             patch('discstraight.ocr.recognize', side_effect=recognize), \
+             patch('discstraight.deskew.analyze_visual', return_value=visual):
+            result = self.call(backend='tesseract')
+        self.assertEqual(result['clockwise_degrees'], -17.)
+        self.assertEqual(result['status'], 'accepted')
+        self.assertEqual(result['candidates'][0]['examples'], ['TAPE ARCHIVES'])
+        self.assertEqual(result['ocr']['visually_seeded_views'], 4)
+        self.assertNotIn('ocr_unavailable', result['reasons'])
+
+    def test_ambiguous_visual_marks_do_not_add_ocr_seed_views(self):
+        data = dict(rows=[], engine='Tesseract LSTM', languages=['eng'], revision='test', missing_languages=[])
+        visual = dict(clockwise_degrees=0., reasons=['ambiguous_straightness_kept_original_angle'], search={})
+        with patch('discstraight.orientation.ocr_view'), \
+             patch('discstraight.ocr.recognize', return_value=data) as ocr, \
+             patch('discstraight.deskew.analyze_visual', return_value=visual):
+            result = self.call(backend='tesseract')
+        self.assertEqual(ocr.call_count, 8)
+        self.assertEqual(result['clockwise_degrees'], 0.)
+        self.assertEqual(result['reasons'], ['no_readable_text'])

@@ -2,6 +2,12 @@
 
 ## 0.7.0 — October 5, 2026
 
+- When Tesseract reads too little or conflicting text at the coarse angles, use
+  a supported visual straightness estimate to supply four additional OCR views.
+  Recognized text still chooses the orientation; log the seed separately and
+  skip it when visual evidence is ambiguous. This fixes a hosted macOS smoke
+  failure caused by fragmented recognition of tilted text.
+
 - Add a native macOS drag-and-drop app with file/folder selection, serial batch
   processing, media selection, visible progress and review outcomes, and Finder
   access to results. Embed the same processor source; keep dependencies outside
@@ -11,7 +17,7 @@
   preferences shared by the app and CLI. Explicit `-o` overrides one run.
 - Allow equal basenames in different destinations; reject destination collisions
   before processing. Preserve originals and existing-result protections. Keep
-  geometry, orientation and resampling behavior unchanged.
+  geometry and resampling behavior unchanged.
 - Add preference persistence, reset, routing, collision and batch failure tests,
   native app build/signature verification, and a Mac usage guide.
 

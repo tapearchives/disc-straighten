@@ -108,9 +108,9 @@ def estimate(gray: np.ndarray, center: tuple[float, float], radius: float) -> di
     return result
 
 
-def orient_without_ocr(source: Path, outer: dict, work: Path, *,
-                       rectification_matrix: np.ndarray | None, reason: str,
-                       requested_backend: str) -> dict:
+def analyze_visual(source: Path, outer: dict, work: Path, *,
+                   rectification_matrix: np.ndarray | None) -> dict:
+    """Measure visual alignment independently of whether OCR is available."""
     path = work/'straightness-analysis.png'
     view = ocr_view(source, path, 0., outer['center_px'], outer['radius_px'], rectification_matrix)
     gray = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
@@ -122,8 +122,15 @@ def orient_without_ocr(source: Path, outer: dict, work: Path, *,
         gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     center = ((gray.shape[1]-1)/2, (gray.shape[0]-1)/2)
     result = estimate(gray, center, outer['radius_px']*view['scale']*gray.shape[1]/original_size)
+    result['text_coordinate_space'] = 'rectified_disc_plane' if rectification_matrix is not None else 'normalized_source'
+    return result
+
+
+def orient_without_ocr(source: Path, outer: dict, work: Path, *,
+                       rectification_matrix: np.ndarray | None, reason: str,
+                       requested_backend: str) -> dict:
+    result = analyze_visual(source, outer, work, rectification_matrix=rectification_matrix)
     result['reasons'].insert(0, 'ocr_disabled' if requested_backend == 'none' else 'ocr_unavailable')
     result['ocr'] = dict(engine=None, available=False, requested_backend=requested_backend,
                          fallback_reason=reason, used_for_orientation=False)
-    result['text_coordinate_space'] = 'rectified_disc_plane' if rectification_matrix is not None else 'normalized_source'
     return result

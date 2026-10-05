@@ -51,6 +51,10 @@ Tested on Apple Silicon macOS with Python 3.14.7. OCR uses Apple's system Vision
 framework by default. Windows uses Tesseract 5. The same backend can be selected
 on macOS with `--ocr tesseract`; engine and language differences are logged.
 
+When Tesseract gets weak or conflicting evidence from tilted text, a supported
+visual straightness estimate supplies four additional OCR views. Recognized
+text still chooses the final direction; the extra views are logged separately.
+
 **If OCR cannot run, discs automatically try visual straightening from −45° to
 +45°.** No option is required. The fallback aligns text-like marks by horizontal
 projection sharpness; it cannot read the text or resolve upside-down labels.

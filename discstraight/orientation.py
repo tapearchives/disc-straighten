@@ -205,6 +205,30 @@ def _orient_ocr(source: Path, outer: dict, work: Path, cache: Path, *, languages
             if item:
                 observations.append(item)
     result = consensus(observations,outer['radius_px'],policy=policy,minimum_margin=minimum_margin)
+    if data['engine']=='Tesseract LSTM' and result['status']=='review_required':
+        # Sparse-text OCR may return only fragments at the eight coarse angles.
+        # A visual estimate supplies extra analysis views; OCR still decides
+        # which upright text family wins, including opposed/quarter-turn views.
+        from .deskew import analyze_visual
+        progress('Sparse OCR evidence; testing visually aligned text views')
+        visual = analyze_visual(source,outer,work,rectification_matrix=rectification_matrix)
+        seeded_angles = []
+        if not any('kept_original_angle' in reason for reason in visual['reasons']):
+            for offset in [0,90,180,270]:
+                angle = wrap(visual['clockwise_degrees']+offset)
+                path = work/f'seeded-ocr-{offset}.png'
+                view = ocr_view(source,path,angle,outer['center_px'],outer['radius_px'],rectification_matrix)
+                data = recognize(path,languages,cache,backend)
+                seeded_angles.append(angle)
+                for row in data['rows']:
+                    item = observation(row,view,outer['radius_px'])
+                    if item:
+                        observations.append(item)
+            result = consensus(observations,outer['radius_px'],policy=policy,minimum_margin=minimum_margin)
+        result['visual_seed'] = dict(search=visual['search'],reasons=visual['reasons'],
+                                    clockwise_degrees=visual['clockwise_degrees'],
+                                    ocr_view_angles=seeded_angles,
+                                    note='Visual alignment proposes OCR views; recognized text still determines orientation.')
     if rectification_matrix is not None and spindle is not None and result['candidates']:
         # Perspective changes both letter scale and skew across the source.
         # Recheck the winning family at the actual output scale, since Vision's
@@ -240,6 +264,7 @@ def _orient_ocr(source: Path, outer: dict, work: Path, cache: Path, *, languages
                                              'Skipped above 2000-pixel native width. Temporary views only.')
     result['ocr'] = dict(engine=data['engine'],languages=data['languages'],
                          revision=data['revision'],coarse_views=8,
+                         visually_seeded_views=len(result.get('visual_seed',{}).get('ocr_view_angles',[])),
                          fine_views=len(result.get('fine_alignment',{}).get('passes',[])),language_correction=False)
     result['ocr']['missing_languages']=data['missing_languages']
     if data['missing_languages']:

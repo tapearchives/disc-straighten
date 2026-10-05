@@ -117,6 +117,11 @@ processing afterward does not. No system package installation is done silently.
 
 `--ocr auto` chooses Vision on macOS and Tesseract elsewhere. `--ocr tesseract`
 selects the portable backend explicitly. Language data is installed separately.
+Weak Tesseract consensus can trigger four extra OCR views proposed by the bounded
+visual straightness search. The visual angle is a proposal, not an orientation
+decision: OCR scores all supported text families, including opposed directions.
+Ambiguous visual evidence adds no views. The log records `visual_seed` and
+`ocr.visually_seeded_views` separately from the eight coarse OCR views.
 English and Russian are requested by default; Tesseract logs missing languages,
 uses the available requested languages and flags the result. If none are
 available, discs automatically use the visual fallback described below;
