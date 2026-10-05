@@ -1,6 +1,6 @@
 # Disc Straighten
 
-An archival image preparation CLI for TapeArchives. Straighten optical discs and
+A TapeArchives project for archival image preparation. Straighten optical discs and
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 

@@ -1,6 +1,6 @@
 # Preparing a public release
 
-Version 0.6.0 is prepared for a TapeArchives-branded `disc-straighten` repository.
+Version 0.6.0 is prepared for the owner-selected `tapearchives/disc-straighten` repository.
 These instructions do not create a GitHub repository, push commits, or publish
 packages. No live repository URL is assumed in package metadata or CI badges.
 
