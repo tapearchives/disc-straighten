@@ -13,6 +13,7 @@ from discstraight import __version__
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC_FILES = (
+    'tests/fixtures/gradient.heic', 'tests/fixtures/README.md',
     'docs/validation-v0.8.0.json',
     'discstraight/manual/images/03-after.png',
     'de-askew-gui.cmd', 'install-windows.ps1', 'assets/de-askew.svg',

@@ -94,7 +94,9 @@ class FinishingTests(unittest.TestCase):
         if 'HEIC' not in run(['magick','-list','format']):self.skipTest('HEIC delegate unavailable')
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);source=root/'source.heic';target=root/'normalized.miff'
-            run(['magick','-size','256x192','gradient:#234567-#eeeeee',str(source)])
+            # Some Windows distributions decode HEIC but deliberately omit
+            # its encoder. Input support must not depend on export support.
+            shutil.copy2(Path(__file__).parent/'fixtures'/'gradient.heic',source)
             result=normalize(source,target)
             self.assertEqual((result['width'],result['height']),(256,192))
             self.assertTrue(target.is_file())
