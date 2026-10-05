@@ -1,0 +1,43 @@
+         7075366 function calls (7063685 primitive calls) in 5.016 seconds
+
+   Ordered by: cumulative time
+   List reduced from 377 to 35 due to restriction <35>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    5.016    5.016 cli.py:127(measure_geometry)
+        1    0.000    0.000    3.779    3.779 geometry.py:185(detect)
+        1    0.000    0.000    3.500    3.500 geometry.py:128(rim_seed)
+        2    0.268    0.134    3.449    1.724 geometry.py:63(rim_hypotheses)
+     2898    0.008    0.000    2.405    0.001 _util.py:650(inner)
+     2898    0.033    0.000    2.395    0.001 least_squares.py:266(least_squares)
+     2877    0.004    0.000    2.366    0.001 geometry.py:16(fit_circle)
+     2898    0.008    0.000    1.832    0.001 trf.py:113(trf)
+     2877    0.099    0.000    1.760    0.001 trf.py:415(trf_no_bounds)
+        1    0.000    0.000    1.237    1.237 perspective.py:234(detect_perspective)
+        1    0.008    0.008    1.114    1.114 perspective.py:140(physical_rim)
+    11625    0.070    0.000    1.022    0.000 _numdiff.py:288(approx_derivative)
+        8    0.040    0.005    0.992    0.124 perspective.py:105(refine_edge)
+    11625    0.009    0.000    0.859    0.000 _differentiable_functions.py:748(jac)
+    11625    0.009    0.000    0.817    0.000 _differentiable_functions.py:711(_update_jac)
+   262161    0.274    0.000    0.815    0.000 _linalg.py:2598(norm)
+     8727    0.018    0.000    0.799    0.000 _differentiable_functions.py:447(__call__)
+       13    0.000    0.000    0.660    0.051 _interpolation.py:136(spline_filter)
+       26    0.000    0.000    0.657    0.025 _interpolation.py:48(spline_filter1d)
+       26    0.656    0.025    0.656    0.025 {built-in method scipy.ndimage._nd_image.spline_filter1d}
+    11625    0.077    0.000    0.652    0.000 _numdiff.py:683(_dense_difference)
+       12    0.000    0.000    0.626    0.052 sampling.py:18(__init__)
+    35169    0.042    0.000    0.480    0.000 _numdiff.py:904(__call__)
+    47005    0.028    0.000    0.458    0.000 _differentiable_functions.py:422(__call__)
+      751    0.002    0.000    0.455    0.001 _interpolation.py:374(map_coordinates)
+   178069    0.428    0.000    0.428    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+    47005    0.013    0.000    0.410    0.000 least_squares.py:262(__call__)
+    48971    0.146    0.000    0.395    0.000 geometry.py:17(residual)
+      751    0.392    0.001    0.392    0.001 {built-in method scipy.ndimage._nd_image.geometric_transform}
+      750    0.003    0.000    0.374    0.000 sampling.py:25(sample)
+     2898    0.024    0.000    0.360    0.000 _differentiable_functions.py:542(__init__)
+   146453    0.077    0.000    0.249    0.000 geometry.py:97(<genexpr>)
+        3    0.001    0.000    0.246    0.082 geometry.py:153(refine_circle)
+     8905    0.028    0.000    0.217    0.000 _decomp_svd.py:37(svd)
+       13    0.000    0.000    0.204    0.016 _filters.py:757(gaussian_filter)
+
+

@@ -1,0 +1,238 @@
+{
+  "tool_version": "0.6.0",
+  "date": "2026-10-05",
+  "sample_count": 5,
+  "unit_tests_passed": 68,
+  "scope": "Private development photographs, not an independent accuracy benchmark. No artwork, OCR, personal paths, or image hashes in this public summary.",
+  "local_smoke": {
+    "vision_disc": "passed",
+    "vision_cassette": "passed",
+    "tesseract_disc": "passed",
+    "tesseract_cassette": "passed"
+  },
+  "native_windows_validation": "Pending hosted CI; portable OCR was exercised on macOS.",
+  "samples": [
+    {
+      "sample": 1,
+      "source_pixels": [
+        361,
+        244
+      ],
+      "observed_aspect_ratio": 1.524906632064229,
+      "tag": "compact cassette AR",
+      "corners_applied": [
+        false,
+        true,
+        false,
+        true
+      ],
+      "corner_radii_xy_px": [
+        null,
+        [
+          10.312603052276492,
+          8.109650560769241
+        ],
+        null,
+        [
+          9.418393891666957,
+          13.201766123473828
+        ]
+      ],
+      "corner_rms_px": [
+        0.7211913357070879,
+        0.17060002592646648,
+        null,
+        0.40312667101807925
+      ],
+      "lens_correction_applied": false,
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "low_resolution_boundary_uncertainty",
+        "cassette_edge_incomplete",
+        "shell_near_image_boundary",
+        "too_little_readable_text",
+        "some_corner_arcs_unresolved_kept_square"
+      ]
+    },
+    {
+      "sample": 2,
+      "source_pixels": [
+        2880,
+        3840
+      ],
+      "observed_aspect_ratio": 1.5642747674433473,
+      "tag": "compact cassette AR",
+      "corners_applied": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "corner_radii_xy_px": [
+        [
+          132.12843103479833,
+          116.61290739415642
+        ],
+        [
+          58.92233343733349,
+          46.02329086027058
+        ],
+        [
+          118.07275139322111,
+          93.50298795813994
+        ],
+        [
+          30.659489115050995,
+          47.36094461624668
+        ]
+      ],
+      "corner_rms_px": [
+        1.4235529807001228,
+        1.5743588418101848,
+        0.7041461059412703,
+        1.170900887338502
+      ],
+      "lens_correction_applied": false,
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "residual_edge_alignment_requires_review"
+      ]
+    },
+    {
+      "sample": 3,
+      "source_pixels": [
+        2880,
+        3840
+      ],
+      "observed_aspect_ratio": 1.5742579558693237,
+      "tag": "compact cassette AR",
+      "corners_applied": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "corner_radii_xy_px": [
+        [
+          70.52020142636616,
+          78.72075444441846
+        ],
+        [
+          99.74606547106032,
+          102.42184186745632
+        ],
+        [
+          128.59866842682678,
+          91.58057400659031
+        ],
+        [
+          121.25543121791692,
+          126.7655732244798
+        ]
+      ],
+      "corner_rms_px": [
+        0.976013871040878,
+        0.2786599988037551,
+        1.0628017762412678,
+        1.33112378954469
+      ],
+      "lens_correction_applied": false,
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "residual_edge_alignment_requires_review"
+      ]
+    },
+    {
+      "sample": 4,
+      "source_pixels": [
+        3840,
+        2880
+      ],
+      "observed_aspect_ratio": 1.585207063956373,
+      "tag": "compact cassette AR",
+      "corners_applied": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "corner_radii_xy_px": [
+        [
+          54.10528575370175,
+          45.796534699086365
+        ],
+        [
+          77.87535118605842,
+          90.92811286956858
+        ],
+        [
+          99.25969651465441,
+          93.6013801594722
+        ],
+        [
+          88.63445758624485,
+          85.54037529213907
+        ]
+      ],
+      "corner_rms_px": [
+        1.6912756418238268,
+        0.885953765767951,
+        0.8600029803903708,
+        1.3285903987592824
+      ],
+      "lens_correction_applied": false,
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "residual_edge_alignment_requires_review"
+      ]
+    },
+    {
+      "sample": 5,
+      "source_pixels": [
+        1280,
+        823
+      ],
+      "observed_aspect_ratio": 1.5636256460302926,
+      "tag": "compact cassette AR",
+      "corners_applied": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "corner_radii_xy_px": [
+        [
+          40.185969375492725,
+          40.54215712094716
+        ],
+        [
+          39.728866852923495,
+          39.378951880997455
+        ],
+        [
+          32.062007683878875,
+          22.652949018509158
+        ],
+        [
+          18.774231825699346,
+          22.032585830361448
+        ]
+      ],
+      "corner_rms_px": [
+        0.16229844104642005,
+        0.22489842822285755,
+        0.6473117786392131,
+        0.4567116729147661
+      ],
+      "lens_correction_applied": false,
+      "warnings": [
+        "cassette_single_plane_approximation",
+        "cassette_edge_incomplete",
+        "shell_near_image_boundary"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "source": "validation/perspective/tdk-photo.jpg",
+  "log": "validation/benchmarks/baseline/run-1/tdk-photo/tdk-photo-straightened.json",
+  "measurements": [
+    {
+      "repeat": 1,
+      "angle": 0,
+      "compression": "default",
+      "seconds": 1.083722832991043,
+      "bytes": 1845516,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 1,
+      "angle": 0,
+      "compression": "0",
+      "seconds": 0.4929887499893084,
+      "bytes": 7686014,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 1,
+      "angle": 0,
+      "compression": "1",
+      "seconds": 0.5191076249902835,
+      "bytes": 2219600,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 1,
+      "angle": 45,
+      "compression": "default",
+      "seconds": 1.1813735829928191,
+      "bytes": 2068336,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 1,
+      "angle": 45,
+      "compression": "0",
+      "seconds": 0.5086336250096792,
+      "bytes": 7686014,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 1,
+      "angle": 45,
+      "compression": "1",
+      "seconds": 0.5608063750114525,
+      "bytes": 2461073,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 1,
+      "angle": 135,
+      "compression": "default",
+      "seconds": 1.2071456249977928,
+      "bytes": 2051510,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 1,
+      "angle": 135,
+      "compression": "0",
+      "seconds": 0.5087818750034785,
+      "bytes": 7686014,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 1,
+      "angle": 135,
+      "compression": "1",
+      "seconds": 0.5569662920024712,
+      "bytes": 2441499,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 2,
+      "angle": 0,
+      "compression": "default",
+      "seconds": 1.0906445409927983,
+      "bytes": 1845516,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 2,
+      "angle": 0,
+      "compression": "0",
+      "seconds": 0.49347729100554716,
+      "bytes": 7686014,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 2,
+      "angle": 0,
+      "compression": "1",
+      "seconds": 0.5305054999917047,
+      "bytes": 2219600,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 2,
+      "angle": 45,
+      "compression": "default",
+      "seconds": 1.1894452080014162,
+      "bytes": 2068336,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 2,
+      "angle": 45,
+      "compression": "0",
+      "seconds": 0.4971632079978008,
+      "bytes": 7686014,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 2,
+      "angle": 45,
+      "compression": "1",
+      "seconds": 0.5571422079956392,
+      "bytes": 2461073,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 2,
+      "angle": 135,
+      "compression": "default",
+      "seconds": 1.2015635830030078,
+      "bytes": 2051510,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 2,
+      "angle": 135,
+      "compression": "0",
+      "seconds": 0.5163880420004716,
+      "bytes": 7686014,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 2,
+      "angle": 135,
+      "compression": "1",
+      "seconds": 0.554943250012002,
+      "bytes": 2441499,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 3,
+      "angle": 0,
+      "compression": "default",
+      "seconds": 1.0887677499995334,
+      "bytes": 1845516,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 3,
+      "angle": 0,
+      "compression": "0",
+      "seconds": 0.4794511660002172,
+      "bytes": 7686014,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 3,
+      "angle": 0,
+      "compression": "1",
+      "seconds": 0.5246378340088995,
+      "bytes": 2219600,
+      "pixel_sha256": "d0f2a00dc8fe2b61fcf891751ee8f03a4f40d9592da9cd6e7151bf3b3f64f3b5"
+    },
+    {
+      "repeat": 3,
+      "angle": 45,
+      "compression": "default",
+      "seconds": 1.2158022090006853,
+      "bytes": 2068336,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 3,
+      "angle": 45,
+      "compression": "0",
+      "seconds": 0.5067119999876013,
+      "bytes": 7686014,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 3,
+      "angle": 45,
+      "compression": "1",
+      "seconds": 0.5454612909961725,
+      "bytes": 2461073,
+      "pixel_sha256": "8bcb5419da64f53e53df18e3683bf6ca564dd74ac4cdbd26aaac8e9348daabb0"
+    },
+    {
+      "repeat": 3,
+      "angle": 135,
+      "compression": "default",
+      "seconds": 1.1969237919984153,
+      "bytes": 2051510,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 3,
+      "angle": 135,
+      "compression": "0",
+      "seconds": 0.5005738749896409,
+      "bytes": 7686014,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    },
+    {
+      "repeat": 3,
+      "angle": 135,
+      "compression": "1",
+      "seconds": 0.5533974999998463,
+      "bytes": 2441499,
+      "pixel_sha256": "ea5277d99736cdb845c2ce183edb617d47a17a12c1721e5da81323317a3bf684"
+    }
+  ],
+  "all_decoded_pixels_identical": true
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "file": "Label-straightened.png",
+    "sha256": "8cc41d5e2555d9379539c022be93246c9ded17c53e0497840c922de8c6398d77",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  },
+  {
+    "file": "computerra-90-straightened.png",
+    "sha256": "bcad54e775aa16e29e16f3f50cd727efad0540092caf0333c3d736c127503942",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  },
+  {
+    "file": "computerra-straightened.png",
+    "sha256": "298cb5ccf654ce75bd6bf0cd22f13db46d5a6130afed4e954336a6738b874af4",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  },
+  {
+    "file": "mobile-117-straightened.png",
+    "sha256": "484a816f98ee5c172b5a36b13ab0727a81675bac62fece8a35a1f1a0a89ceb98",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  },
+  {
+    "file": "mobile-computers-straightened.png",
+    "sha256": "7512f549b763d794d810ff06080274fae18e7508ce09fc43991853790d85fc2b",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  },
+  {
+    "file": "tdk-photo-straightened.png",
+    "sha256": "e32d7d6bf3adc011ab9495282177b534c8048dad1a40bc61cbede627724c6a42",
+    "all_png_bytes_identical": true,
+    "unchanged_log_fields": [
+      "measurements",
+      "perspective",
+      "knockouts",
+      "warnings",
+      "status",
+      "rotation decision (excluding renamed OCR counters)"
+    ]
+  }
+]

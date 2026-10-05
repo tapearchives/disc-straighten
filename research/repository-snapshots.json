@@ -1,0 +1,313 @@
+{
+  "checked_on": "2026-09-30",
+  "repositories": [
+    {
+      "full_name": "ScanTailor-Advanced/scantailor-advanced",
+      "html_url": "https://github.com/ScanTailor-Advanced/scantailor-advanced",
+      "description": "ScanTailor Advanced is the version that merges the features of the ScanTailor Featured and ScanTailor Enhanced versions, brings new ones and fixes.",
+      "default_branch": "master",
+      "language": "C++",
+      "archived": false,
+      "pushed_at": "2026-05-24T20:44:37Z",
+      "updated_at": "2026-09-29T16:15:40Z",
+      "license": {
+        "key": "gpl-3.0",
+        "name": "GNU General Public License v3.0",
+        "spdx_id": "GPL-3.0",
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
+      }
+    },
+    {
+      "full_name": "artefactual/archivematica",
+      "html_url": "https://github.com/artefactual/archivematica",
+      "description": "Free and open-source digital preservation system designed to maintain standards-based, long-term access to collections of digital objects.",
+      "default_branch": "qa/1.x",
+      "language": "Python",
+      "archived": false,
+      "pushed_at": "2026-09-28T11:25:20Z",
+      "updated_at": "2026-09-27T19:34:57Z",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      }
+    },
+    {
+      "full_name": "caltechlibrary/documentarist",
+      "html_url": "https://github.com/caltechlibrary/documentarist",
+      "description": "Process Caltech Archives' digital documents and photos, and annotate each page or image with information about its contents",
+      "default_branch": "main",
+      "language": "Python",
+      "archived": true,
+      "pushed_at": "2022-05-05T19:37:32Z",
+      "updated_at": "2026-03-03T22:51:05Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "cyanfish/naps2",
+      "html_url": "https://github.com/cyanfish/naps2",
+      "description": "Scan documents to PDF and more, as simply as possible.",
+      "default_branch": "master",
+      "language": "C#",
+      "archived": false,
+      "pushed_at": "2026-09-28T22:50:10Z",
+      "updated_at": "2026-09-30T05:37:57Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "danmichaelo/croptool",
+      "html_url": "https://github.com/danmichaelo/croptool",
+      "description": "Tool for cropping images at Wikimedia Commons and other Wikimedia wikis",
+      "default_branch": "main",
+      "language": "PHP",
+      "archived": false,
+      "pushed_at": "2025-02-03T22:23:06Z",
+      "updated_at": "2026-07-07T04:41:39Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "dasch-swiss/sipi",
+      "html_url": "https://github.com/dasch-swiss/sipi",
+      "description": "IIIF Server - Simple Image Presentation Interface",
+      "default_branch": "main",
+      "language": "C++",
+      "archived": false,
+      "pushed_at": "2026-09-29T21:19:20Z",
+      "updated_at": "2026-09-29T21:09:39Z",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      }
+    },
+    {
+      "full_name": "hnesk/pyvoussoir",
+      "html_url": "https://github.com/hnesk/pyvoussoir",
+      "description": "Automatic de-keystoning/page-splitting tool for single camera book scanners",
+      "default_branch": "master",
+      "language": "Python",
+      "archived": false,
+      "pushed_at": "2020-08-07T23:30:18Z",
+      "updated_at": "2024-10-28T23:47:58Z",
+      "license": {
+        "key": "isc",
+        "name": "ISC License",
+        "spdx_id": "ISC",
+        "url": "https://api.github.com/licenses/isc",
+        "node_id": "MDc6TGljZW5zZTEw"
+      }
+    },
+    {
+      "full_name": "image-rs/imageproc",
+      "html_url": "https://github.com/image-rs/imageproc",
+      "description": "Image processing operations",
+      "default_branch": "main",
+      "language": "Rust",
+      "archived": false,
+      "pushed_at": "2026-08-29T22:59:07Z",
+      "updated_at": "2026-09-29T16:52:30Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "full_name": "intranda/goobi-workflow",
+      "html_url": "https://github.com/intranda/goobi-workflow",
+      "description": "Goobi workflow - Workflow management software for digitisation projects used in more than 80 cultural heritage institutions in at least 18 countries.",
+      "default_branch": "master",
+      "language": "Java",
+      "archived": false,
+      "pushed_at": "2026-09-30T05:02:29Z",
+      "updated_at": "2026-09-30T06:24:26Z",
+      "license": {
+        "key": "gpl-2.0",
+        "name": "GNU General Public License v2.0",
+        "spdx_id": "GPL-2.0",
+        "url": "https://api.github.com/licenses/gpl-2.0",
+        "node_id": "MDc6TGljZW5zZTg="
+      }
+    },
+    {
+      "full_name": "jepler/cropgui",
+      "html_url": "https://github.com/jepler/cropgui",
+      "description": "gtk frontend for lossless cropping of jpeg images",
+      "default_branch": "main",
+      "language": "Python",
+      "archived": true,
+      "pushed_at": "2025-11-18T15:55:23Z",
+      "updated_at": "2026-03-29T19:55:09Z",
+      "license": {
+        "key": "gpl-2.0",
+        "name": "GNU General Public License v2.0",
+        "spdx_id": "GPL-2.0",
+        "url": "https://api.github.com/licenses/gpl-2.0",
+        "node_id": "MDc6TGljZW5zZTg="
+      }
+    },
+    {
+      "full_name": "kitodo/kitodo-production",
+      "html_url": "https://github.com/kitodo/kitodo-production",
+      "description": "Kitodo.Production is a workflow management tool for mass digitization and is part of the Kitodo Digital Library Suite.",
+      "default_branch": "main",
+      "language": "Java",
+      "archived": false,
+      "pushed_at": "2026-09-29T11:37:22Z",
+      "updated_at": "2026-09-29T11:37:26Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "libvips/libvips",
+      "html_url": "https://github.com/libvips/libvips",
+      "description": "A fast image processing library with low memory needs.",
+      "default_branch": "master",
+      "language": "C",
+      "archived": false,
+      "pushed_at": "2026-09-29T16:38:02Z",
+      "updated_at": "2026-09-29T18:53:14Z",
+      "license": {
+        "key": "lgpl-2.1",
+        "name": "GNU Lesser General Public License v2.1",
+        "spdx_id": "LGPL-2.1",
+        "url": "https://api.github.com/licenses/lgpl-2.1",
+        "node_id": "MDc6TGljZW5zZTEx"
+      }
+    },
+    {
+      "full_name": "ocrmypdf/OCRmyPDF",
+      "html_url": "https://github.com/ocrmypdf/OCRmyPDF",
+      "description": "OCRmyPDF adds an OCR text layer to scanned PDF files, allowing them to be searched",
+      "default_branch": "main",
+      "language": "Python",
+      "archived": false,
+      "pushed_at": "2026-09-29T07:55:13Z",
+      "updated_at": "2026-09-30T07:36:17Z",
+      "license": {
+        "key": "mpl-2.0",
+        "name": "Mozilla Public License 2.0",
+        "spdx_id": "MPL-2.0",
+        "url": "https://api.github.com/licenses/mpl-2.0",
+        "node_id": "MDc6TGljZW5zZTE0"
+      }
+    },
+    {
+      "full_name": "openpreserve/jhove",
+      "html_url": "https://github.com/openpreserve/jhove",
+      "description": "File validation and characterisation.",
+      "default_branch": "integration",
+      "language": "Java",
+      "archived": false,
+      "pushed_at": "2026-09-16T15:11:36Z",
+      "updated_at": "2026-09-16T15:11:51Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "tesseract-ocr/tesseract",
+      "html_url": "https://github.com/tesseract-ocr/tesseract",
+      "description": "Tesseract Open Source OCR Engine (main repository)",
+      "default_branch": "main",
+      "language": "C++",
+      "archived": false,
+      "pushed_at": "2026-09-28T07:40:38Z",
+      "updated_at": "2026-09-30T08:14:22Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      }
+    },
+    {
+      "full_name": "tropy/tropy",
+      "html_url": "https://github.com/tropy/tropy",
+      "description": "Research photo management",
+      "default_branch": "main",
+      "language": "JavaScript",
+      "archived": false,
+      "pushed_at": "2026-09-29T09:26:15Z",
+      "updated_at": "2026-09-29T09:26:20Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      }
+    },
+    {
+      "full_name": "twistedfall/opencv-rust",
+      "html_url": "https://github.com/twistedfall/opencv-rust",
+      "description": "OpenCV API bindings for Rust",
+      "default_branch": "master",
+      "language": "Rust",
+      "archived": false,
+      "pushed_at": "2026-09-26T17:03:24Z",
+      "updated_at": "2026-09-29T08:01:12Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "full_name": "unpaper/unpaper",
+      "html_url": "https://github.com/unpaper/unpaper",
+      "description": "A post-processing tool for scanned sheets of paper.",
+      "default_branch": "main",
+      "language": "C",
+      "archived": false,
+      "pushed_at": "2024-07-11T20:44:57Z",
+      "updated_at": "2026-09-29T16:09:22Z",
+      "license": null
+    },
+    {
+      "full_name": "jepler/cropgui",
+      "html_url": "https://codeberg.org/jepler/cropgui",
+      "archived": false,
+      "default_branch": "main",
+      "updated_at": "2026-08-29T16:48:42+02:00",
+      "description": "gtk frontend for lossless cropping of jpeg images"
+    }
+  ]
+}

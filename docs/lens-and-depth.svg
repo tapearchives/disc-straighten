@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="330" viewBox="0 0 1000 330" role="img" aria-labelledby="title desc">
+<title id="title">Perspective, lens bow, and depth parallax are different</title>
+<desc id="desc">Original explanatory diagrams. Perspective preserves straight lines, lens distortion bends straight lines, and raised details retain displacement after the main plane is flattened.</desc>
+<rect width="1000" height="330" fill="#f4f3ee"/>
+<g font-family="sans-serif" fill="#243a47">
+<text x="32" y="38" font-size="22">Perspective</text><text x="359" y="38" font-size="22">Lens bow</text><text x="689" y="38" font-size="22">Depth parallax</text>
+<g stroke="#217a80" stroke-width="4" fill="#d3e8e5">
+<path d="M40 91 L263 70 L294 218 L60 235 Z"/>
+<path d="M365 85 Q491 59 622 85 Q646 153 622 228 Q491 250 365 228 Q341 153 365 85 Z"/>
+<rect x="693" y="80" width="254" height="155" rx="6"/>
+</g>
+<g stroke="#a06027" fill="none" stroke-width="3">
+<path d="M368 85 H620 V228 H368 Z" stroke-dasharray="7 5"/>
+<circle cx="765" cy="149" r="34"/><circle cx="875" cy="149" r="34"/>
+<circle cx="775" cy="155" r="24"/><circle cx="885" cy="155" r="24"/>
+<path d="M745 203 H902 L918 222 H730 Z"/>
+</g>
+<text x="32" y="275" font-size="16">Corner pinning restores one plane.</text>
+<text x="359" y="275" font-size="16">A lens model can straighten lines.</text>
+<text x="689" y="275" font-size="16">Recessed parts still appear offset.</text>
+<text x="32" y="308" font-size="13">Illustrative only. Neither dimensions nor displacement are to scale. No hidden pixels are recovered.</text>
+</g></svg>

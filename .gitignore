@@ -1,0 +1,15 @@
+.venv/
+.cache/
+__pycache__/
+*.egg-info/
+build/
+dist/
+validation/
+straightened/
+processed/
+sample-run/
+research/*-evidence/
+*.zip
+*.pyc
+.DS_Store
+SHA256-MANIFEST.json

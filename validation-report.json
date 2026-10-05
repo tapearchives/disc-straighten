@@ -1,0 +1,711 @@
+{
+  "tool_version": "0.3.0",
+  "real_inputs": 4,
+  "rotated_controls": 2,
+  "result": "Geometry/angle comparison tolerances, hashes, PNG depths, and alpha checks passed.",
+  "limitations": "Reviewed fits and angles are comparison estimates, not metrology ground truth. The optional photo has model checks plus visual review, not a calibrated reference capture.",
+  "cases": [
+    {
+      "name": "Label",
+      "clockwise_degrees": 12.6391,
+      "reviewed_angle_reference": 12.5,
+      "angle_error_degrees": 0.1390999999999849,
+      "status": "review_required",
+      "warnings": [
+        "disc_size_ambiguous",
+        "physical_ratio_far_from_nominal",
+        "source_touches_or_clips_disc_boundary",
+        "ellipse_incomplete_edge_support",
+        "nominal_annulus_edge_fit_uncertain"
+      ],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": 12.6391,
+          "score": 68.3977,
+          "text_regions": 10,
+          "text_blocks": 3,
+          "letters": 268,
+          "examples": [
+            "dfter use Al offer rigfits meserved, Distribestet by Buma Vista Home Entertairment, Ie., Dept. CS., Babark, Caltonin WISA,",
+            "Feature Running Time: Approx. 79 Minutes Stock #57080",
+            "For technical assistance with this or any Disney DVD, visit us at",
+            "DisneyDVD.com/support or cal) 1-800-723-4763 (U.S.)/1-888-877-2843 (Canada).",
+            "45th ANNIVERSARY EDITION",
+            "(OALT DiSNEY",
+            "THE SWORD",
+            "STONE"
+          ],
+          "angular_spread_degrees": 2.396
+        },
+        {
+          "clockwise_degrees": -72.5042,
+          "score": 17.1055,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 30,
+          "examples": [
+            "This product is authorized for priv"
+          ],
+          "angular_spread_degrees": 0.0
+        },
+        {
+          "clockwise_degrees": 0.0,
+          "score": 8.3733,
+          "text_regions": 3,
+          "text_blocks": 1,
+          "letters": 14,
+          "examples": [
+            "DiGNEY",
+            "Fast",
+            "Play"
+          ],
+          "angular_spread_degrees": 0.0
+        },
+        {
+          "clockwise_degrees": 87.1376,
+          "score": 6.9934,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 13,
+          "examples": [
+            "Patent Pending"
+          ],
+          "angular_spread_degrees": 0.0
+        },
+        {
+          "clockwise_degrees": 77.0054,
+          "score": 4.4113,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 8,
+          "examples": [
+            "FastPlay."
+          ],
+          "angular_spread_degrees": 0.0
+        },
+        {
+          "clockwise_degrees": 94.3987,
+          "score": 3.1451,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 6,
+          "examples": [
+            "Disney"
+          ],
+          "angular_spread_degrees": 0.0
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": [
+        0.012952573342374762,
+        0.9667525533322063
+      ],
+      "alpha_area_relative_error": 1.2458324828212852e-05,
+      "output_sha256": "4d8fc552505bba35c2ae73964fb2c9b177b433fde90397526630a562d6d88a0c",
+      "perspective": null,
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 3.979039320256561e-13,
+          "spindle": 1.0373923942097463e-12
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              305.5,
+              305.5
+            ],
+            "diameters_px": [
+              594.4585571289062,
+              594.4585571289062
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              305.5,
+              305.5
+            ],
+            "diameters_px": [
+              75.28224182128906,
+              75.28224182128906
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    },
+    {
+      "name": "mobile-computers",
+      "clockwise_degrees": 0.0,
+      "reviewed_angle_reference": -0.75,
+      "angle_error_degrees": 0.75,
+      "status": "review_required",
+      "warnings": [
+        "disc_size_ambiguous"
+      ],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": 0.0,
+          "score": 44.8783,
+          "text_regions": 8,
+          "text_blocks": 2,
+          "letters": 62,
+          "examples": [
+            "Приложение к журналу",
+            "компьютерыiẠỊ",
+            "ạМобильные",
+            "КОМПАКТ ДИСК",
+            "Nº3-2004",
+            "МАPТ 2004",
+            "Nº3",
+            "mc"
+          ],
+          "angular_spread_degrees": 0.643
+        },
+        {
+          "clockwise_degrees": 45.1516,
+          "score": 25.3852,
+          "text_regions": 7,
+          "text_blocks": 1,
+          "letters": 38,
+          "examples": [
+            "программ",
+            "Pocket PC",
+            "Windows",
+            "• Прочее",
+            "Palm OS",
+            "для",
+            "260"
+          ],
+          "angular_spread_degrees": 0.416
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": [
+        0.009299863011960952,
+        0.7056576421235121
+      ],
+      "alpha_area_relative_error": 2.080122448067101e-06,
+      "output_sha256": "fc31cca64bf63a8f93ca0c4ea18d715146ed60abc5547e0b6fb514a031443402",
+      "perspective": null,
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 5.684341886080801e-13,
+          "spindle": 6.252776074688882e-13
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              716.5,
+              716.5
+            ],
+            "diameters_px": [
+              1415.3232421875,
+              1415.3232421875
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              716.5,
+              716.5
+            ],
+            "diameters_px": [
+              177.95643615722656,
+              177.95643615722656
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    },
+    {
+      "name": "computerra",
+      "clockwise_degrees": -6.8203,
+      "reviewed_angle_reference": -6.7,
+      "angle_error_degrees": 0.12029999999998608,
+      "status": "review_required",
+      "warnings": [
+        "disc_size_ambiguous",
+        "outer_circle_irregular_or_uncertain"
+      ],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": -6.8203,
+          "score": 21.8972,
+          "text_regions": 2,
+          "text_blocks": 1,
+          "letters": 23,
+          "examples": [
+            "КОМПЬЮТЕРРА",
+            "архив номеров"
+          ],
+          "angular_spread_degrees": 0.233
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": [
+        0.19313380962125848,
+        0.23874247620265976
+      ],
+      "alpha_area_relative_error": 4.6386911189966185e-06,
+      "output_sha256": "3d47d4d8b193fb025a48e231cfd22e771cc5b7eabeb0d6bdd91ed7e909b08c8c",
+      "perspective": null,
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 5.684341886080801e-13,
+          "spindle": 2.0747847884194925e-12
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              959.5,
+              959.5
+            ],
+            "diameters_px": [
+              1901.5797119140625,
+              1901.5797119140625
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              959.5,
+              959.5
+            ],
+            "diameters_px": [
+              238.76113891601562,
+              238.76113891601562
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    },
+    {
+      "name": "mobile-117",
+      "clockwise_degrees": -117.1984,
+      "reviewed_angle_reference": -117.75,
+      "angle_error_degrees": 0.5516000000000076,
+      "status": "review_required",
+      "warnings": [
+        "disc_size_ambiguous"
+      ],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": -117.8015,
+          "score": 35.1416,
+          "text_regions": 6,
+          "text_blocks": 2,
+          "letters": 60,
+          "examples": [
+            "Приложение к журналу",
+            "компьютерыẠạỊạ",
+            "ẠạМобильные",
+            "Nº3-2004",
+            "КОМПАКТ ДИСК",
+            "МАPT 2004"
+          ],
+          "angular_spread_degrees": 0.468
+        },
+        {
+          "clockwise_degrees": -72.512,
+          "score": 25.5381,
+          "text_regions": 7,
+          "text_blocks": 1,
+          "letters": 39,
+          "examples": [
+            "программ",
+            "Pocket PC",
+            "I Palm OS",
+            "Windows",
+            "Прочее",
+            "для",
+            "260"
+          ],
+          "angular_spread_degrees": 1.393
+        },
+        {
+          "clockwise_degrees": -127.875,
+          "score": 3.0261,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 3,
+          "examples": [
+            "NºЗ"
+          ],
+          "angular_spread_degrees": 0.0
+        },
+        {
+          "clockwise_degrees": -63.4349,
+          "score": 2.1695,
+          "text_regions": 1,
+          "text_blocks": 1,
+          "letters": 3,
+          "examples": [
+            "для"
+          ],
+          "angular_spread_degrees": 0.0
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": null,
+      "alpha_area_relative_error": 7.79545799911574e-07,
+      "output_sha256": "179c5fb790f28370f648073b04f7a8fa4180038e74a74d112ac17acd1cb56e6f",
+      "perspective": null,
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 5.684341886080801e-13,
+          "spindle": 8.242295734817162e-13
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              716.5,
+              716.5
+            ],
+            "diameters_px": [
+              1415.3616943359375,
+              1415.3616943359375
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              716.5,
+              716.5
+            ],
+            "diameters_px": [
+              177.95643615722656,
+              177.95643615722656
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    },
+    {
+      "name": "computerra-90",
+      "clockwise_degrees": -96.9112,
+      "reviewed_angle_reference": -96.7,
+      "angle_error_degrees": 0.21119999999999095,
+      "status": "review_required",
+      "warnings": [
+        "disc_size_ambiguous",
+        "outer_circle_irregular_or_uncertain"
+      ],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": -96.9112,
+          "score": 21.9313,
+          "text_regions": 2,
+          "text_blocks": 1,
+          "letters": 23,
+          "examples": [
+            "КОМПЬЮТЕРРА",
+            "архив номеров"
+          ],
+          "angular_spread_degrees": 0.328
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": null,
+      "alpha_area_relative_error": 4.875201226384185e-06,
+      "output_sha256": "53c8d2e6a607e1962c14b3681ab4af9f0d7674b34346ce746f673df9410813d3",
+      "perspective": null,
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 6.821210263296962e-13,
+          "spindle": 8.668621376273222e-13
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              959.5,
+              959.5
+            ],
+            "diameters_px": [
+              1901.962158203125,
+              1901.962158203125
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              959.5,
+              959.5
+            ],
+            "diameters_px": [
+              238.84388732910156,
+              238.84388732910156
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    },
+    {
+      "name": "tdk-photo",
+      "clockwise_degrees": -3.7613,
+      "reviewed_angle_reference": -3.76,
+      "angle_error_degrees": 0.001299999999986312,
+      "status": "accepted",
+      "warnings": [],
+      "orientation_status": "accepted",
+      "competing_directions": [
+        {
+          "clockwise_degrees": -4.3708,
+          "score": 71.0627,
+          "text_regions": 8,
+          "text_blocks": 2,
+          "letters": 90,
+          "examples": [
+            "© 1990 TDK Electronics Corporation",
+            "To Recording From CDs",
+            "TDK's Ultimate Guide",
+            "DIGITAL AUDIO",
+            "CDK 0100",
+            "disc",
+            "COMPACT",
+            "MECD"
+          ],
+          "angular_spread_degrees": 1.105
+        }
+      ],
+      "radius_errors_vs_prior_reviewed_fit_px": null,
+      "alpha_area_relative_error": 3.397214953793082e-09,
+      "output_sha256": "5ee819d6585627877a7a84356df8754ff8da6e672deb9c576ce1601773302549",
+      "perspective": {
+        "source_ellipse_center_separation_px": 30.54102950155489,
+        "projected_physical_center_px": [
+          676.6136266202722,
+          629.8460416170556
+        ],
+        "outer_ellipse": {
+          "center_px": [
+            678.0848938776159,
+            660.8436558459698
+          ],
+          "semiaxes_px": [
+            438.36933616968213,
+            448.8769136273612
+          ],
+          "angle_radians": 1.6271864685190482,
+          "edge_rms_px": 0.5994049600494369,
+          "edge_residual_p95_px": 1.5338075937860196,
+          "coverage": 1.0
+        },
+        "spindle_ellipse": {
+          "center_px": [
+            676.63667755656,
+            630.3369819449646
+          ],
+          "semiaxes_px": [
+            54.46463172308138,
+            55.55556523135769
+          ],
+          "angle_radians": 1.667705969926269,
+          "edge_rms_px": 0.19236940194647054,
+          "edge_residual_p95_px": 0.3713297280373103,
+          "coverage": 1.0
+        },
+        "spindle_conic_mismatch_fraction": 0.0033257980178061997,
+        "maximum_transformed_rim_roundness_error_px": 7.389644451905042e-13,
+        "checks": "Matrix/alpha consistency; not independent physical metrology"
+      },
+      "nominal_geometry": {
+        "nominal_outer_diameter_mm": 120,
+        "spindle_to_outer_radius_ratio": 0.125,
+        "maximum_transformed_model_circle_error_px": {
+          "outer": 7.389644451905042e-13,
+          "spindle": 2.0179413695586845e-12
+        },
+        "alpha_symmetry_max_difference": 0.0,
+        "fitted_50_percent_alpha_contours": [
+          {
+            "center_px": [
+              451.5,
+              451.5
+            ],
+            "diameters_px": [
+              886.2805786132812,
+              886.2805786132812
+            ],
+            "axis_ratio": 1.0
+          },
+          {
+            "center_px": [
+              451.5,
+              451.5
+            ],
+            "diameters_px": [
+              111.80651092529297,
+              111.80651092529297
+            ],
+            "axis_ratio": 1.0
+          }
+        ],
+        "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+      }
+    }
+  ],
+  "unit_tests": {
+    "passed": 34,
+    "command": ".venv/bin/python -m unittest discover -s tests -v",
+    "log": "validation/nominal-v0.3/unit-tests.txt"
+  },
+  "synthetic_mini_control": {
+    "nominal_outer_diameter_mm": 80,
+    "spindle_to_outer_radius_ratio": 0.18750000000000003,
+    "maximum_transformed_model_circle_error_px": {
+      "outer": 2.2737367544323206e-13,
+      "spindle": 4.618527782440651e-13
+    },
+    "alpha_symmetry_max_difference": 0.0,
+    "fitted_50_percent_alpha_contours": [
+      {
+        "center_px": [
+          248.5,
+          248.5
+        ],
+        "diameters_px": [
+          479.3758544921875,
+          479.3758544921875
+        ],
+        "axis_ratio": 1.0
+      },
+      {
+        "center_px": [
+          248.5,
+          248.5
+        ],
+        "diameters_px": [
+          91.02355194091797,
+          91.02355194091797
+        ],
+        "axis_ratio": 1.0
+      }
+    ],
+    "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization.",
+    "independent_interior_landmarks_max_error_px": 0.009347017024107099,
+    "input_description": "Known-camera projection of a nominal 80 mm disc with a 15 mm aperture, weak physical rim, and offset strong printing; angle override 0 used to isolate geometry.",
+    "real_mini_photograph_tested": false
+  },
+  "tdk_roundness_comparison": {
+    "previous_version": "0.2.1",
+    "previous_outer_and_hole_axis_ratios": [
+      1.0,
+      1.0
+    ],
+    "previous_spindle_to_outer_radius_ratio": 0.12738424499539733,
+    "previous_outer_inset_px": 0.35,
+    "previous_hole_expansion_px": 1.25,
+    "current": {
+      "nominal_outer_diameter_mm": 120,
+      "spindle_to_outer_radius_ratio": 0.125,
+      "maximum_transformed_model_circle_error_px": {
+        "outer": 7.389644451905042e-13,
+        "spindle": 2.0179413695586845e-12
+      },
+      "alpha_symmetry_max_difference": 0.0,
+      "fitted_50_percent_alpha_contours": [
+        {
+          "center_px": [
+            451.5,
+            451.5
+          ],
+          "diameters_px": [
+            886.2805786132812,
+            886.2805786132812
+          ],
+          "axis_ratio": 1.0
+        },
+        {
+          "center_px": [
+            451.5,
+            451.5
+          ],
+          "diameters_px": [
+            111.80651092529297,
+            111.80651092529297
+          ],
+          "axis_ratio": 1.0
+        }
+      ],
+      "note": "Exact analytic geometry within numerical precision; binary contour radii have pixel quantization."
+    },
+    "interpretation": "Both versions have circular alpha. Version 0.3.0 additionally enforces the exact nominal ratio and jointly refits the image plane to both measured edges."
+  },
+  "single_run_times": {
+    "note": "One sequential CLI run per input including startup and preview; not a controlled benchmark.",
+    "cases": [
+      {
+        "input": "tdk-photo.jpg",
+        "elapsed_seconds": 14.411109042004682,
+        "exit_code": 0
+      },
+      {
+        "input": "Label.jpg",
+        "elapsed_seconds": 9.841051374998642,
+        "exit_code": 2
+      },
+      {
+        "input": "mobile-computers.jpg",
+        "elapsed_seconds": 16.077943625001353,
+        "exit_code": 2
+      },
+      {
+        "input": "computerra.jpg",
+        "elapsed_seconds": 27.01579729100922,
+        "exit_code": 2
+      },
+      {
+        "input": "mobile-117.png",
+        "elapsed_seconds": 20.014296709006885,
+        "exit_code": 2
+      },
+      {
+        "input": "computerra-90.png",
+        "elapsed_seconds": 21.279588916993816,
+        "exit_code": 2
+      }
+    ]
+  },
+  "standards_notes": "STANDARDS.md; manufacturing tolerances distinguished from exact output geometry.",
+  "visual_review": {
+    "reviewed_outputs": 6,
+    "method": "ImageMagick contact sheet and direct full-resolution TDK image inspection",
+    "findings": "Physical rims retained, round alpha and clear spindle knockout, primary text upright; intentional diagonal designs preserved.",
+    "limits": "Visual review is not independent calibrated metrology."
+  },
+  "distribution_validation": {
+    "status": "passed",
+    "fresh_launcher_environment": true,
+    "unit_tests": 34,
+    "matches_validated_tdk": true,
+    "custom_offset_ratio_reported": true,
+    "wrong_size_rejected": true,
+    "wheel_import_and_resource_verified": true,
+    "note": "Fresh source-bundle extraction bootstrapped a new environment, reran the tests, and reproduced the validated TDK PNG byte for byte. Wheel imports and the bundled OCR source were also checked."
+  }
+}

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="720" viewBox="0 0 1000 720" role="img" aria-labelledby="title desc">
+  <title id="title">Compact cassette calibration frame</title>
+  <desc id="desc">Original schematic: nominal body 100.4 by 63.8 millimeters, reel centers 42.5 millimeters apart. Side projections are excluded from body fitting. Small holes belong to the raised front region, not necessarily the main face plane.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#245c72"/></marker>
+  </defs>
+  <rect width="1000" height="720" fill="#fafbf8"/>
+  <g font-family="Helvetica,Arial,sans-serif" fill="#1d353b">
+    <text x="55" y="49" font-size="27" font-weight="bold">Measure the body. Keep the projections separate.</text>
+    <text x="55" y="80" font-size="16">Original reference schematic · nominal dimensions in mm · not a manufacturing drawing</text>
+    <path d="M145 455H132V535H145M747.4 455H760.4V535H747.4" fill="#e9a863" stroke="#9a581a" stroke-width="2"/>
+    <rect x="145" y="165" width="602.4" height="382.8" rx="18" fill="#e4ece9" stroke="#245c72" stroke-width="3"/>
+    <path d="M145 165H747.4V547.8H145Z" fill="none" stroke="#3b868e" stroke-dasharray="7 6" stroke-width="1.5"/>
+    <path d="M252 474H640.4L662 547.8H230.4Z" fill="#c8d8d4" stroke="#688e8a" stroke-width="2"/>
+    <text x="446" y="498" text-anchor="middle" font-size="14">raised front region</text>
+    <g fill="#fafbf8" stroke="#245c72" stroke-width="2.5">
+      <circle cx="318.7" cy="339" r="34"/><circle cx="573.7" cy="339" r="34"/>
+      <rect x="351.2" y="506.2" width="22" height="22" rx="7"/>
+      <rect x="519.2" y="506.2" width="22" height="22" rx="7"/>
+      <circle cx="302.2" cy="527.4" r="13.5"/><circle cx="590.2" cy="527.4" r="13.5"/>
+    </g>
+    <g fill="none" stroke="#245c72" stroke-width="1.5">
+      <path d="M145 156V118M747.4 156V118M145 130H747.4"/>
+      <path d="M145 130H747.4" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+      <path d="M136 165H93M136 547.8H93M107 165V547.8"/>
+      <path d="M107 165V547.8" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+      <path d="M318.7 339V268M573.7 339V268M318.7 280H573.7"/>
+      <path d="M318.7 280H573.7" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+      <path d="M318.7 331V347M310.7 339H326.7M573.7 331V347M565.7 339H581.7"/>
+      <path d="M362.2 534V588M530.2 534V588M362.2 580H530.2"/>
+      <path d="M362.2 580H530.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+      <path d="M302.2 546V631M590.2 546V631M302.2 621H590.2"/>
+      <path d="M302.2 621H590.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    </g>
+    <text x="446" y="119" font-size="20" text-anchor="middle">100.4 body width</text>
+    <text x="84" y="360" font-size="20" text-anchor="middle" transform="rotate(-90 84 360)">63.8 body height</text>
+    <text x="446" y="267" font-size="19" text-anchor="middle">42.5 reel centers</text>
+    <text x="446" y="412" font-size="18" text-anchor="middle">Main face calibration plane</text>
+    <text x="446" y="604" font-size="16" text-anchor="middle">28 locating-hole pair</text>
+    <text x="446" y="645" font-size="16" text-anchor="middle">48 capstan-hole pair</text>
+    <path d="M763 490L790 465H960" fill="none" stroke="#9a581a" stroke-width="2"/>
+    <text x="790" y="413" font-size="16" fill="#854b19">Side projection:</text>
+    <text x="790" y="435" font-size="16" fill="#854b19">exclude from fit;</text>
+    <text x="790" y="457" font-size="16" fill="#854b19">crop in derivative</text>
+    <text x="55" y="681" font-size="14">Body/reel references: US5566037, US5161079. Hole spacing: historical ECMA-34 Fig.4; audio verification pending.</text>
+    <text x="55" y="702" font-size="14">Projection lengths and reel-aperture diameters are illustrative. Raised features need separate depth handling.</text>
+  </g>
+</svg>

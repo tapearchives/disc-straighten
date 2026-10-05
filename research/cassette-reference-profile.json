@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "profile_id": "compact-cassette-research-2026-09-30",
+  "status": "research_only_not_a_runtime_profile",
+  "runtime_enabled": false,
+  "coordinate_convention": "Body-frame origin at virtual rear-left corner, x right along long width, y toward tape-access edge. Units mm. Not a declaration that all landmarks share one plane.",
+  "body": {
+    "width": {
+      "nominal_mm": 100.4,
+      "meaning": "Main body side-to-side span, excluding side projections",
+      "sources": [
+        "ecma34",
+        "us5566037"
+      ],
+      "tolerance_source": "ecma34",
+      "tolerance_mm": {
+        "minus": 0.3,
+        "plus": 0.3
+      }
+    },
+    "height": {
+      "nominal_mm": 63.8,
+      "meaning": "Rear edge to tape-access edge",
+      "sources": [
+        "us5566037",
+        "ecma34"
+      ],
+      "derivation": "56.9 + 6.9",
+      "derived_worst_case_envelope_mm": 0.5,
+      "uncertainty_note": "Envelope sums ECMA component tolerances; not a directly printed IEC tolerance."
+    },
+    "width_height_ratio": 1.5736677115987463,
+    "rear_to_prime_reference_line": {
+      "nominal_mm": 56.9,
+      "meaning": "Distance to reference datum; not total height",
+      "sources": [
+        "ecma34"
+      ],
+      "tolerance_mm": {
+        "minus": 0.3,
+        "plus": 0.3
+      }
+    },
+    "prime_reference_line_to_front": {
+      "nominal_mm": 6.9,
+      "meaning": "Distance from datum to tape-access edge",
+      "sources": [
+        "ecma34"
+      ],
+      "tolerance_mm": {
+        "minus": 0.2,
+        "plus": 0.2
+      }
+    }
+  },
+  "landmarks": {
+    "reel_center_spacing": {
+      "nominal_mm": 42.5,
+      "meaning": "Nominal reel axes / insertion-hole center separation",
+      "sources": [
+        "ecma34",
+        "us5161079"
+      ],
+      "tolerance_source": "ecma34",
+      "tolerance_mm": {
+        "minus": 0.3,
+        "plus": 0.3
+      }
+    },
+    "reel_axis_to_prime_reference_line": {
+      "nominal_mm": 27.9,
+      "meaning": "Perpendicular distance between reel axis and reference line",
+      "sources": [
+        "ecma34"
+      ],
+      "tolerance_mm": {
+        "minus": 0.15,
+        "plus": 0.15
+      }
+    },
+    "derived_reel_centers_xy_mm": [
+      [
+        28.95,
+        29.0
+      ],
+      [
+        71.45,
+        29.0
+      ]
+    ],
+    "derived_reel_centers_status": "Historical nominal design coordinates; confirm against complete audio standard before runtime use. Fit fixed apertures, not movable teeth.",
+    "positioning_hole_pair_spacing": {
+      "nominal_mm": 28.0,
+      "meaning": "Inner reference/positioning-hole pair, not capstan pair",
+      "sources": [
+        "ecma34"
+      ],
+      "plane": "raised_front",
+      "tolerance_mm": {
+        "minus": 0.15,
+        "plus": 0.15
+      }
+    },
+    "capstan_hole_pair_spacing": {
+      "nominal_mm": 48.0,
+      "meaning": "Outer small-hole pair near tape-access edge",
+      "sources": [
+        "ecma34"
+      ],
+      "plane": "raised_front",
+      "tolerance_mm": {
+        "minus": 0.2,
+        "plus": 0.2
+      }
+    },
+    "capstan_hole_diameter": {
+      "nominal_mm": 4.5,
+      "meaning": "Visible capstan aperture reference, not reel opening",
+      "sources": [
+        "ecma34"
+      ],
+      "plane": "raised_front",
+      "tolerance_mm": {
+        "minus": 0.1,
+        "plus": 0.3
+      }
+    },
+    "positioning_hole_shape_policy": "Use datum tangencies/observed boundaries. Do not assume all reference holes are identical circles.",
+    "reel_opening_diameter": null,
+    "reel_opening_diameter_note": "Not promoted from drawings: visible fixed shell rim, hub rim and drive teeth can be confused."
+  },
+  "depth": {
+    "main_body_total_thickness": {
+      "nominal_mm": 8.6,
+      "meaning": "Total thickness excluding raised portions",
+      "sources": [
+        "ecma34",
+        "us5566037"
+      ],
+      "tolerance_mm": {
+        "minus": 0.1,
+        "plus": 0.3
+      }
+    },
+    "raised_front_total_thickness": {
+      "nominal_mm": 12.0,
+      "meaning": "Total thickness including raised portions",
+      "sources": [
+        "ecma34",
+        "us5566037"
+      ],
+      "tolerance_mm": {
+        "minus": 0.1,
+        "plus": 0.3
+      }
+    },
+    "derived_nominal_step_per_side_mm": 1.7,
+    "step_assumption": "Symmetric construction: (12.0 - 8.6)/2; do not force raised-front and main-face measurements into one homography."
+  },
+  "calibration_excludes": [
+    "short side projections / guide or grip rails",
+    "rounded corner extremities",
+    "printed label borders",
+    "case edges",
+    "screw-hole pattern",
+    "variable window outline",
+    "movable reel teeth",
+    "wound tape perimeter"
+  ],
+  "mask_policy": "Preserve observed physical projections and closed transparent material; only observed open apertures may be removed.",
+  "sources": {
+    "iec_audio": {
+      "url": "https://webstore.iec.ch/en/publication/728",
+      "scope": "Audio cassette mechanical standard; scope and datum-definition preview checked; full dimensional figures not verified."
+    },
+    "ecma34": {
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-34_3rd_edition_september_1976.pdf",
+      "locator": "Figure 4; PDF page 25; printed page 23",
+      "scope": "Withdrawn 1976 data-cassette standard; historical reference, not universal audio compliance."
+    },
+    "us5566037": {
+      "url": "https://patents.google.com/patent/US5566037A/en",
+      "locator": "Conventional C-cassette description and Figure 11; drawing PDF page 12"
+    },
+    "us5161079": {
+      "url": "https://patents.google.com/patent/US5161079A/en",
+      "locator": "Conventional compact-cassette description and Figure 5; drawing PDF page 4"
+    }
+  },
+  "limitations": [
+    "No cassette detector or real-photo validation is included.",
+    "Detailed hole tolerances are provisional historical ECMA references, not verified current audio-conformity requirements.",
+    "Source-image aspect ratio is not invariant under perspective.",
+    "Raised front, sidewalls, and main face are not coplanar."
+  ]
+}

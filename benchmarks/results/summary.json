@@ -1,0 +1,77 @@
+{
+  "measured_on": "2026-09-30",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "physical_cores": 14,
+    "ram_bytes": 68719476736
+  },
+  "methodology": "Three sequential warm runs per input per version; same local machine and source files; no competing task benchmark; includes JSON and preview; excludes Python import, dependency setup, Swift helper compilation, and network download.",
+  "limitations": "Small corpus; same-day before/after blocks, not randomized crossovers; timings are local observations, not cross-platform guarantees.",
+  "results": [
+    {
+      "source": "Label.jpg",
+      "before_median_seconds": 11.462944625003729,
+      "after_median_seconds": 6.997830459004035,
+      "speedup": 1.6380712125219437,
+      "time_reduction_percent": 38.95259300354721,
+      "before_range_seconds": [
+        11.41253683299874,
+        11.640240958993672
+      ],
+      "after_range_seconds": [
+        6.930571874996531,
+        7.196214999989024
+      ],
+      "before_geometry_median_seconds": 3.476982959007728,
+      "after_geometry_median_seconds": 1.3387769580003805,
+      "final_png_byte_identical": true,
+      "image_sha256": "8cc41d5e2555d9379539c022be93246c9ded17c53e0497840c922de8c6398d77"
+    },
+    {
+      "source": "computerra.jpg",
+      "before_median_seconds": 58.80421695798577,
+      "after_median_seconds": 15.447950125002535,
+      "speedup": 3.806603237461975,
+      "time_reduction_percent": 73.72985999279655,
+      "before_range_seconds": [
+        58.49829879200843,
+        59.67150541700539
+      ],
+      "after_range_seconds": [
+        15.332646874987404,
+        15.534651166992262
+      ],
+      "before_geometry_median_seconds": 42.53119300000253,
+      "after_geometry_median_seconds": 3.937192083001719,
+      "final_png_byte_identical": true,
+      "image_sha256": "298cb5ccf654ce75bd6bf0cd22f13db46d5a6130afed4e954336a6738b874af4"
+    },
+    {
+      "source": "tdk-photo.jpg",
+      "before_median_seconds": 18.833486959003494,
+      "after_median_seconds": 13.094286874998943,
+      "speedup": 1.438298025604011,
+      "time_reduction_percent": 30.473380189752287,
+      "before_range_seconds": [
+        18.45064999999886,
+        18.837052208007663
+      ],
+      "after_range_seconds": [
+        13.051592959003756,
+        13.357239334000042
+      ],
+      "before_geometry_median_seconds": 3.1957862910057884,
+      "after_geometry_median_seconds": 2.2733072920091217,
+      "final_png_byte_identical": true,
+      "image_sha256": "e32d7d6bf3adc011ab9495282177b534c8048dad1a40bc61cbede627724c6a42"
+    }
+  ],
+  "runtime": {
+    "python": "3.14.7",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "opencv": "5.0.0",
+    "macOS": "27.0.1",
+    "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+  }
+}

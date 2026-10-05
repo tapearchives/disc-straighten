@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Label",
+    "url": "https://disneyinfo.nl/images/screenshots/DVD/2936/DVDCovers/Label.jpg",
+    "sha256": "655cd26a4bc61da9ad48fe59d641fc4e402b34c9b24750fb9d41ca43ab08e2ec",
+    "width": 602,
+    "height": 600,
+    "image_rights": "Not included in the software license"
+  },
+  {
+    "name": "mobile-computers",
+    "url": "https://ia801608.us.archive.org/20/items/mobile-computers-2004-03/Мобильные%20компьютеры%202004%2003%2000%20CD.jpg",
+    "sha256": "a15d1ac6d300b223c1433dc972a1e997deaf5a7372fca5e7f635095092a1cc63",
+    "width": 1442,
+    "height": 1443,
+    "image_rights": "Not included in the software license"
+  },
+  {
+    "name": "computerra",
+    "url": "https://dn710404.ca.archive.org/0/items/computerra-arhiv-nomerov-2005-russ/%21Компьютерра%20Архив%202005.jpg",
+    "sha256": "cdcc0d68b7d92bfe27c4bb8b41faf4f3512ec8d0263bf909cca6e39b138e98a5",
+    "width": 1936,
+    "height": 1935,
+    "image_rights": "Not included in the software license"
+  }
+]

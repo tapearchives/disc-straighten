@@ -1,0 +1,453 @@
+{
+  "label": "v0.2.1-optimized",
+  "tool_version": "0.2.1",
+  "python": "3.14.7",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "scope": "Warm dependencies and OCR helper; local inputs; no download or initial installation; includes PNG, JSON, and preview output.",
+  "measurements": [
+    {
+      "label": "v0.2.1-optimized",
+      "source": "Label.jpg",
+      "repeat": 1,
+      "seconds": 7.196214999989024,
+      "stages": {
+        "acquire": 0.0005278749886201695,
+        "normalize": 0.05185137499938719,
+        "gray_pixels": 0.010041000001365319,
+        "measure_geometry": 1.3915170000109356,
+        "orient": 5.193455250002444,
+        "render": 0.4562358340044739
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.1454864579864079,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 3.056876373986597,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 2.130717625012039,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 0.4552879999973811,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": 12.5653,
+      "image_sha256": "8cc41d5e2555d9379539c022be93246c9ded17c53e0497840c922de8c6398d77",
+      "source_sha256": "655cd26a4bc61da9ad48fe59d641fc4e402b34c9b24750fb9d41ca43ab08e2ec",
+      "source_dimensions": [
+        602,
+        600
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "computerra.jpg",
+      "repeat": 1,
+      "seconds": 15.447950125002535,
+      "stages": {
+        "acquire": 0.0012965000059921294,
+        "normalize": 0.08320945799641777,
+        "gray_pixels": 0.03418295900337398,
+        "measure_geometry": 3.937240125000244,
+        "orient": 6.1646999999939,
+        "render": 4.853194416995393
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.4830512489861576,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.563710625021486,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 1.5982235830306308,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 4.847840000002179,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": -6.7662,
+      "image_sha256": "298cb5ccf654ce75bd6bf0cd22f13db46d5a6130afed4e954336a6738b874af4",
+      "source_sha256": "cdcc0d68b7d92bfe27c4bb8b41faf4f3512ec8d0263bf909cca6e39b138e98a5",
+      "source_dimensions": [
+        1936,
+        1935
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "tdk-photo.jpg",
+      "repeat": 1,
+      "seconds": 13.051592959003756,
+      "stages": {
+        "acquire": 0.0005821669910801575,
+        "normalize": 0.05107399998814799,
+        "gray_pixels": 0.018046875004074536,
+        "measure_geometry": 2.2733072920091217,
+        "orient": 9.012624292008695,
+        "render": 1.4657639159995597
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.2956268340203678,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.465770709008211,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 2.2017422079807147,
+          "count": 10
+        },
+        "Fine view rendering": {
+          "seconds": 2.3368479999917326,
+          "count": 2
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 1.4641394159989432,
+          "count": 1
+        }
+      },
+      "status": "accepted",
+      "angle": -3.7613,
+      "image_sha256": "e32d7d6bf3adc011ab9495282177b534c8048dad1a40bc61cbede627724c6a42",
+      "source_sha256": "08bc5e2169aa1d01297176834f6280e7f3d504d7cf7300cdcac50702728f1f8a",
+      "source_dimensions": [
+        1280,
+        1280
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "Label.jpg",
+      "repeat": 2,
+      "seconds": 6.930571874996531,
+      "stages": {
+        "acquire": 0.0003723339905263856,
+        "normalize": 0.03758762498910073,
+        "gray_pixels": 0.010695249991840683,
+        "measure_geometry": 1.3365668339974945,
+        "orient": 4.987704125000164,
+        "render": 0.4683399159985129
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.13412562500161584,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 2.9970526269898983,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 1.9851981680258177,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 0.4673780419980176,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": 12.5653,
+      "image_sha256": "8cc41d5e2555d9379539c022be93246c9ded17c53e0497840c922de8c6398d77",
+      "source_sha256": "655cd26a4bc61da9ad48fe59d641fc4e402b34c9b24750fb9d41ca43ab08e2ec",
+      "source_dimensions": [
+        602,
+        600
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "computerra.jpg",
+      "repeat": 2,
+      "seconds": 15.332646874987404,
+      "stages": {
+        "acquire": 0.000941624995903112,
+        "normalize": 0.08830479200696573,
+        "gray_pixels": 0.03357437500380911,
+        "measure_geometry": 3.8496029160014587,
+        "orient": 6.166068874998018,
+        "render": 4.810598458003369
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.4965300419862615,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.590435832011281,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 1.572775040040142,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 4.805111374997068,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": -6.7662,
+      "image_sha256": "298cb5ccf654ce75bd6bf0cd22f13db46d5a6130afed4e954336a6738b874af4",
+      "source_sha256": "cdcc0d68b7d92bfe27c4bb8b41faf4f3512ec8d0263bf909cca6e39b138e98a5",
+      "source_dimensions": [
+        1936,
+        1935
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "tdk-photo.jpg",
+      "repeat": 2,
+      "seconds": 13.094286874998943,
+      "stages": {
+        "acquire": 0.0006574170110980049,
+        "normalize": 0.05412341699411627,
+        "gray_pixels": 0.021058833008282818,
+        "measure_geometry": 2.230144500004826,
+        "orient": 9.059930624993285,
+        "render": 1.497343249997357
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.30247279100876767,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.452358417009236,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 2.26411774897133,
+          "count": 10
+        },
+        "Fine view rendering": {
+          "seconds": 2.335064915998373,
+          "count": 2
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 1.4958194579958217,
+          "count": 1
+        }
+      },
+      "status": "accepted",
+      "angle": -3.7613,
+      "image_sha256": "e32d7d6bf3adc011ab9495282177b534c8048dad1a40bc61cbede627724c6a42",
+      "source_sha256": "08bc5e2169aa1d01297176834f6280e7f3d504d7cf7300cdcac50702728f1f8a",
+      "source_dimensions": [
+        1280,
+        1280
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "Label.jpg",
+      "repeat": 3,
+      "seconds": 6.997830459004035,
+      "stages": {
+        "acquire": 0.0005836670025018975,
+        "normalize": 0.03726495799492113,
+        "gray_pixels": 0.01006433300790377,
+        "measure_geometry": 1.3387769580003805,
+        "orient": 5.059090624999953,
+        "render": 0.4614699160010787
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.13435037501039915,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 2.972868124037632,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 2.0804304579942254,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 0.46038479199341964,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": 12.5653,
+      "image_sha256": "8cc41d5e2555d9379539c022be93246c9ded17c53e0497840c922de8c6398d77",
+      "source_sha256": "655cd26a4bc61da9ad48fe59d641fc4e402b34c9b24750fb9d41ca43ab08e2ec",
+      "source_dimensions": [
+        602,
+        600
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "computerra.jpg",
+      "repeat": 3,
+      "seconds": 15.534651166992262,
+      "stages": {
+        "acquire": 0.000963500002399087,
+        "normalize": 0.08914608399209101,
+        "gray_pixels": 0.03159008399234153,
+        "measure_geometry": 3.937192083001719,
+        "orient": 6.23159941699123,
+        "render": 4.8583420000068145
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.4968263750051847,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.57949741599441,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 1.6487745400081621,
+          "count": 8
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 4.850725875003263,
+          "count": 1
+        }
+      },
+      "status": "review_required",
+      "angle": -6.7662,
+      "image_sha256": "298cb5ccf654ce75bd6bf0cd22f13db46d5a6130afed4e954336a6738b874af4",
+      "source_sha256": "cdcc0d68b7d92bfe27c4bb8b41faf4f3512ec8d0263bf909cca6e39b138e98a5",
+      "source_dimensions": [
+        1936,
+        1935
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    },
+    {
+      "label": "v0.2.1-optimized",
+      "source": "tdk-photo.jpg",
+      "repeat": 3,
+      "seconds": 13.357239334000042,
+      "stages": {
+        "acquire": 0.0006533749983645976,
+        "normalize": 0.057056166988331825,
+        "gray_pixels": 0.02354941700468771,
+        "measure_geometry": 2.3659025829983875,
+        "orient": 9.154099125007633,
+        "render": 1.5172869169909973
+      },
+      "subprocesses": {
+        "Other ImageMagick IO": {
+          "seconds": 0.314692000974901,
+          "count": 6
+        },
+        "OCR view rendering": {
+          "seconds": 4.461383333997219,
+          "count": 8
+        },
+        "Vision OCR subprocess": {
+          "seconds": 2.3592257910058834,
+          "count": 10
+        },
+        "Fine view rendering": {
+          "seconds": 2.324173125991365,
+          "count": 2
+        },
+        "Final ImageMagick rendering": {
+          "seconds": 1.5152771249995567,
+          "count": 1
+        }
+      },
+      "status": "accepted",
+      "angle": -3.7613,
+      "image_sha256": "e32d7d6bf3adc011ab9495282177b534c8048dad1a40bc61cbede627724c6a42",
+      "source_sha256": "08bc5e2169aa1d01297176834f6280e7f3d504d7cf7300cdcac50702728f1f8a",
+      "source_dimensions": [
+        1280,
+        1280
+      ],
+      "runtime": {
+        "python": "3.14.7",
+        "numpy": "2.5.3",
+        "scipy": "1.18.1",
+        "opencv": "5.0.0",
+        "macOS": "27.0.1",
+        "imagemagick": "Version: ImageMagick 7.1.2-31 Q16-HDRI aarch64 8309dc92a:20260903 https://imagemagick.org"
+      }
+    }
+  ]
+}
