@@ -21,6 +21,10 @@ classifiers = [
 [project.scripts]
 disc-straighten = "discstraight.cli:main"
 
+[project.urls]
+Repository = "https://github.com/tapearchives/disc-straighten"
+Issues = "https://github.com/tapearchives/disc-straighten/issues"
+
 [tool.setuptools]
 packages = ["discstraight"]
 

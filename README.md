@@ -7,6 +7,8 @@ transparent PNG derivatives with reproducible geometry and review logs.
 **Version 0.6.0 · macOS and Windows CMD · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
+Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
+
 ## Quick start
 
 On macOS, install Python 3.12+, ImageMagick 7, and Apple's Command Line Tools if needed:

@@ -1,8 +1,8 @@
 # Preparing a public release
 
-Version 0.6.0 is prepared for the owner-selected `tapearchives/disc-straighten` repository.
-These instructions do not create a GitHub repository, push commits, or publish
-packages. No live repository URL is assumed in package metadata or CI badges.
+The release repository is [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
+These instructions prepare and verify source exports. Pushing commits and
+publishing release assets are separate steps after verification.
 
 ## Verify and export
 
