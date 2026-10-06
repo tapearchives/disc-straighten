@@ -132,11 +132,33 @@ This is not semantic recognition of primary versus artistic text.
 
 ## Exterior mask and image quality
 
+If at least two full-resolution luminance lines lack long-span support, the
+default automatic path also tests a wider texture boundary. Clear plastic can
+attenuate a woven background even when its mean color hardly changes. Local
+texture energy is measured at two scales; all four lines must agree, retain
+support along the side, and separate sustained exterior texture from a quieter
+interior. Isolated bright seams on a uniform background are rejected. A
+compatible reel pair is required again before accepting the recovered frame.
+Explicit user corners and successful ordinary line fits bypass this recovery.
+
+This fixed the Denon example: the earlier detector followed inner molded seams
+at the source right and bottom, clipping the upper-left rivet after the 180°
+orientation flip. The correction replaces the four reference lines, recomputes
+their intersections and the homography, and only then refits the corner arcs.
+It does not add padding or tilt the body to follow the printed label. Labels and
+raised molded features can retain real placement or depth differences.
+
+The JSON `texture_boundary_recovery` records whether this route was accepted or
+rejected, its scale agreement in source pixels and its exterior/interior texture
+ratios. Edge `gradient_domain` distinguishes luminance from local texture energy.
+Texture localization has finite uncertainty; fit residuals and review flags still
+apply. A mathematically rectangular output alone does not validate the input fit.
+
 The current cassette path keeps all source pixels through one composed geometry
 warp. The full nominal body rectangle is cropped only in the final corrected
 plane. Alpha comes from four straight sides, independently measured corner arcs, and a slight centered
 smoothstep feather (`--feather`, at least one output pixel). No color key,
-exterior flood fill, silhouette trace, guessed corner arc, safety inset, or
+exterior flood fill, silhouette trace, unlogged corner arc, safety inset, or
 opaque retention band modifies alpha. Color and edge contrast may estimate the
 plane, but cannot independently erase pixels.
 

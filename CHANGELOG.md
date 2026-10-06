@@ -1,5 +1,18 @@
 # Changes
 
+## 0.8.1 — clear cassette shell rectangle
+
+- Recover the physical boundary of a clear cassette when strong internal seams
+  defeat the ordinary luminance-line fit. Two texture scales must agree on all
+  four long sides, with sustained exterior texture and compatible reel geometry.
+- Fix the Denon sample's inset right/bottom source edges, which became the
+  cropped upper-left rivet and tilted label in the final view. Recompute the
+  homography and corner arcs before applying the analytic crop.
+- Log texture recovery, scale agreement and gradient domain. Retain review
+  flags; texture transitions are measurements with uncertainty, not exact edges.
+- Remove a duplicate full-resolution straight-edge fit. Keep explicit corners,
+  ordinary successful edge fits and the default no-lens-correction policy.
+
 ## 0.8.0 — de-askew
 
 - Rename the app and canonical command; retain legacy command aliases/settings.

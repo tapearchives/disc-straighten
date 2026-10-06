@@ -1,6 +1,6 @@
 # Mac drag-and-drop app
 
-de-askew 0.8.0 includes a native macOS app and the existing command line.
+de-askew 0.8.1 includes a native macOS app and the existing command line.
 They use the same image processor and saved output preferences.
 
 ## Open and use

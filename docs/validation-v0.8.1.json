@@ -1,0 +1,148 @@
+{
+  "version": "0.8.1",
+  "tests_passed": 97,
+  "denon": {
+    "input": "Compact_Cassette_07.jpg",
+    "output_sha256": "c90f9be69ce423793244dbe6cba0be00f2be36cff50d2b4a96777bd2d3b51956",
+    "output_pixels": [
+      3110,
+      1978
+    ],
+    "geometry": {
+      "applied": true,
+      "method": "two_scale_exterior_texture_transition",
+      "scale_agreement_source_px": [
+        1.0330829572976594,
+        1.8233879858140456,
+        1.4724536631308949,
+        3.355382178527116
+      ],
+      "exterior_to_interior_texture_ratios": [
+        1.7199131483268641,
+        1.7927633442850266,
+        2.029785469532327,
+        2.3486913449863467
+      ],
+      "analysis_scale": 0.24463169339494428,
+      "note": "Four long lines measured from texture attenuation. No pixel alpha key, lens estimate, or corner padding."
+    },
+    "source_corners_px": [
+      [
+        294.53800203262216,
+        153.82364644561315
+      ],
+      [
+        3404.1049310754865,
+        240.3003888557385
+      ],
+      [
+        3394.828752364909,
+        2088.59635240961
+      ],
+      [
+        366.9145441607009,
+        2294.724343070005
+      ]
+    ],
+    "warnings": [
+      "cassette_single_plane_approximation",
+      "residual_edge_alignment_requires_review"
+    ],
+    "corner_evidence": [
+      "measured",
+      "measured",
+      "measured",
+      "measured"
+    ],
+    "visual_check": "Full upper-left rivet retained; no pre-warp masking or invented corner padding.",
+    "nominal_plane_ratio": 1.5736676921987731
+  },
+  "other_cassette_geometry_regressions": [
+    {
+      "input": "cassette-5.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 3.49702295800671
+    },
+    {
+      "input": "cassette-4.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "No distributed straight texture boundary"
+      },
+      "seconds": 11.715786291999393
+    },
+    {
+      "input": "cassette-3.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "Texture ridge is not a consistent exterior-to-shell transition"
+      },
+      "seconds": 9.002441083997837
+    },
+    {
+      "input": "cassette-2.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 12.80192666700168
+    },
+    {
+      "input": "cassette-1.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 3.247157250007149
+    },
+    {
+      "input": "Audio-Kassette_und_IPod.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 3.5262325420044363
+    },
+    {
+      "input": "CPT_4200_cassette.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 8.409081207995769
+    },
+    {
+      "input": "IMG_2726.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 10.69036591600161
+    },
+    {
+      "input": "IMG_2794.jpg",
+      "corner_change_source_px": 0.0,
+      "texture_recovery": {
+        "applied": false,
+        "reason": "luminance_lines_sufficient_or_explicit_geometry"
+      },
+      "seconds": 4.368654208999942
+    }
+  ],
+  "synthetic_control": {
+    "description": "Known projective shell with equal mean foreground/background color, woven exterior and stronger inset seams; complete rivet circumference remains opaque.",
+    "maximum_corner_coordinate_error_px": 1.023
+  },
+  "limits": "Output remains review_required. Texture localization is uncertain by several source pixels; single-plane rectification does not eliminate depth parallax."
+}

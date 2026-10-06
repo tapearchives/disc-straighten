@@ -452,25 +452,35 @@ def detect_cassette(gray: np.ndarray, *, debow: str = 'off', corners: np.ndarray
         traces=[]
         for i in range(4):
             try:t=straight_trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),strength_scale=factor)
-            except ValueError:t=trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),step=.125,strength_scale=factor)
+            except ValueError as error:
+                t=trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),step=.125,strength_scale=factor)
+                t['selection']='straight_line_fit_to_traced_boundary'
+                t['selection_note']=str(error)
             traces.append(t)
     else:
         q, traces=refine(gray, seed/factor, band=max(3, 6/factor), step=.125)
-    if debow=='off':
-        sampler=CubicSampler(cv2.GaussianBlur(gray.astype('float32'),(0,0),max(.65,.65/factor)))
-        for i in range(4):
-            try:
-                traces[i]=straight_trace_edge(sampler,q[i],q[(i+1)%4],band=max(4,6/factor),strength_scale=factor)
-            except ValueError as error:
-                # A blurred or slightly bowed photographic edge may not have
-                # a subpixel ridge over most of its length. Keep the measured
-                # main-body samples (rails already excluded) and fit ONE line
-                # through them below. Never substitute curved intersections.
-                traces[i]['selection']='straight_line_fit_to_traced_boundary'
-                traces[i]['selection_note']=str(error)
+    recovery=dict(applied=False,reason='luminance_lines_sufficient_or_explicit_geometry')
+    if (debow=='off' and corners is None and
+            sum(t.get('selection')=='straight_line_fit_to_traced_boundary' for t in traces)>=2):
+        # Clear shells can expose a stronger internal seam while attenuating a
+        # textured background at their real outside edge. Do not silently use
+        # that inner seam just because it has a plausible reel pair.
+        from .cassette_texture import texture_boundary_traces
+        try:
+            recovered,recovery=texture_boundary_traces(gray,q)
+            lines=[line(t['points'][t['inliers']]) for t in recovered]
+            candidate=np.array([intersect(lines[i-1],lines[i]) for i in range(4)])
+            candidate_reel=reel_evidence(small,candidate*factor)
+            if candidate_reel['score']<max(.55,reel['score']*.75):
+                raise ValueError('Texture rectangle lacks a compatible reel pair')
+            traces=recovered
+            reel=candidate_reel
+        except ValueError as error:
+            recovery=dict(applied=False,reason=str(error))
     diagnostics=dict(candidate_count=len(seeds),usable_candidates=len(ranked),
                      candidates=[dict(score=v[0],corners_analysis_px=v[1].tolist(),reels=v[2]) for v in ranked[:5]])
     geometry=geometry_from_traces(gray.shape, traces, score, reel, diagnostics, debow=debow)
+    geometry['texture_boundary_recovery']=recovery
     from .cassette_corners import aspect_ratio_tag
     geometry['aspect_ratio']=aspect_ratio_tag(np.array(geometry['undistorted_source_corners_px']))
     return geometry
@@ -534,6 +544,7 @@ def geometry_from_traces(shape: tuple[int, int], traces: list[dict], score: floa
                                midpoint_bow_px=amplitude/4,coverage=traces[i]['coverage'],
                                selection=traces[i].get('selection','traced_boundary'),
                                selection_note=traces[i].get('selection_note'),
+                               gradient_domain=traces[i].get('gradient_domain','luminance'),
                                median_gradient=traces[i]['median_strength']))
     sample_t=np.linspace(0,1,65)
     c=np.array(coefficients)

@@ -4,7 +4,7 @@ A TapeArchives project for archival image preparation. Straighten optical discs 
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.8.0 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
+**Version 0.8.1 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
@@ -137,6 +137,12 @@ Straight-edge selection uses long-span gradient evidence, avoiding short guide
 rails and faint divergent background fringes. Rounded corners do not locate the
 virtual corners. Edge residuals are logged so imperfect alignment remains
 reviewable. See [crop assumptions](CASSETTES.md#low-resolution-crop-preservation).
+
+For clear shells with unreliable luminance edges, a guarded texture pass can
+recover the faint physical rim beyond a stronger internal seam. It requires
+agreement at two scales on all four sides and a compatible reel pair. The final
+mask still consists of straight lines and corner arcs. The corrected Denon
+example in the guide shows why locating the shell must precede cropping.
 
 ## Results and review
 

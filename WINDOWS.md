@@ -1,6 +1,6 @@
 # Windows CMD quick start
 
-de-askew 0.8.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
+de-askew 0.8.1 runs from the ordinary Windows Command Prompt (`cmd.exe`).
 It uses Python, ImageMagick and local Tesseract OCR. No WSL, Apple frameworks or
 cloud OCR account is needed. The download is a source kit with a `.cmd` launcher,
 not a self-contained `.exe`.
