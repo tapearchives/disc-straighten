@@ -125,6 +125,7 @@ See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('--auto-brightness',action='store_true',help='Adjust exposure using only the final cropped image (default off)')
     p.add_argument('--auto-color',action='store_true',help='Conservative neutral-pixel color balance after cropping (default off)')
     p.add_argument('--keep-metadata',action='store_true',help='Copy supported EXIF/XMP/IPTC, including GPS, using ExifTool; save complete readable inventory (default off)')
+    p.add_argument('--name-barcode-pairs',action='store_true',help='Sort by filename; name each barcode back CODEB.png and its immediately preceding front CODEA.png (default off; originals unchanged)')
     p.add_argument('--overwrite',action='store_true',help='Replace this tool\'s existing outputs')
     p.add_argument('--version',action='version',version=__version__)
     p.add_argument('--manual',action='store_true',help='Print the path to the illustrated offline user guide')
@@ -256,7 +257,8 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
     from .outputs import targets as make_targets, before_preview, after_preview
     from .finishing import finish
     targets = make_targets(args.output,stem)
-    if not args.overwrite and any(path.exists() for path in targets.values()):
+    if not args.overwrite and any(path.exists() for key,path in targets.items()
+                                  if not (key=='before' and getattr(args,'background_previews',False))):
         raise FileExistsError(f'Output already exists for {stem}; use --overwrite or a new output folder')
     if any(Path(item).resolve()==path.resolve() for path in targets.values()):
         raise ValueError('Refusing to overwrite the input image')
@@ -268,6 +270,8 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         normalized = work/'normalized.miff'
         metadata = normalize(source,normalized); source_log.update(metadata)
         gray = gray_pixels(normalized,metadata['width'],metadata['height'])
+        from .barcodes import scan
+        source_log['barcodes']=scan(gray)
         cassette_geometry=None;selected_media=args.media;selection_seconds=0.
         if selected_media=='auto':
             from .cassette import detect_cassette
@@ -325,7 +329,7 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         preview = work/'preview.png'
         make_preview = args.preview or (args.overwrite and targets['preview'].exists())
         if make_preview:
-            before_preview(normalized,work/'before.png')
+            if not getattr(args,'background_previews',False):before_preview(normalized,work/'before.png')
             after_preview(output,preview)
         warnings = geometry['warnings']+orientation.get('reasons',[])
         summary = {k:v for k,v in orientation.items() if k!='unique_text_regions'}
@@ -334,7 +338,7 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         result = dict(schema_version=4,tool=dict(name='de-askew',version=__version__),
                       created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),media='disc',
                       status='review_required' if warnings else 'accepted',warnings=warnings,
-                      source=source_log,
+                      source=source_log,barcodes=source_log['barcodes'],
                       coordinates='Pixel centers: top-left=(0,0), x right, y down. Source is EXIF-normalized. '
                                   'Rectified-disc-plane coordinates, when used, have the physical center at (0,0). '
                                   'Source ellipse fields and projected physical center always refer to source pixels.',
@@ -379,7 +383,7 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         (work/'orientation.json').replace(targets['orientation'])
         if make_preview:
             preview.replace(targets['preview'])
-            (work/'before.png').replace(targets['before'])
+            if (work/'before.png').exists():(work/'before.png').replace(targets['before'])
         if args.keep_metadata:
             (work/'source-metadata.json').replace(targets['metadata'])
         (work/'result.json').replace(targets['log'])
@@ -426,6 +430,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.geometry_policy=='nominal' and (args.perspective=='off' or args.outer or args.hole):
         p.error('Source-circle overrides and --perspective off require --geometry-policy measured')
     items = expand(args.inputs, preferences=preferences, output=args.output)
+    items.sort(key=lambda item:(Path(unquote(urlsplit(item).path)).name.casefold(),item.casefold(),item))
     if not items:
         p.error('No supported raster images found')
     if len(items)>1 and any(v is not None for v in [args.outer,args.hole,args.angle,args.cassette_corners]):
@@ -441,34 +446,5 @@ def main(argv: list[str] | None = None) -> int:
     names = [name + '-' + hashlib.sha256(item.encode()).hexdigest()[:12] if counts[key]>1 else name
              for item,name,key in zip(items,names,keys)]
     cache = Path(os.environ.get('DISC_STRAIGHTEN_CACHE',Path.home()/'.cache'/'disc-straighten'))
-    status = 0
-    from .outputs import reserve_folder, targets as make_targets
-    reserved = {}
-    for item,name,destination in zip(items,names,destinations):
-        try:
-            if destination not in reserved:
-                reserved[destination]=reserve_folder(destination,overwrite=args.overwrite)
-            args.output = reserved[destination]
-            print(json.dumps(dict(input=item,status='processing',output_folder=str(args.output))),flush=True)
-            result = process(item,name,args,cache)
-            paths=make_targets(args.output,name)
-            if result['status']=='review_required' and status==0:
-                status = 2
-            print(json.dumps(dict(input=item,status=result['status'],
-                                  clockwise_degrees=result['rotation']['clockwise_degrees'],
-                                  image=str(args.output/result['output']['file']),
-                                  before_preview=str(paths['before']) if paths['before'].exists() else None,
-                                  preview=str(paths['preview']) if paths['preview'].exists() else None,
-                                  completed_utc=result.get('created_utc'),warnings=result['warnings'])),flush=True)
-        except (ValueError,RuntimeError,OSError,subprocess.SubprocessError) as error:
-            status = 1
-            failure = dict(input=item,status='failed',error=str(error))
-            # Batch errors are reviewable beside the successful image logs.
-            try:
-                root=reserved.get(destination,destination)
-                (root/'output-json').mkdir(parents=True,exist_ok=True)
-                write_json(root/'output-json'/(name+'-failure.json'), failure)
-            except OSError:
-                pass
-            print(json.dumps(failure),file=sys.stderr)
-    return status
+    from .batch import run_batch
+    return run_batch(items,names,destinations,args,cache,process)

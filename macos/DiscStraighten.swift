@@ -31,6 +31,98 @@ final class ComparisonScroll: NSScrollView {
     }
 }
 
+final class ImageActionsView: NSImageView {
+    var filePath: String?
+    var logPath: String?
+    override func menu(for event: NSEvent) -> NSMenu? {
+        guard filePath != nil else { return nil }
+        let menu = NSMenu()
+        for (title, action) in [("Open Image", #selector(openImage)), ("Reveal in Finder", #selector(reveal)), ("Copy Image Path", #selector(copyPath))] {
+            let item = NSMenuItem(title: title, action: action, keyEquivalent: ""); item.target = self; menu.addItem(item)
+        }
+        if logPath != nil {
+            let item = NSMenuItem(title: "Open Transformation Log", action: #selector(openLog), keyEquivalent: ""); item.target = self; menu.addItem(item)
+        }
+        return menu
+    }
+    @objc func openImage() { if let path = filePath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
+    @objc func reveal() { if let path = filePath { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)]) } }
+    @objc func copyPath() { if let path = filePath { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(path, forType: .string) } }
+    @objc func openLog() { if let path = logPath { NSWorkspace.shared.open(URL(fileURLWithPath: path)) } }
+}
+
+final class ComparisonCard: NSStackView {
+    let header = NSTextField(labelWithString: "")
+    let notice = NSTextField(labelWithString: "Queued · loading input preview")
+    let before = ImageActionsView()
+    let after = ImageActionsView()
+    var inputButton: NSButton!
+    var outputButton: NSButton!
+    var counted = false
+    var processing = false
+    var terminalStatus: String?
+    var previewPaths: [String: String] = [:]
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        orientation = .vertical; alignment = .leading; spacing = 5
+        wantsLayer = true; layer?.backgroundColor = Theme.color("surface").cgColor; layer?.cornerRadius = 10
+        edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        header.font = .systemFont(ofSize: 12, weight: .semibold); header.lineBreakMode = .byTruncatingMiddle
+        addArrangedSubview(header)
+        let pair = NSStackView(); pair.distribution = .fillEqually; pair.spacing = 12
+        for (caption, image, title) in [("BEFORE", before, "Open Input Image"), ("AFTER · TRANSPARENT PNG", after, "Open Output Image")] {
+            let column = NSStackView(); column.orientation = .vertical; column.spacing = 3
+            let label = NSTextField(labelWithString: caption); label.font = .systemFont(ofSize: 10); label.textColor = Theme.color("muted")
+            column.addArrangedSubview(label)
+            image.imageScaling = .scaleProportionallyUpOrDown
+            image.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            image.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            image.heightAnchor.constraint(equalToConstant: 142).isActive = true
+            column.addArrangedSubview(image); image.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true
+            let open = NSButton(title: title, target: image, action: #selector(ImageActionsView.openImage))
+            open.bezelStyle = .rounded; open.controlSize = .small; open.isEnabled = false
+            column.addArrangedSubview(open); pair.addArrangedSubview(column)
+            if image === before { inputButton = open } else { outputButton = open }
+        }
+        addArrangedSubview(pair)
+        notice.font = .systemFont(ofSize: 11); notice.lineBreakMode = .byTruncatingTail
+        addArrangedSubview(notice)
+        for view in [header, pair, notice] { view.widthAnchor.constraint(equalTo: widthAnchor, constant: -24).isActive = true }
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    func update(_ json: [String: Any]) {
+        if let input = json["input"] as? String {
+            before.filePath = input; inputButton.isEnabled = true
+            let stamp = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
+            header.stringValue = "\(URL(fileURLWithPath: input).lastPathComponent)  ·  \(stamp)"
+            header.toolTip = input
+        }
+        for (key, image) in [("before_preview", before), ("preview", after)] {
+            if let path = json[key] as? String, previewPaths[key] != path {
+                image.image = NSImage(contentsOfFile: path); previewPaths[key] = path
+            }
+        }
+        if let path = json["image"] as? String { after.filePath = path; outputButton.isEnabled = true }
+        if let path = json["log"] as? String { after.logPath = path }
+        let status = json["status"] as? String ?? (json["error"] == nil ? "queued" : "failed")
+        if ["accepted", "review_required", "failed"].contains(status) { terminalStatus = status }
+        if status == "renamed" { terminalStatus = json["result_status"] as? String ?? terminalStatus }
+        if status == "queued" { notice.stringValue = "Queued · loading input preview" }
+        else if status == "processing" { processing = true; notice.stringValue = "Straightening…" }
+        else if status == "input_preview" && !processing { notice.stringValue = "Queued · input preview ready" }
+        else if status == "preview_unavailable" { notice.stringValue = "Preview unavailable · original can still be opened" }
+        else if let error = json["error"] as? String { notice.stringValue = "Failed · \(error)"; notice.toolTip = error }
+        else if after.filePath != nil {
+            let name = URL(fileURLWithPath: after.filePath!).lastPathComponent
+            notice.stringValue = "Saved \(name)" + (terminalStatus == "review_required" ? " · review needed" : "")
+            notice.toolTip = (json["warnings"] as? [String])?.joined(separator: "\n")
+        }
+        notice.textColor = Theme.color(terminalStatus == "failed" ? "danger" : terminalStatus == "review_required" ? "warning" : "accent")
+        before.setAccessibilityLabel("Input image: \(before.filePath ?? "queued")")
+        after.setAccessibilityLabel("Output image: \(after.filePath ?? "waiting")")
+    }
+}
+
 struct CommandResult {
     let code: Int32
     let text: String
@@ -154,11 +246,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var comparisonsScroll: NSScrollView?
     let comparisons = ComparisonDocument()
     var comparisonCount = 0
+    var comparisonCards: [String: ComparisonCard] = [:]
     let autoContrast = NSButton(checkboxWithTitle: "Contrast", target: nil, action: nil)
     let autoBrightness = NSButton(checkboxWithTitle: "Brightness", target: nil, action: nil)
     let autoColor = NSButton(checkboxWithTitle: "Color", target: nil, action: nil)
     let autoAll = NSButton(checkboxWithTitle: "All adjustments", target: nil, action: nil)
     let keepMetadata = NSButton(checkboxWithTitle: "Keep metadata", target: nil, action: nil)
+    let nameBarcodePairs = NSButton(checkboxWithTitle: "Name barcode pairs", target: nil, action: nil)
     var relativeField: NSTextField!
     var fixedField: NSTextField!
     var mode: NSPopUpButton!
@@ -318,6 +412,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let firstOptions = NSStackView(views: [autoContrast, autoBrightness]); firstOptions.spacing = 12
         let secondOptions = NSStackView(views: [autoColor, autoAll]); secondOptions.spacing = 12
         options.addArrangedSubview(firstOptions); options.addArrangedSubview(secondOptions); options.addArrangedSubview(keepMetadata)
+        options.addArrangedSubview(nameBarcodePairs)
+        nameBarcodePairs.toolTip = "Sorts by filename. A barcode on a back names it CODEB.png and the immediately preceding front CODEA.png. Originals stay unchanged."
         options.heightAnchor.constraint(equalToConstant: 70).isActive = true
         keepMetadata.toolTip = "Copies supported EXIF/XMP/IPTC, including location tags. Requires ExifTool. Defaults off."
         autoAll.toolTip = "Apply contrast, brightness and color to the final cropped pixels. Defaults off."
@@ -393,58 +489,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func addComparison(_ json: [String: Any]) {
         guard let scroll = comparisonsScroll else { return }
+        let key = json["event_id"] as? String ?? UUID().uuidString
         let follow = comparisons.bounds.height <= scroll.contentSize.height || scroll.documentVisibleRect.maxY >= comparisons.bounds.height - 24
         emptyReview?.removeFromSuperview(); emptyReview = nil
-        let failed = json["error"] as? String
-        let review = json["status"] as? String == "review_required"
-        let card = NSStackView(); card.orientation = .vertical; card.alignment = .leading; card.spacing = 5
-        card.wantsLayer = true; card.layer?.backgroundColor = Theme.color("surface").cgColor; card.layer?.cornerRadius = 10
-        card.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
-        let filename = URL(fileURLWithPath: json["input"] as? String ?? "Processing error").lastPathComponent
-        let time = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
-        let header = NSTextField(labelWithString: "\(filename)  ·  \(time)")
-        header.font = .systemFont(ofSize: 12, weight: .semibold); header.lineBreakMode = .byTruncatingMiddle
-        header.toolTip = "\(filename)  ·  \(time)"; card.addArrangedSubview(header)
-        let pair = NSStackView(); pair.distribution = .fillEqually; pair.spacing = 12
-        if let error = failed {
-            let explanation = error.contains("insufficient image data") || error.contains("improper image header")
-                ? "The file is damaged or is not a supported image." : String(error.prefix(450))
-            let message = label("Could not process this image.\n\(explanation)\n\nCheck the source and add it again to retry. Details are in Activity.", muted: true)
-            pair.addArrangedSubview(message); failedCount += 1
-        } else {
-            for (caption, key) in [("BEFORE", "before_preview"), ("AFTER · TRANSPARENT PNG", "preview")] {
-                let column = NSStackView(); column.orientation = .vertical; column.spacing = 3
-                column.addArrangedSubview(label(caption, size: 10, muted: true))
-                let image = NSImageView(); image.imageScaling = .scaleProportionallyUpOrDown
-                if let path = json[key] as? String { image.image = NSImage(contentsOfFile: path) }
-                image.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-                image.setContentHuggingPriority(.defaultLow, for: .horizontal)
-                image.heightAnchor.constraint(equalToConstant: 142).isActive = true
-                image.setAccessibilityLabel("\(caption): \(filename)")
-                column.addArrangedSubview(image); image.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true
-                pair.addArrangedSubview(column)
-            }
-            savedCount += 1; if review { reviewCount += 1 }
+        let card: ComparisonCard
+        if let existing = comparisonCards[key] { card = existing }
+        else {
+            card = ComparisonCard(frame: .zero); comparisonCards[key] = card
+            card.translatesAutoresizingMaskIntoConstraints = false; comparisons.addSubview(card)
+            NSLayoutConstraint.activate([card.topAnchor.constraint(equalTo: comparisons.topAnchor, constant: 8 + CGFloat(comparisonCount) * 262),
+                card.leadingAnchor.constraint(equalTo: comparisons.leadingAnchor, constant: 4),
+                card.heightAnchor.constraint(equalToConstant: 252), card.widthAnchor.constraint(equalTo: comparisons.widthAnchor, constant: -8)])
+            comparisonCount += 1
+            comparisons.setFrameSize(NSSize(width: scroll.contentSize.width, height: 16 + CGFloat(comparisonCount) * 262))
         }
-        card.addArrangedSubview(pair)
-        let notice = label(failed != nil ? "Failed · original preserved" : review ? "Saved · review geometry or orientation" : "Saved", size: 11)
-        notice.textColor = Theme.color(failed != nil ? "danger" : review ? "warning" : "accent")
-        notice.toolTip = (json["warnings"] as? [String])?.joined(separator: "\n")
-        let bottom = NSStackView(views: [notice, NSView()]); bottom.spacing = 6
-        if let path = json["image"] as? String {
-            let open = button("Open PNG", #selector(openResult(_:))); open.identifier = NSUserInterfaceItemIdentifier(path)
-            open.controlSize = .small; bottom.addArrangedSubview(open)
+        card.update(json)
+        if !card.counted, let status = card.terminalStatus {
+            card.counted = true
+            if status == "failed" { failedCount += 1 }
+            else { savedCount += 1; if status == "review_required" { reviewCount += 1 } }
         }
-        card.addArrangedSubview(bottom); card.translatesAutoresizingMaskIntoConstraints = false; comparisons.addSubview(card)
-        NSLayoutConstraint.activate([card.topAnchor.constraint(equalTo: comparisons.topAnchor, constant: 8 + CGFloat(comparisonCount) * 242),
-            card.leadingAnchor.constraint(equalTo: comparisons.leadingAnchor, constant: 4),
-            card.heightAnchor.constraint(equalToConstant: 232),card.widthAnchor.constraint(equalTo: comparisons.widthAnchor, constant: -8),
-            header.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24),
-            pair.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24),
-            bottom.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24)])
-        comparisonCount += 1
         resultCount.stringValue = "\(savedCount) saved  ·  \(reviewCount) to review  ·  \(failedCount) failed"
-        comparisons.setFrameSize(NSSize(width: scroll.contentSize.width, height: 16 + CGFloat(comparisonCount) * 242))
         comparisons.layoutSubtreeIfNeeded()
         if follow { card.scrollToVisible(card.bounds) }
     }
@@ -479,7 +544,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // '--' keeps a filename from being interpreted as an option.
         var arguments = ["--media", kind, "--preview"]
         for (control, flag) in [(autoContrast, "--auto-contrast"), (autoBrightness, "--auto-brightness"),
-                                (autoColor, "--auto-color"), (autoAll, "--auto-adjust"), (keepMetadata, "--keep-metadata")] {
+                                (autoColor, "--auto-color"), (autoAll, "--auto-adjust"), (keepMetadata, "--keep-metadata"), (nameBarcodePairs, "--name-barcode-pairs")] {
             if control.state == .on { arguments.append(flag) }
         }
         arguments += ["--"] + files.map(\.path)
@@ -506,13 +571,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func received(_ line: String) {
         if let data = line.data(using: .utf8), let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if json["event_id"] != nil { addComparison(json) }
             if let image = json["image"] as? String {
                 latestOutput = URL(fileURLWithPath: image); revealButton.isEnabled = true
                 let review = json["status"] as? String == "review_required"
                 append("\(review ? "Review needed" : "Saved"): \(image)")
-                addComparison(json)
+                if json["event_id"] == nil { addComparison(json) }
                 if let warnings = json["warnings"] as? [String], !warnings.isEmpty { append("  " + warnings.joined(separator: ", ")) }
-            } else if let error = json["error"] as? String { append("Could not process \(json["input"] ?? "image"): \(error)"); addComparison(json) }
+            } else if let error = json["error"] as? String { append("Could not process \(json["input"] ?? "image"): \(error)"); if json["event_id"] == nil { addComparison(json) } }
             else if json["status"] as? String == "processing", let input = json["input"] as? String {
                 statusLabel.stringValue = "Processing \(URL(fileURLWithPath: input).lastPathComponent)…"
             }
@@ -525,7 +591,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     func setBusyUI(_ value: Bool) {
         preferencesButton.isEnabled = !value; media.isEnabled = !value
-        for control in [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata] { control.isEnabled = !value }
+        for control in [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata, nameBarcodePairs] { control.isEnabled = !value }
         clearQueueButton.isEnabled = value && !queue.isEmpty
         value ? progress.startAnimation(nil) : progress.stopAnimation(nil)
     }

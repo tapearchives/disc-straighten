@@ -1,6 +1,6 @@
 # Mac drag-and-drop app
 
-de-askew 0.8.2 includes a native macOS app and the existing command line.
+de-askew 0.9.0 includes a native macOS app and the existing command line.
 They use the same image processor and saved output preferences.
 
 ## Open and use
@@ -27,7 +27,7 @@ the latest saved PNG. Originals are never modified. Existing destinations get a 
 
 Before/after cards appear in the main window, with filename, local completion
 time and a persistent saved/review/failed status. Checkerboard previews reveal
-the actual PNG alpha; the master contains no checkerboard. **Open PNG** opens
+the actual PNG alpha; the master contains no checkerboard. **Open Output Image** opens
 a full-resolution derivative. Scrolling up to inspect an earlier result pauses
 automatic following. **Activity** expands diagnostics. At small window heights,
 the controls column also scrolls. Finishing and metadata copying start off.
@@ -123,3 +123,17 @@ receive timestamp suffixes. The root contains output-images, output-previews,
 and output-json. Help opens the bundled illustrated guide without networking.
 The application name and icon are **de-askew**. Internal preferences/runtime
 folders keep their older name to preserve existing settings.
+
+### Live input previews and barcode naming
+
+The batch immediately adds cards for every input in filename order. A separate
+preview thread fills their left panes while conversion fills the right panes.
+Use **Open Input Image** / **Open Output Image**, or right-click either image
+for open, reveal-folder and copy-path actions. The output menu also opens its JSON log.
+
+**Name barcode pairs** under Finishing defaults off. It names a barcode back
+`CODEB.png` and its immediately preceding, barcode-free front `CODEA.png`.
+Inputs are sorted by filename across all selected folders. Keep consecutive
+front/back photos together in that order. Failed inputs break adjacency; ambiguous
+codes and collisions are logged without overwriting files. All decoded values
+are logged even when naming is off. See the README for pairing rules.

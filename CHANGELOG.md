@@ -1,5 +1,24 @@
 # Changes
 
+## 0.9.0 — faint shell edges, live input queue and barcode pairs
+
+- Use the nominal cassette aspect ratio, other body lines and reel evidence to
+  search beyond a stronger label edge in nearly parallel views. Confirm a faint
+  measured long line at two resolutions before refitting the homography. Keep
+  the final shared-radius crop and tight canvas; log recovery and uncertainty.
+- Queue every input card before conversion. Load input thumbnails sequentially
+  on a separate worker while conversion fills the output panes. Update cards
+  in place, including failures and renamed outputs, without double counting.
+- Add Open Input Image / Open Output Image and per-image right-click actions
+  on Mac and Windows, including output-log access.
+- Decode barcodes before cropping with pinned ZXing-C++ 3.1.1. Preserve literal
+  values, symbology and source-pixel corner positions in every result log.
+- Add optional Name barcode pairs / --name-barcode-pairs. Sort by filename;
+  name a barcode back CODEB.png and its immediate barcode-free front CODEA.png.
+  Rename companion logs/previews, preserve source provenance, protect collisions,
+  and keep old derivatives until both renamed sets are published. Defaults off.
+
+
 ## 0.8.2 — shared corner geometry and review workbench
 
 - Replace independent corner ellipses with one joint circular radius after

@@ -82,7 +82,8 @@ Tk/ttk controls in `discstraight/windows_gui.py`; both invoke the same CLI engin
 OS-owned dropdown geometry and scrollbars are intentional. There is no web form,
 table, authentication, remote search or financial transaction in this UI.
 
-Drop/choose queues a batch → stable progress state → individual comparison or
+Drop/choose queues all filename-sorted input cards → independent thumbnail loading
+and conversion → each existing card fills its output → individual comparison or
 failure card → persistent completion status. Originals are never overwritten.
 Review notices remain visible on their cards. Options start off; media starts
 Automatic. Preferences save through the shared validated preference module.

@@ -62,7 +62,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     times['render_seconds']=time.perf_counter()-start
     preview=work/'preview.png';make_preview=args.preview or (args.overwrite and targets['preview'].exists())
     if make_preview:
-        before_preview(normalized,work/'before.png')
+        if not getattr(args,'background_previews',False):before_preview(normalized,work/'before.png')
         after_preview(output,preview)
     for edge,points in zip(geometry['edges'],geometry['diagnostics']['edge_source_points_px']):
         corrected=source_to_plane(np.array(points),geometry)
@@ -88,6 +88,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
                 media_selection=dict(requested=args.media,selected='cassette',score=geometry['detection_score'],
                                      calibrated_probability=False),
                 status='review_required' if warnings else 'accepted',warnings=warnings,source=source_log,
+                barcodes=source_log.get('barcodes',{}),
                 geometry={k:v for k,v in geometry.items() if k!='diagnostics'},
                 rotation=dict(clockwise_degrees=source_angle,canonical_flip_degrees=orientation['clockwise_degrees'],
                               note='Source long-axis rotation summary; the full transform is projective and may include nonlinear bow correction.'),
@@ -106,7 +107,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     output.replace(targets['image']);(work/'orientation.json').replace(targets['orientation'])
     if make_preview:
         preview.replace(targets['preview'])
-        (work/'before.png').replace(targets['before'])
+        if (work/'before.png').exists():(work/'before.png').replace(targets['before'])
     if args.keep_metadata:(work/'source-metadata.json').replace(targets['metadata'])
     (work/'result.json').replace(targets['log'])
     return result

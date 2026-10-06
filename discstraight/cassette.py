@@ -360,7 +360,7 @@ def plumb_line_fit(traces: list[dict], shape: tuple[int, int], mode: str) -> dic
                 assumptions='Straight body edges; optical center fixed at image center. Not camera calibration or 3D de-parallax.')
 
 
-def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: float, proposal: bool = False, strength_scale: float = 1.) -> dict:
+def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, band: float, proposal: bool = False, strength_scale: float = 1., relative_threshold: float = .2, minimum_peak: float = .3, minimum_support: float = .5) -> dict:
     """Choose a broadly supported straight ridge, then refine its sample peaks.
 
     Several parallel ridges can describe a clear rim. Prefer the outermost one
@@ -375,7 +375,7 @@ def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, 
     strength=abs(sampler.sample([plus[...,1],plus[...,0]])-sampler.sample([minus[...,1],minus[...,0]]))/1.2
     inside=((points[...,0]>.5)&(points[...,0]<sampler.shape[1]-1.5)&
             (points[...,1]>.5)&(points[...,1]<sampler.shape[0]-1.5))
-    peaks=(strength>np.maximum(max(.3,1.5*strength_scale),strength.max(axis=1,keepdims=True)*.2))&inside
+    peaks=(strength>np.maximum(max(minimum_peak,1.5*strength_scale),strength.max(axis=1,keepdims=True)*relative_threshold))&inside
     peaks[:,1:-1]&=(strength[:,1:-1]>strength[:,:-2])&(strength[:,1:-1]>=strength[:,2:])
     peaks[:,[0,-1]]=False
     support=cv2.dilate(peaks.astype('uint8'),np.ones((1,3 if proposal else 5),np.uint8))
@@ -385,8 +385,8 @@ def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, 
     valid=(indices>=0)&(indices<len(offsets))
     scores=np.mean(support[np.arange(len(t)),np.clip(indices,0,len(offsets)-1)]*valid,axis=1)
     best=float(scores.max())
-    if best<.5:raise ValueError(f'Insufficient long straight body-edge support ({best:.0%})')
-    eligible=np.flatnonzero(scores>=max(.5,best-.035))
+    if best<minimum_support:raise ValueError(f'Insufficient long straight body-edge support ({best:.0%})')
+    eligible=np.flatnonzero(scores>=max(minimum_support,best-.035))
     chosen=eligible[np.argmin(intercept.ravel()[eligible])]
     target=hypotheses[chosen]
     distances=np.where(peaks,abs(offsets[None,:]-target[:,None]),np.inf)
@@ -399,7 +399,7 @@ def straight_trace_edge(sampler: CubicSampler, a: np.ndarray, b: np.ndarray, *, 
     design=np.column_stack([np.ones(len(t)),t-.5])
     fit=least_squares(lambda c:(design@c-shifts)[inliers],np.linalg.lstsq(design[inliers],shifts[inliers],rcond=None)[0],loss='soft_l1',f_scale=.25)
     inliers &= abs(design@fit.x-shifts)<.7
-    if inliers.mean()<.45 or np.ptp(t[inliers])<.60:
+    if inliers.mean()<minimum_support-.05 or np.ptp(t[inliers])<.60:
         raise ValueError('Straight edge does not span enough of the main body')
     return dict(points=base+shifts[:,None]*normal,inliers=inliers,coverage=float(inliers.mean()),
                 median_strength=float(np.median(values[inliers])),selection='straight_ridge_consensus')
@@ -477,10 +477,15 @@ def detect_cassette(gray: np.ndarray, *, debow: str = 'off', corners: np.ndarray
             reel=candidate_reel
         except ValueError as error:
             recovery=dict(applied=False,reason=str(error))
+    aspect_recovery=dict(applied=False,reason='explicit_geometry_or_non_straight_policy')
+    if debow=='off' and corners is None:
+        from .cassette_aspect import recover_faint_body_edge
+        traces,aspect_recovery=recover_faint_body_edge(gray,traces)
     diagnostics=dict(candidate_count=len(seeds),usable_candidates=len(ranked),
                      candidates=[dict(score=v[0],corners_analysis_px=v[1].tolist(),reels=v[2]) for v in ranked[:5]])
     geometry=geometry_from_traces(gray.shape, traces, score, reel, diagnostics, debow=debow)
     geometry['texture_boundary_recovery']=recovery
+    geometry['aspect_boundary_recovery']=aspect_recovery
     from .cassette_corners import aspect_ratio_tag
     geometry['aspect_ratio']=aspect_ratio_tag(np.array(geometry['undistorted_source_corners_px']))
     return geometry

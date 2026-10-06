@@ -1,6 +1,6 @@
 # Compact-cassette geometry and implementation
 
-Version 0.6.0; dimensional research checked September 30, 2026. A reviewed cassette beta is implemented. The detailed [JSON profile](research/cassette-reference-profile.json) remains research data; only nominal body dimensions and reel spacing guide runtime fitting. Five supplied photographs informed development; no broad or held-out recognition accuracy is claimed.
+Version 0.9.0; dimensional research checked September 30, 2026. A reviewed cassette beta is implemented. The detailed [JSON profile](research/cassette-reference-profile.json) remains research data. Nominal body dimensions, reel spacing and a broad central hub-row prior guide runtime fitting; these are not a complete calibrated shell model. Supplied photographs informed development; no broad or held-out recognition accuracy is claimed.
 
 ## Source hierarchy and access
 
@@ -250,3 +250,20 @@ uses explicitly logged radius priors for unresolved corners. Background noise, a
 can still mislead any single-photo detector; review the corner-fit diagnostics.
 Experimental boundary conformance remains a 2D approximation, not calibrated
 optical correction. It is separate from the new corner crop.
+# Faint exterior boundary recovery (0.9)
+
+A high-contrast paper label can wrongly win the first long-edge fit. If nearly
+parallel shell sides describe a frame 2.5–20% wider than the nominal ratio,
+the other three sides and 100.4:63.8 prior propose a bounded search for each
+long outer line. A candidate needs distributed image support, compatible reels,
+a broadly central hub row (including a 180-degree flip), and agreement with the
+body proportions. The low-contrast search uses lower peak/support thresholds
+only after the analysis-resolution line is established. Full-resolution edge
+points must still span at least 60% of the edge length. The final line determines
+the homography; the aspect prior does not directly manufacture a corner.
+
+`geometry.aspect_boundary_recovery` records the reason, side, ratios and support
+at both resolutions. This is a bounded near-parallel-view heuristic, not camera
+calibration or proof of an exact source-plane ratio. Deep perspective, missing
+physical boundaries and complete background camouflage can still require review.
+The one-warp / analytic rounded-rectangle crop workflow remains unchanged.

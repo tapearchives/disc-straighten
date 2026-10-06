@@ -1,6 +1,6 @@
 # Windows CMD quick start
 
-de-askew 0.8.2 runs from the ordinary Windows Command Prompt (`cmd.exe`).
+de-askew 0.9.0 runs from the ordinary Windows Command Prompt (`cmd.exe`).
 It uses Python, ImageMagick and local Tesseract OCR. No WSL, Apple frameworks or
 cloud OCR account is needed. The download is a source kit with a `.cmd` launcher,
 not a self-contained `.exe`.
@@ -70,7 +70,7 @@ Settings live in `%APPDATA%\Disc Straighten\preferences.json`. `-o` overrides th
 for one run. Run `de-askew-gui.cmd` for the Windows drag-and-drop interface.
 The workbench has a controls column, mixed-media detection, a scrolling comparison
 history, checkerboard previews, result counts and individual failure cards.
-**Open PNG** opens a full-resolution result. Options are captured when a batch
+**Open Output Image** opens a full-resolution result. Options are captured when a batch
 is added; all finishing switches start off. Preferences preserve separate
 relative and fixed locations.
 
@@ -161,3 +161,17 @@ HEIC needs ImageMagick's HEIC/libheif decoder. Optional Keep metadata needs
 its Windows installation instructions. These dependencies are not bundled.
 The normal processing path does not need ExifTool. Existing output roots gain
 a timestamp suffix, with separate output-images, output-previews, output-json.
+
+### Live input previews and barcode naming
+
+The batch immediately adds cards for every input in filename order. A separate
+preview thread fills their left panes while conversion fills the right panes.
+Use **Open Input Image** / **Open Output Image**, or right-click either image
+for open, reveal-folder and copy-path actions. The output menu also opens its JSON log.
+
+**Name barcode pairs** under Finishing defaults off. It names a barcode back
+`CODEB.png` and its immediately preceding, barcode-free front `CODEA.png`.
+Inputs are sorted by filename across all selected folders. Keep consecutive
+front/back photos together in that order. Failed inputs break adjacency; ambiguous
+codes and collisions are logged without overwriting files. All decoded values
+are logged even when naming is off. See the README for pairing rules.

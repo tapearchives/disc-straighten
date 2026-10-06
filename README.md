@@ -4,7 +4,7 @@ A TapeArchives project for archival image preparation. Straighten optical discs 
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.8.2 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
+**Version 0.9.0 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
@@ -76,6 +76,36 @@ The launcher creates its local environment on first use. This is a source kit,
 not a standalone executable. Run `de-askew-gui.cmd` for the Windows drop window;
 `install-windows.ps1` adds a **de-askew** desktop shortcut and icon. [Windows installation and troubleshooting](WINDOWS.md)
 includes PATH, language data, batch exit codes and color management.
+
+## Barcode pairs and immediate previews
+
+Every input gets a card in filename order before conversion starts. A separate
+preview worker fills the left panes while the conversion worker processes the
+batch. **Open Input Image** and **Open Output Image** open full-resolution files.
+Right-click either image to open it, reveal its folder or copy its path; the
+output menu also opens the transformation log.
+
+Barcodes are decoded from the EXIF-normalized original before cropping, even
+when automatic naming is off. JSON logs retain literal values (including leading
+zeros), symbology and source-pixel corners. Missing/unavailable readings are
+explicit. A barcode proves its encoded text, not which physical side is pictured.
+
+Enable **Name barcode pairs** under Finishing, or run:
+
+```sh
+./de-askew "Cassette photos" --preview --name-barcode-pairs
+```
+
+Inputs are globally sorted by case-insensitive filename, then full path. A back
+with one usable barcode `00104305` becomes `00104305B.png`; the immediately
+preceding successful, barcode-free input becomes `00104305A.png`. Logs and
+previews follow those names, retaining original input paths and hashes. This
+assumes consecutive front/back captures: arrange filenames accordingly. Pairing
+never crosses batches or skips a failed input. First-file backs, ambiguous or
+unsafe values, and existing destination names stay unchanged with a logged
+reason. Duplicate barcodes never overwrite another pair. Original photos are
+never renamed. A crash during publication can leave duplicate derivative aliases;
+retain the originals and inspect logs before deleting duplicates.
 
 ## Finishing, HEIC and metadata
 

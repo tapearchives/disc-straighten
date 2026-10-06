@@ -1,7 +1,7 @@
 # Dependency and distribution notes
 
 Checked September 30, 2026 against the installed distributions and upstream
-license texts; Tesseract references added October 5, 2026. This is a source distribution of de-askew 0.8.0, licensed
+license texts; ZXing references added October 6, 2026. This is a source distribution of de-askew 0.9.0, licensed
 under MIT. The custom geometry and orientation code was written for this tool;
 no code from the previously researched deskew, subpixel-edges, circle-fit,
 PaddleOCR, or libvips repositories is included.
@@ -11,6 +11,7 @@ PaddleOCR, or libvips repositories is included.
 | NumPy 2.5.3 | Arrays and numerical operations | BSD-3-Clause primary license; installed wheel notices copied into `licenses/numpy/`. Downloaded by pip, not bundled as binaries. |
 | SciPy 1.18.1 | Edge interpolation, robust fitting, peak search | BSD-3-Clause primary license; complete installed wheel license/notice file in `licenses/scipy/`. Downloaded by pip, not bundled as binaries. |
 | opencv-python-headless 5.0.0.93 | Contour/ellipse proposals for photos | Python packaging MIT; OpenCV Apache-2.0; full wheel notices in `licenses/opencv-python-headless/`. Downloaded by pip, not bundled as binaries. Other wheel components retain their own terms. |
+| zxing-cpp 3.1.1 | Native barcode decoding with rotation and inversion search | Apache-2.0; upstream license in `licenses/zxing-cpp-Apache-2.0.txt`. Installed separately by pip; no decoder binary is bundled. |
 | ImageMagick 7 | Color management and raster resampling | ImageMagick License; notice in `licenses/ImageMagick-LICENSE.txt`. Uses an independently installed executable. |
 | Apple Vision | Optional macOS OCR | Apple system framework, not open source and not redistributed. Only the original Swift calling code is bundled; compiled locally with Apple's installed SDK. |
 | Tesseract 5 and standard tessdata | Windows/local portable OCR | Apache-2.0 upstream engine and standard model repository. Installed separately, not redistributed in this source kit. Third-party installer dependencies retain their own terms. |
@@ -31,6 +32,7 @@ Source license references:
 - ImageMagick: https://imagemagick.org/license/
 - OpenCV: https://github.com/opencv/opencv/blob/5.x/LICENSE
 - OpenCV Python packaging: https://github.com/opencv/opencv-python/blob/5.x/LICENSE.txt
+- ZXing-C++: https://github.com/zxing-cpp/zxing-cpp/blob/v3.1.1/LICENSE
 - Apple developer agreements: https://developer.apple.com/support/terms/
 - Tesseract: https://github.com/tesseract-ocr/tesseract/blob/main/LICENSE
 - Standard tessdata: https://github.com/tesseract-ocr/tessdata/blob/main/LICENSE

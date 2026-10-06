@@ -1,6 +1,6 @@
 # de-askew usage
 
-Applies to version 0.8.0.
+Applies to version 0.9.0.
 The disc-specific sections below retain their existing conventions.
 Start with the [README](README.md) for installation and a shorter introduction.
 
@@ -386,3 +386,19 @@ warnings and inventory. GPS is included when copying is enabled.
 HEIC/HEIF inputs require an ImageMagick build with its HEIC delegate. Only the
 primary still is processed; HDR gain maps, depth and motion are not applied.
 Use `magick -list format` to check HEIC support. Original files are untouched.
+# Live batch previews and barcode pairs (0.9)
+
+`de-askew "photos" --preview --name-barcode-pairs` queues inputs in filename
+order and loads thumbnails on a separate sequential worker while converting.
+The GUI has Open Input Image / Open Output Image and right-click file actions.
+Barcode reading runs before cropping regardless of the naming option; logs
+include literal values, formats, source-pixel corners and decoder status.
+
+With naming enabled, one usable code on a back yields `CODEB.png` and renames
+the immediately preceding successful barcode-free front to `CODEA.png`.
+The sort is case-insensitive filename, then full path across selected folders.
+Arrange front/back captures consecutively. Failed inputs break adjacency;
+pairing never crosses batches. Ambiguous or unsafe codes and collisions retain
+existing output names with a logged reason. Previews and JSON companions follow
+the new names, while original paths and hashes remain in JSON. Originals are
+never renamed. See README.md and the offline guide for examples and limits.

@@ -22,8 +22,8 @@ class App:
     def __init__(self, root):
         self.root=root;root.title('de-askew');root.geometry('1160x800');root.minsize(900,720)
         self.events=queue.Queue();self.pending=[];self.busy=False;self.images=[];self.latest=None
-        self.saved_count=0;self.review_count=0;self.failed_count=0
-        self.options={key:tk.BooleanVar(value=False) for key in ['auto-contrast','auto-brightness','auto-color','auto-adjust','keep-metadata']}
+        self.saved_count=0;self.review_count=0;self.failed_count=0;self.card_models={}
+        self.options={key:tk.BooleanVar(value=False) for key in ['auto-contrast','auto-brightness','auto-color','auto-adjust','keep-metadata','name-barcode-pairs']}
         self.status=tk.StringVar(value='Ready. Drop photos or folders to begin.')
         self.counts=tk.StringVar(value='No images processed yet');self.media=tk.StringVar(value='Automatic')
         self.destination=tk.StringVar();self.update_destination()
@@ -64,8 +64,10 @@ class App:
         self.media_control.pack(fill='x')
         ttk.Label(sidebar,text='Finishing',style='Heading.TLabel').pack(anchor='w',pady=(18,5))
         options=ttk.Frame(sidebar,style='Workbench.TFrame');options.pack(fill='x')
-        for index,(key,label) in enumerate([('auto-contrast','Contrast'),('auto-brightness','Brightness'),('auto-color','Color'),('auto-adjust','All adjustments'),('keep-metadata','Keep metadata')]):
-            ttk.Checkbutton(options,text=label,variable=self.options[key]).grid(row=index//2,column=index%2,sticky='w',pady=2)
+        for index,(key,label) in enumerate([('auto-contrast','Contrast'),('auto-brightness','Brightness'),('auto-color','Color'),('auto-adjust','All adjustments'),('keep-metadata','Keep metadata'),('name-barcode-pairs','Name barcode pairs')]):
+            ttk.Checkbutton(options,text=label,variable=self.options[key]).grid(
+                row=3 if key=='name-barcode-pairs' else index//2,column=0 if key=='name-barcode-pairs' else index%2,
+                columnspan=2 if key=='name-barcode-pairs' else 1,sticky='w',pady=2)
         ttk.Label(sidebar,text='Optional. All off by default.\nChanges apply to the next added batch.',style='Muted.TLabel').pack(anchor='w',pady=6)
         ttk.Label(sidebar,text='Destination',style='Heading.TLabel').pack(anchor='w',pady=(12,5))
         ttk.Label(sidebar,textvariable=self.destination,wraplength=240,style='Muted.TLabel').pack(anchor='w')
@@ -169,38 +171,73 @@ class App:
                 self.busy=False;self.status.set('Finished. '+('Review notices or failures below.' if event['done'] else 'Images saved.'))
                 if event.get('error'):self.card(event)
                 self.next_batch()
-            elif event.get('status')=='processing':self.status.set('Processing '+Path(event['input']).name)
-            elif event.get('status') in ['accepted','review_required','failed']:self.card(event)
+            elif event.get('status') in ['queued','input_preview','preview_unavailable','processing','renamed','accepted','review_required','failed']:
+                self.card(event)
+                if event.get('status')=='processing':self.status.set('Processing '+Path(event['input']).name)
             elif event.get('activity'):self.status.set(event['activity'])
         self.root.after(100,self.poll)
+
+    def image_menu(self,event,model,side):
+        path=model.get('input' if side=='before_preview' else 'image')
+        if not path:return
+        menu=tk.Menu(self.root,tearoff=False)
+        menu.add_command(label='Open Image',command=lambda:webbrowser.open(Path(path).as_uri()))
+        menu.add_command(label='Open Containing Folder',command=lambda:webbrowser.open(Path(path).parent.as_uri()))
+        def copy():
+            self.root.clipboard_clear();self.root.clipboard_append(path)
+        menu.add_command(label='Copy Image Path',command=copy)
+        if side=='preview' and model.get('log'):
+            menu.add_command(label='Open Transformation Log',command=lambda:webbrowser.open(Path(model['log']).as_uri()))
+        try:menu.tk_popup(event.x_root,event.y_root)
+        finally:menu.grab_release()
 
     def card(self,event):
         follow=self.canvas.yview()[1]>=.98
         if self.empty is not None:self.empty.destroy();self.empty=None
-        name=Path(event.get('input','Processing error')).name
-        stamp=datetime.datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
-        card=ttk.Frame(self.cards,padding=12,style='Card.TFrame');card.pack(fill='x',padx=4,pady=5)
-        ttk.Label(card,text=f'{name} · {stamp}',style='Card.TLabel',wraplength=660).pack(anchor='w')
-        if event.get('error'):
-            self.failed_count+=1
-            ttk.Label(card,text='Could not process this image.\n'+event['error']+'\nCheck the source and add it again to retry.',wraplength=600,style='Card.TLabel').pack(anchor='w',pady=14)
-        else:
+        key=event.get('event_id') or str(len(self.card_models))
+        model=self.card_models.get(key)
+        if model is None:
+            model={'counted':False,'pictures':{}};self.card_models[key]=model
+            card=ttk.Frame(self.cards,padding=12,style='Card.TFrame');card.pack(fill='x',padx=4,pady=5)
+            model['header']=ttk.Label(card,style='Card.TLabel',wraplength=660);model['header'].pack(anchor='w')
             pair=ttk.Frame(card,style='Card.TFrame');pair.pack(fill='x',pady=6)
-            for column,(caption,key) in enumerate([('BEFORE','before_preview'),('AFTER · TRANSPARENT PNG','preview')]):
+            for column,(caption,side,title) in enumerate([('BEFORE','before_preview','Open Input Image'),('AFTER · TRANSPARENT PNG','preview','Open Output Image')]):
                 panel=ttk.Frame(pair,style='Card.TFrame');panel.grid(row=0,column=column,padx=6,sticky='nsew');pair.columnconfigure(column,weight=1)
                 ttk.Label(panel,text=caption,style='Card.TLabel').pack()
-                path=event.get(key)
-                if path:
+                picture=ttk.Label(panel,text='Waiting for image',anchor='center',style='Card.TLabel');picture.pack(fill='both',expand=True)
+                picture.bind('<Button-3>',lambda e,m=model,k=side:self.image_menu(e,m,k));model[side+'_view']=picture
+                def open_image(m=model,k=side):
+                    path=m.get('input' if k=='before_preview' else 'image')
+                    if path:webbrowser.open(Path(path).as_uri())
+                button=ttk.Button(panel,text=title,command=open_image,state='disabled');button.pack(pady=4);model[side+'_button']=button
+            model['notice']=ttk.Label(card,text='Queued · loading input preview',wraplength=620,style='Card.TLabel');model['notice'].pack(anchor='w')
+        old_paths={key:model.get(key) for key in ['before_preview','preview']}
+        model.update({k:v for k,v in event.items() if v is not None})
+        stamp=datetime.datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
+        model['header'].configure(text=f"{Path(model.get('input','Processing error')).name} · {stamp}")
+        if model.get('input'):model['before_preview_button'].configure(state='normal')
+        for side in ['before_preview','preview']:
+            path=model.get(side)
+            if path and path!=old_paths[side]:
+                try:
                     picture=tk.PhotoImage(file=path)
                     factor=max(1,(picture.width()+319)//320,(picture.height()+159)//160)
-                    picture=picture.subsample(factor,factor)
-                    self.images.append(picture);ttk.Label(panel,image=picture,style='Card.TLabel').pack()
-            self.saved_count+=1;review=event.get('status')=='review_required';self.review_count+=int(review)
-            bar=ttk.Frame(card,style='Card.TFrame');bar.pack(fill='x')
-            ttk.Label(bar,text='Saved · review geometry or orientation' if review else 'Saved',style='Card.TLabel').pack(side='left')
-            if event.get('image'):
-                self.latest=event['image'];self.output_button.configure(state='normal')
-                ttk.Button(bar,text='Open PNG',command=lambda p=self.latest:webbrowser.open(Path(p).as_uri())).pack(side='right')
+                    picture=picture.subsample(factor,factor);model['pictures'][side]=picture
+                    model[side+'_view'].configure(image=picture,text='')
+                except tk.TclError:model[side+'_view'].configure(text='Preview unavailable')
+        status=event.get('status','failed' if event.get('error') else 'queued')
+        if status=='processing':model['processing']=True;model['notice'].configure(text='Straightening…')
+        if status=='input_preview' and not model.get('processing'):model['notice'].configure(text='Queued · input preview ready')
+        if status=='preview_unavailable':model['notice'].configure(text='Preview unavailable · original can still be opened')
+        if status in ['accepted','review_required','failed'] and not model['counted']:
+            model['counted']=True
+            if status=='failed':self.failed_count+=1
+            else:self.saved_count+=1;self.review_count+=int(status=='review_required')
+        if event.get('error'):model['notice'].configure(text='Could not process this image: '+event['error'])
+        elif model.get('image'):
+            self.latest=model['image'];self.output_button.configure(state='normal');model['preview_button'].configure(state='normal')
+            review=model.get('result_status',status)=='review_required'
+            model['notice'].configure(text='Saved '+Path(model['image']).name+(' · review needed' if review else ''))
         self.counts.set(f'{self.saved_count} saved · {self.review_count} to review · {self.failed_count} failed')
         self.root.update_idletasks()
         if follow:self.canvas.yview_moveto(1)
@@ -247,7 +284,13 @@ def main():
         assert (Path(__file__).resolve().parent/'manual'/'index.html').is_file()
         assert app.media.get()=='Automatic'
         preview=str(Path(__file__).parent/'manual/images/app-icon.png')
-        app.card(dict(input='synthetic-preview.png',status='review_required',before_preview=preview,preview=preview,image=preview))
+        app.card(dict(event_id='test:0',input='synthetic-preview.png',status='queued'))
+        app.card(dict(event_id='test:0',input='synthetic-preview.png',status='input_preview',before_preview=preview))
+        assert app.saved_count==0 and len(app.card_models)==1
+        app.card(dict(event_id='test:0',input='synthetic-preview.png',status='review_required',before_preview=preview,preview=preview,image=preview))
+        app.card(dict(event_id='test:0',input='synthetic-preview.png',status='renamed',result_status='review_required',image=preview,log=preview))
+        assert len(app.card_models)==1
+        assert app.card_models['test:0']['preview_button'].cget('text')=='Open Output Image'
         app.card(dict(input='invalid-test.jpg',status='failed',error='Intentional smoke-test failure'))
         assert (app.saved_count,app.review_count,app.failed_count)==(1,1,1)
         # Native Windows resize/configure events must run before measuring
