@@ -1,0 +1,425 @@
+{
+  "version": "0.9.0",
+  "date": "2026-10-06",
+  "unit_tests": 113,
+  "unit_result": "passed",
+  "real_photo_count": 17,
+  "review_required_count": 17,
+  "barcode_photos": 9,
+  "pairs": 8,
+  "results": [
+    {
+      "input": "IMG_2860.jpg",
+      "output": "104304A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104304",
+        "side": "A",
+        "partner_input": "IMG_2861.jpg",
+        "original_output": "output-images/IMG_2860-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5627475490755178,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2861.jpg",
+      "output": "104304B.png",
+      "barcodes": [
+        "104304"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104304",
+        "side": "B",
+        "partner_input": "IMG_2860.jpg",
+        "original_output": "output-images/IMG_2861-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5642707576790835,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2862.jpg",
+      "output": "104305A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104305",
+        "side": "A",
+        "partner_input": "IMG_2863.jpg",
+        "original_output": "output-images/IMG_2862-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.566065884192215,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2863.jpg",
+      "output": "104305B.png",
+      "barcodes": [
+        "104305"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104305",
+        "side": "B",
+        "partner_input": "IMG_2862.jpg",
+        "original_output": "output-images/IMG_2863-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": true,
+        "observed_ratio": 1.6838262479346116,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "faint_outer_line_supported_by_other_sides_and_nominal_ratio",
+        "side": "top",
+        "candidate_ratio": 1.5656232358222333,
+        "final_ratio": 1.5670591038180846,
+        "analysis_coverage": 0.7777777777777778,
+        "coverage": 0.55,
+        "limitation": "Near-parallel image prior; not a camera calibration or an exact source-plane aspect constraint."
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2864.jpg",
+      "output": "104306A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104306",
+        "side": "A",
+        "partner_input": "IMG_2865.jpg",
+        "original_output": "output-images/IMG_2864-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5664152350372664,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2865.jpg",
+      "output": "104306B.png",
+      "barcodes": [
+        "104306"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104306",
+        "side": "B",
+        "partner_input": "IMG_2864.jpg",
+        "original_output": "output-images/IMG_2865-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5688744706815447,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2866.jpg",
+      "output": "104307A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104307",
+        "side": "A",
+        "partner_input": "IMG_2867.jpg",
+        "original_output": "output-images/IMG_2866-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5633687485778927,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2867.jpg",
+      "output": "104307B.png",
+      "barcodes": [
+        "104307"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104307",
+        "side": "B",
+        "partner_input": "IMG_2866.jpg",
+        "original_output": "output-images/IMG_2867-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5668968869970437,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2868.jpg",
+      "output": "104308A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104308",
+        "side": "A",
+        "partner_input": "IMG_2869.jpg",
+        "original_output": "output-images/IMG_2868-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5622181887778512,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2869.jpg",
+      "output": "104308B.png",
+      "barcodes": [
+        "104308"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104308",
+        "side": "B",
+        "partner_input": "IMG_2868.jpg",
+        "original_output": "output-images/IMG_2869-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5668594557665423,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2870.jpg",
+      "output": "104309A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104309",
+        "side": "A",
+        "partner_input": "IMG_2871.jpg",
+        "original_output": "output-images/IMG_2870-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.563292359025312,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2871.jpg",
+      "output": "104309B.png",
+      "barcodes": [
+        "104309"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104309",
+        "side": "B",
+        "partner_input": "IMG_2870.jpg",
+        "original_output": "output-images/IMG_2871-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5656931671515748,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2872.jpg",
+      "output": "104310A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104310",
+        "side": "A",
+        "partner_input": "IMG_2873.jpg",
+        "original_output": "output-images/IMG_2872-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5653782074545965,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2873.jpg",
+      "output": "104310B.png",
+      "barcodes": [
+        "104310"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104310",
+        "side": "B",
+        "partner_input": "IMG_2872.jpg",
+        "original_output": "output-images/IMG_2873-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5647877904418812,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2874.jpg",
+      "output": "104311A.png",
+      "barcodes": [],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104311",
+        "side": "A",
+        "partner_input": "IMG_2875.jpg",
+        "original_output": "output-images/IMG_2874-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": true,
+        "observed_ratio": 1.6765587541966671,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "faint_outer_line_supported_by_other_sides_and_nominal_ratio",
+        "side": "top",
+        "candidate_ratio": 1.5733457472820254,
+        "final_ratio": 1.5729735079937328,
+        "analysis_coverage": 0.5555555555555556,
+        "coverage": 0.4222222222222222,
+        "limitation": "Near-parallel image prior; not a camera calibration or an exact source-plane aspect constraint."
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2875.jpg",
+      "output": "104311B.png",
+      "barcodes": [
+        "104311"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "paired",
+        "barcode": "104311",
+        "side": "B",
+        "partner_input": "IMG_2874.jpg",
+        "original_output": "output-images/IMG_2875-straightened.png",
+        "order": "case-insensitive input filename, then full path; immediately adjacent inputs"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5704807134390357,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    },
+    {
+      "input": "IMG_2859.jpg",
+      "output": "IMG_2859-straightened.png",
+      "barcodes": [
+        "104303"
+      ],
+      "status": "review_required",
+      "barcode_pair": {
+        "status": "unpaired",
+        "reason": "no_successful_immediately_previous_input"
+      },
+      "edge_recovery": {
+        "applied": false,
+        "observed_ratio": 1.5691065191752056,
+        "nominal_ratio": 1.5736677115987463,
+        "reason": "ratio_or_perspective_outside_bounded_search"
+      },
+      "tight_canvas": true,
+      "alpha_bits": 16
+    }
+  ],
+  "local_integration": [
+    "synthetic_disc",
+    "synthetic_cassette",
+    "native_Mac_queue_previews_context_menus_and_rename_updates",
+    "113_unit_tests"
+  ],
+  "limitations": [
+    "Development samples, not independent accuracy benchmark.",
+    "All cassette derivatives retain geometry review notices.",
+    "Weak boundary recovery is constrained to near-parallel views.",
+    "Windows native GUI verification runs in hosted CI."
+  ],
+  "input_previews_before_first_completion": 17
+}

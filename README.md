@@ -205,6 +205,12 @@ this release; lens effects can occur even in head-on photographs.
 
 ## Documentation
 
+[Version 0.9 validation](docs/validation-v0.9.0.json): 113 tests and both generated
+disc/cassette integrations passed locally. All 17 new development photos were
+processed; nine barcode backs were decoded and eight adjacent A/B pairs were
+named. Two faint top-edge cases were recovered. Every derivative retains review
+notices; these development samples are not an independent accuracy benchmark.
+
 | Guide | Contents |
 | --- | --- |
 | [Usage](USAGE.md) | Commands, options, coordinate conventions, outputs, overrides |
@@ -237,7 +243,7 @@ spacing; provisional pin-hole dimensions are not forced onto photographs.
 .venv/bin/python package.py
 ```
 
-[Current sample validation](docs/validation-v0.8.0.json): 94 unit checks, nine
+[Earlier sample validation](docs/validation-v0.8.0.json): 94 unit checks, nine
 reviewable derivatives out of the eleven requested photographs. The sleeved
 Flexplay disc and the DVD with an obscured aperture remain unresolved.
 
