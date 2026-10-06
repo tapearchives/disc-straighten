@@ -1,0 +1,44 @@
+{
+  "version": "0.10.0",
+  "date": "2026-10-06",
+  "unit_tests": 123,
+  "unit_result": "passed",
+  "layout": {
+    "page_points": [
+      612,
+      792
+    ],
+    "grid": [
+      4,
+      5
+    ],
+    "reference_pages": 2,
+    "visually_checked": true
+  },
+  "lightbox": {
+    "source_photos": 342,
+    "decoded_barcode_photos": 159,
+    "identified_media_images": 284,
+    "retained_reference_photos": 14,
+    "unassigned_photos": 44,
+    "catalog_numbers": 170,
+    "placeholder_cells": 29,
+    "first_two_page_order_verified": true,
+    "original_source_sha256_rechecked": 342,
+    "geometry_correction_applied": false
+  },
+  "native_mac": [
+    "contact_tab",
+    "loading",
+    "success",
+    "error_recovery",
+    "keyboard",
+    "minimum_window_size"
+  ],
+  "limitations": [
+    "Development samples, not an independent accuracy benchmark.",
+    "Catalog-copy mode normalizes orientation/color without geometric correction.",
+    "Handwritten identifiers, duplicate barcodes and unread codes remain unassigned; no identities guessed.",
+    "Unverified media evidence is retained for review; a placeholder does not prove physical media is missing."
+  ]
+}

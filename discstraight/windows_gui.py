@@ -196,7 +196,7 @@ class App:
                 if event.get('status')=='processing':self.status.set('Processing '+Path(event['input']).name)
             elif event.get('activity'):self.status.set(event['activity'])
             elif event.get('status')=='catalog_complete':
-                self.catalog_summary=f"{event['placeholders']} catalog gap placeholders added. {len(event['unassigned'])} unassigned images; see catalog log."
+                self.catalog_summary=f"{event['placeholders']} gap placeholders; {event.get('references',0)} reference photos retained. {len(event['unassigned'])} unassigned images; see catalog log."
                 self.contact.fields['folder'].set(event['folder'])
             elif event.get('status')=='catalog_review':
                 self.catalog_summary='Catalog needs review: '+event['error']

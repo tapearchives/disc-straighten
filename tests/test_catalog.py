@@ -7,7 +7,7 @@ import contextlib
 import io
 import hashlib
 
-from PIL import Image
+from PIL import Image, ImageDraw
 import pypdfium2 as pdfium
 
 from discstraight.catalog import inventory, materialize_gaps, sequence
@@ -17,6 +17,13 @@ from test_barcodes import record
 
 
 class CatalogTests(unittest.TestCase):
+    def media_photo(self):
+        photo=Image.new('RGB',(800,550),'white');draw=ImageDraw.Draw(photo)
+        draw.rounded_rectangle((50,52,750,498),radius=18,fill='#777777',outline='black',width=4)
+        for x in (250,548):draw.ellipse((x-46,193,x+46,285),fill='white',outline='black',width=5)
+        draw.rectangle((359,210,439,266),fill='black')
+        return photo
+
     def photo(self, folder, name):
         folder.mkdir(parents=True, exist_ok=True)
         path=folder/name
@@ -111,10 +118,10 @@ class CatalogTests(unittest.TestCase):
             root=Path(tmp);source=root/'inputs';source.mkdir()
             for name,code in [('00-back.png','0001'),('01-front.png',None),('02-back.png','0003'),
                               ('04-back.png','0005'),('05-unassigned.png',None)]:
-                photo=Image.new('RGB',(800,500),'white')
+                photo=self.media_photo()
                 if code:
                     barcode=Image.fromarray(np.asarray(zxingcpp.create_barcode(code,zxingcpp.BarcodeFormat.Code128).to_image(scale=4)))
-                    photo.paste(barcode,(100,120))
+                    photo.paste(barcode,(100,350))
                 photo.save(source/name)
             (source/'03-invalid.jpg').write_bytes(b'not an image')
             original={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()}
@@ -132,6 +139,42 @@ class CatalogTests(unittest.TestCase):
             events=[json.loads(line) for line in out.getvalue().splitlines()]
             self.assertEqual(events[-1]['status'],'catalog_complete')
             self.assertEqual(sum(e['status']=='failed' for e in events),1)
+
+    def test_barcode_only_reference_anchors_missing_number_without_consuming_front(self):
+        import numpy as np
+        import zxingcpp
+        from discstraight.cli import main
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);source=root/'inputs';source.mkdir()
+            self.media_photo().save(source/'00-unassigned.png')
+            reference=Image.new('RGB',(800,550),'white')
+            barcode=Image.fromarray(np.asarray(zxingcpp.create_barcode('0007',zxingcpp.BarcodeFormat.Code128).to_image(scale=4)))
+            reference.paste(barcode,(100,120));reference.save(source/'01-empty-case.png')
+            back=self.media_photo()
+            barcode=Image.fromarray(np.asarray(zxingcpp.create_barcode('0008',zxingcpp.BarcodeFormat.Code128).to_image(scale=4)))
+            back.paste(barcode,(100,350));back.save(source/'02-back.png')
+            before={p.name:p.read_bytes() for p in source.iterdir()}
+            with contextlib.redirect_stdout(io.StringIO()):
+                main([str(source),'--catalog-only','--name-barcode-pairs','-o',str(root/'output')])
+            result=inventory(root/'output')
+            self.assertEqual([(x['catalog'],x['side'],x['kind']) for x in result['entries']],
+                             [('0007',None,'missing'),('0008','A','missing'),('0008','B','image')])
+            self.assertEqual(result['ignored_files'],['00-unassigned-straightened.png'])
+            self.assertEqual(len(result['barcode_references']),1)
+            self.assertTrue(Path(result['barcode_references'][0]['image']).is_file())
+            self.assertFalse((root/'output/output-images/0007B.png').exists())
+            self.assertEqual(before,{p.name:p.read_bytes() for p in source.iterdir()})
+
+    def test_presence_supports_disc_and_reviewed_geometry_bypasses_coarse_gate(self):
+        import numpy as np
+        from argparse import Namespace
+        from discstraight.media_presence import evidence, catalog_reference
+        from test_barcodes import report
+        photo=Image.new('L',(800,600),255);draw=ImageDraw.Draw(photo)
+        draw.ellipse((150,50,650,550),fill=130)
+        self.assertEqual(evidence(np.asarray(photo))['media'],'disc')
+        args=Namespace(name_barcode_pairs=True,gap_placeholders=True,cassette_corners=[(0,0)]*4,outer=None)
+        self.assertIsNone(catalog_reference(np.full((500,800),255,dtype=np.uint8),report('0007'),args))
 
 
 if __name__=='__main__':unittest.main()

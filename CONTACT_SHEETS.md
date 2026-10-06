@@ -38,7 +38,22 @@ A barcode-free image is not proof of a physical front: review unread backs or
 unusual capture runs. Pairing never skips a failed input or reaches across batches.
 
 With placeholders on, first-file or consecutive decoded backs retain their B
-identity even without an eligible front. After naming, numeric catalog gaps
+identity even without an eligible front, provided media is supported in the photo.
+A coarse reel-pair/disc-rim check keeps barcode-only photos and empty cases from
+being mistaken for B sides. An unverified photo is retained in `output-references`
+with its barcode, original source hash and review reason; it anchors the catalog
+number without consuming the preceding image. If no real sides are identified
+for that number, it receives one whole-number placeholder. The original source
+remains untouched. Two reference photos of the same empty case still produce
+one catalog cell. `output-json/catalog-anchors.json` records these references.
+
+This check is evidence, not proof of absence: obscured reels, unusual shapes or
+an incomplete disc rim can also require review. Reviewed geometry overrides the
+coarse check. For a manually verified composition, rerun with reviewed corners
+or `--no-gap-placeholders`; a correctly named real side supersedes a whole-number
+dummy. Never fill a missing identity by counting unassigned photographs.
+
+After naming, numeric catalog gaps
 receive a yellow PNG with blue **MISSING MEDIA IMAGE** block lettering. A whole
 missing number occupies one report cell. A missing A or B occupies that side's
 cell. For example:

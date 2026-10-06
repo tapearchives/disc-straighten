@@ -21,7 +21,7 @@ def run_batch(items, names, destinations, args, cache, process) -> int:
     lock=threading.Lock();batch_id=uuid.uuid4().hex
     def emit(event):
         with lock:print(json.dumps(event,ensure_ascii=False),flush=True)
-    reserved={};records=[];status=0
+    reserved={};records=[];status=0;references={}
     for index,(item,name,destination) in enumerate(zip(items,names,destinations)):
         record=dict(input=item,name=name,event_id=f'{batch_id}:{index}')
         try:
@@ -77,6 +77,13 @@ def run_batch(items, names, destinations, args, cache, process) -> int:
                 # A preview must finish before moving its names. Other input
                 # thumbnails continue while the main thread converts this one.
                 if future:future.result()
+                if record['result'].get('catalog_reference'):
+                    from .catalog import preserve_reference
+                    reference=preserve_reference(record)
+                    references.setdefault(record['root'],[]).append(reference)
+                    if status==0:status=2
+                    emit(event(record));previous=None
+                    continue
                 if args.name_barcode_pairs:
                     changed,reason=rename_pair(previous,record)
                     if not changed and args.gap_placeholders and reason in (
@@ -105,9 +112,12 @@ def run_batch(items, names, destinations, args, cache, process) -> int:
         from .catalog import materialize_gaps
         for root in reserved.values():
             try:
+                if root in references:
+                    write_json(root/'output-json'/'catalog-anchors.json',dict(schema=1,references=references[root]))
                 catalog=materialize_gaps(root,args.catalog_start,args.catalog_end)
                 emit(dict(status='catalog_complete',folder=str(root),catalogs=catalog['catalog_count'],
                           placeholders=len(catalog['generated_placeholders']),unassigned=catalog['ignored_files'],
+                          references=len(catalog['barcode_references']),
                           log=str(root/'output-json'/'catalog-sequence.json')))
             except (ValueError,OSError,RuntimeError) as error:
                 status=2 if status==0 else status

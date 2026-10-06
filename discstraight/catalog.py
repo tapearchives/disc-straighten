@@ -64,6 +64,14 @@ def inventory(folder: Path, start: str | None = None, end: str | None = None) ->
         if side in slots:
             raise ValueError(f'Duplicate catalog slot {code}{side}: {Path(slots[side]["path"]).name} and {path.name}. Resolve it first.')
         slots[side] = item
+    log_folder = folder.parent / 'output-json' if folder.name == 'output-images' else folder / 'output-json'
+    anchor_path = log_folder / 'catalog-anchors.json'
+    anchors = json.loads(anchor_path.read_text(encoding='utf-8')).get('references', []) if anchor_path.is_file() else []
+    for anchor in anchors:
+        code = anchor['catalog']
+        if not re.fullmatch(r'[0-9]{1,12}', code):
+            continue
+        found.setdefault(code, {})
     if not found and not (start and end):
         raise ValueError('No catalog-named images found. Enable Name barcode pairs first, or use names such as 104001A.png and 104001B.png.')
     codes = sequence(list(found), start, end)
@@ -75,7 +83,8 @@ def inventory(folder: Path, start: str | None = None, end: str | None = None) ->
             superseded.append(slots.pop('')['path'])
         if not slots or '' in slots:
             entries.append(slots.get('', dict(catalog=code, side=None, kind='missing', path=None,
-                                              reason='catalog_sequence_gap')))
+                                              reason='barcode_reference_media_unverified' if any(a['catalog']==code for a in anchors)
+                                              else 'catalog_sequence_gap')))
         else:
             for side in ('A', 'B'):
                 entries.append(slots.get(side, dict(catalog=code, side=side, kind='missing', path=None,
@@ -87,6 +96,7 @@ def inventory(folder: Path, start: str | None = None, end: str | None = None) ->
                 catalog_count=len(codes), image_count=sum(x['kind'] == 'image' for x in entries),
                 missing_count=sum(x['kind'] == 'missing' for x in entries), entries=entries,
                 ignored_files=ignored, superseded_placeholders=superseded,
+                barcode_references=anchors,
                 excluded_catalog_ids=sorted(set(found)-set(codes)))
 
 
@@ -144,36 +154,75 @@ def materialize_gaps(root: Path, start: str | None = None, end: str | None = Non
 def process_catalog_copy(item: str, stem: str, args, cache: Path) -> dict:
     """Prepare already-composed photos for cataloging, without geometric resampling."""
     import tempfile
-    from .cli import acquire, write_json
+    from .cli import acquire
     from .imaging import gray_pixels, normalize
     from .barcodes import scan
-    from .outputs import targets, before_preview, after_preview
-    from .finishing import finish
+    from .outputs import targets
+    from .media_presence import catalog_reference
     paths = targets(args.output, stem)
     with tempfile.TemporaryDirectory(prefix='.catalog-copy-', dir=args.output) as directory:
         work = Path(directory)
         source, source_log = acquire(item, work)
         normalized = work / 'normalized.miff'
         meta = normalize(source, normalized); source_log.update(meta)
-        barcodes = scan(gray_pixels(normalized, meta['width'], meta['height']))
+        gray = gray_pixels(normalized, meta['width'], meta['height'])
+        barcodes = scan(gray)
         source_log['barcodes'] = barcodes
-        staged = work / 'image.png'
-        run(['magick', str(normalized), '-depth', str(args.depth), str(staged)])
-        finishing = finish(source, staged, args, work)
-        if args.keep_metadata:
-            finishing['metadata']['source_inventory_file'] = paths['metadata'].name
-            (work/'source-metadata.json').replace(paths['metadata'])
-        staged.replace(paths['image'])
-        if args.preview:
-            if not getattr(args, 'background_previews', False):
-                before_preview(normalized, paths['before'])
-            after_preview(paths['image'], paths['preview'])
-        result = dict(schema=1, tool='de-askew', version=__version__, status='review_required', source=source_log, barcodes=barcodes,
-                      created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                      rotation=dict(clockwise_degrees=0),
-                      geometry=dict(mode='catalog_copy', applied=False), finishing=finishing,
-                      output=dict(file=paths['image'].relative_to(args.output).as_posix(),
-                                  sha256=sha256(paths['image']), width=meta['width'],height=meta['height'],depth=args.depth),
-                      warnings=['catalog_copy_no_geometry_correction', 'barcode_side_pairing_assumes_adjacent_front_back'])
-        write_json(paths['log'], result)
-        return result
+        reference = catalog_reference(gray, barcodes, args)
+        return write_catalog_copy(source, normalized, source_log, args, work, paths, reference)
+
+
+def write_catalog_copy(source, normalized, source_log, args, work, paths, reference=None) -> dict:
+    """Keep catalog compositions or uncertain barcode references without inventing geometry."""
+    from .cli import write_json
+    from .outputs import before_preview, after_preview
+    from .finishing import finish
+    staged = work / 'image.png'
+    run(['magick', str(normalized), '-depth', str(args.depth), str(staged)])
+    finishing = finish(source, staged, args, work)
+    if args.keep_metadata:
+        finishing['metadata']['source_inventory_file'] = paths['metadata'].name
+        (work/'source-metadata.json').replace(paths['metadata'])
+    staged.replace(paths['image'])
+    if args.preview:
+        if not getattr(args, 'background_previews', False):
+            before_preview(normalized, paths['before'])
+        after_preview(paths['image'], paths['preview'])
+    result = dict(schema=1, tool='de-askew', version=__version__, status='review_required', source=source_log,
+                  barcodes=source_log['barcodes'], created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  rotation=dict(clockwise_degrees=0), geometry=dict(mode='catalog_copy', applied=False), finishing=finishing,
+                  output=dict(file=paths['image'].relative_to(args.output).as_posix(), sha256=sha256(paths['image']),
+                              width=source_log['width'], height=source_log['height'], depth=args.depth),
+                  warnings=['catalog_copy_no_geometry_correction', 'barcode_side_pairing_assumes_adjacent_front_back'])
+    if reference:
+        result['catalog_reference'] = reference
+        result['warnings'].append('barcode_reference_media_unverified')
+    write_json(paths['log'], result)
+    return result
+
+
+def preserve_reference(record: dict) -> dict:
+    """Keep evidence outside the media slots; never consume the preceding side."""
+    import os
+    import shutil
+    import errno
+    from .cli import write_json
+    result = record['result']; paths = record['paths']; root = record['root']
+    reference = result['catalog_reference']
+    old = paths['image']
+    destination = root / 'output-references' / (record['name'] + '-reference.png')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.link(old, destination)
+    except OSError as error:
+        if error.errno not in (errno.EPERM, errno.EXDEV, errno.ENOTSUP, errno.EACCES):
+            raise
+        with destination.open('xb') as output, old.open('rb') as source:
+            shutil.copyfileobj(source, output)
+    result['output']['file'] = destination.relative_to(root).as_posix()
+    result['barcode_pair'] = dict(status='reference_only', barcode=reference['catalog'],
+                                 side=None, reason=reference['reason'])
+    write_json(paths['log'], result)
+    paths['image'] = destination
+    old.unlink()
+    return dict(**reference, input=record['input'], image=str(destination), log=str(paths['log']))

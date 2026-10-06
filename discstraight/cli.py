@@ -287,6 +287,11 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         gray = gray_pixels(normalized,metadata['width'],metadata['height'])
         from .barcodes import scan
         source_log['barcodes']=scan(gray)
+        from .media_presence import catalog_reference
+        reference = catalog_reference(gray, source_log['barcodes'], args)
+        if reference:
+            from .catalog import write_catalog_copy
+            return write_catalog_copy(source, normalized, source_log, args, work, targets, reference)
         cassette_geometry=None;selected_media=args.media;selection_seconds=0.
         if selected_media=='auto':
             from .cassette import detect_cassette

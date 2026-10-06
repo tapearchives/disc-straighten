@@ -604,7 +604,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func received(_ line: String) {
         if let data = line.data(using: .utf8), let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
             if json["status"] as? String == "catalog_complete" {
-                catalogSummary = "\(json["placeholders"] ?? 0) catalog gap placeholders added."
+                catalogSummary = "\(json["placeholders"] ?? 0) gap placeholders; \(json["references"] ?? 0) reference photos retained."
                 if let folder = json["folder"] as? String { contact.folder.stringValue = folder }
                 append(catalogSummary + " See catalog-sequence.json for unassigned images."); return
             }

@@ -3,6 +3,8 @@
 
 ## 0.10.0 — Contact sheets and catalog gaps
 
+- Barcode-only case photos retain their catalog identity as reviewable references instead of becoming media sides; whole-number gap markers keep later IDs aligned.
+
 - Add a Create contact sheet tab to macOS/Windows, with asynchronous generation,
   in-app PDF previews, title/footer/range controls and report-folder access.
 - Match the supplied Letter reference: four columns, five rows, rounded dotted

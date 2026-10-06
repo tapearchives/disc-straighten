@@ -20,6 +20,7 @@ PUBLIC_FILES = (
     'docs/validation-v0.8.1.json',
     'docs/validation-v0.8.2.json',
     'docs/validation-v0.9.0.json',
+    'docs/validation-v0.10.0.json',
     'discstraight/manual/images/03-after.png',
     'de-askew-gui.cmd', 'install-windows.ps1', 'assets/de-askew.svg',
     'assets/de-askew.png', 'assets/de-askew.ico', 'assets/de-askew.icns',
