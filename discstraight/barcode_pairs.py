@@ -25,8 +25,19 @@ def rename_pair(previous: dict | None, current: dict) -> tuple[list[dict],str]:
     if previous.get('paired'):return [],'previous_input_already_paired'
     if previous['result'].get('barcodes',{}).get('status') not in ('not_found',):
         return [],'previous_input_has_barcode_or_unverified_scan'
+    return _publish(code, [(previous,'A',current),(current,'B',previous)])
+
+
+def rename_back(current: dict) -> tuple[list[dict],str]:
+    """A decoded back retains its identity even when its front is unavailable."""
+    code,reason=filename_code(current['result'].get('barcodes',{}))
+    if code is None:return [],reason
+    return _publish(code, [(current,'B',None)])
+
+
+def _publish(code: str, assignments: list[tuple]) -> tuple[list[dict],str]:
     plans=[];created=[]
-    for record,side,partner in [(previous,'A',current),(current,'B',previous)]:
+    for record,side,partner in assignments:
         old=record['paths'];new=renamed_paths(old,code,side)
         existing={key:path for key,path in old.items() if path.exists()}
         for key in existing:
@@ -37,8 +48,8 @@ def rename_pair(previous: dict | None, current: dict) -> tuple[list[dict],str]:
         result['output']['file']=new['image'].relative_to(record['root']).as_posix()
         if result.get('finishing',{}).get('metadata',{}).get('enabled'):
             result['finishing']['metadata']['source_inventory_file']=new['metadata'].name
-        result['barcode_pair']=dict(status='paired',barcode=code,side=side,
-                                    partner_input=partner['input'],original_output=record['result']['output']['file'],
+        result['barcode_pair']=dict(status='paired' if partner else 'back_only',barcode=code,side=side,
+                                    partner_input=partner['input'] if partner else None,original_output=record['result']['output']['file'],
                                     order='case-insensitive input filename, then full path; immediately adjacent inputs')
         plans.append((record,existing,new,result))
     try:
@@ -71,4 +82,4 @@ def rename_pair(previous: dict | None, current: dict) -> tuple[list[dict],str]:
             result['barcode_pair']['retained_old_aliases']=stale
             new['log'].write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         record.update(paths=new,result=result,paired=True)
-    return [previous,current],'paired'
+    return [record for record,_,_ in assignments], 'paired' if len(assignments)==2 else 'back_only'

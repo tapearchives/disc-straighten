@@ -2,3 +2,7 @@ numpy==2.5.3
 scipy==1.18.1
 opencv-python-headless==5.0.0.93
 zxing-cpp==3.1.1
+reportlab==4.4.10
+pillow==12.3.0
+charset-normalizer==3.5.2
+pypdfium2==5.14.0

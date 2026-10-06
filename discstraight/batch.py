@@ -17,7 +17,7 @@ from .outputs import reserve_folder, targets
 def run_batch(items, names, destinations, args, cache, process) -> int:
     from .cli import acquire, write_json
     from .imaging import run
-    from .barcode_pairs import rename_pair
+    from .barcode_pairs import rename_pair, rename_back
     lock=threading.Lock();batch_id=uuid.uuid4().hex
     def emit(event):
         with lock:print(json.dumps(event,ensure_ascii=False),flush=True)
@@ -79,8 +79,12 @@ def run_batch(items, names, destinations, args, cache, process) -> int:
                 if future:future.result()
                 if args.name_barcode_pairs:
                     changed,reason=rename_pair(previous,record)
+                    if not changed and args.gap_placeholders and reason in (
+                            'no_successful_immediately_previous_input','previous_input_already_paired',
+                            'previous_input_has_barcode_or_unverified_scan'):
+                        changed,reason=rename_back(record)
                     if changed:
-                        emit(event(changed[0],'renamed'))
+                        if len(changed)==2:emit(event(changed[0],'renamed'))
                     else:
                         result=record['result']
                         result['barcode_pair']=dict(status='unpaired',reason='no_barcode_on_this_input' if reason=='not_found' else reason)
@@ -97,4 +101,17 @@ def run_batch(items, names, destinations, args, cache, process) -> int:
                     try:write_json(record['root']/'output-json'/(record['name']+'-failure.json'),failure)
                     except OSError:pass
                 emit(failure)
+    if args.name_barcode_pairs and args.gap_placeholders:
+        from .catalog import materialize_gaps
+        for root in reserved.values():
+            try:
+                catalog=materialize_gaps(root,args.catalog_start,args.catalog_end)
+                emit(dict(status='catalog_complete',folder=str(root),catalogs=catalog['catalog_count'],
+                          placeholders=len(catalog['generated_placeholders']),unassigned=catalog['ignored_files'],
+                          log=str(root/'output-json'/'catalog-sequence.json')))
+            except (ValueError,OSError,RuntimeError) as error:
+                status=2 if status==0 else status
+                issue=dict(status='catalog_review',folder=str(root),error=str(error))
+                write_json(root/'output-json'/'catalog-sequence-review.json',issue)
+                emit(issue)
     return status

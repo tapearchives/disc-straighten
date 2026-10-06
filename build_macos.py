@@ -57,7 +57,7 @@ def build(destination: Path, replace: bool = False) -> None:
                                                 LSHandlerRank='Alternate', LSItemContentTypes=['public.image', 'public.folder'])])
         (contents / 'Info.plist').write_bytes(plistlib.dumps(plist))
         subprocess.run(['xcrun', 'swiftc', '-O', '-swift-version', '5', '-framework', 'Cocoa',
-                        '-framework', 'UniformTypeIdentifiers', '-framework', 'WebKit', '-module-cache-path', str(Path(temporary) / 'cache'),
+                        '-framework', 'UniformTypeIdentifiers', '-framework', 'WebKit', '-framework', 'PDFKit', '-module-cache-path', str(Path(temporary) / 'cache'),
                         '-target', f'{platform.machine()}-apple-macosx13.0',
                         str(ROOT / 'macos' / 'DiscStraighten.swift'), '-o', str(binary)], check=True)
         subprocess.run(['codesign', '--force', '--sign', '-', str(stage)], check=True)

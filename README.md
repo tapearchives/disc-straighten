@@ -4,7 +4,7 @@ A TapeArchives project for archival image preparation. Straighten optical discs 
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.9.0 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
+**Version 0.10.0 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
@@ -101,11 +101,41 @@ with one usable barcode `00104305` becomes `00104305B.png`; the immediately
 preceding successful, barcode-free input becomes `00104305A.png`. Logs and
 previews follow those names, retaining original input paths and hashes. This
 assumes consecutive front/back captures: arrange filenames accordingly. Pairing
-never crosses batches or skips a failed input. First-file backs, ambiguous or
-unsafe values, and existing destination names stay unchanged with a logged
-reason. Duplicate barcodes never overwrite another pair. Original photos are
+never crosses batches or skips a failed input. With gap placeholders enabled, first-file backs keep their decoded B identity and
+receive a dummy A image. Ambiguous or unsafe values and existing destination
+names stay unchanged with a logged reason. Duplicate barcodes never overwrite another pair. Original photos are
 never renamed. A crash during publication can leave duplicate derivative aliases;
 retain the originals and inspect logs before deleting duplicates.
+
+## Contact sheets and catalog gaps
+
+Open the **Create contact sheet** tab, choose an output folder, and click **Create
+contact sheet**. The app previews the actual PDF inside the tab. The reference
+layout uses US Letter, four columns by five rows, outlined rounded frames,
+filename captions, a two-line heading, and dated page footers. **Fill frames**
+centers the photo within each report frame; **Fit whole image** retains the
+complete image and is useful for discs. These display choices do not edit masters.
+
+Turning on **Name barcode pairs** also checks **Add catalog gap placeholders**.
+After naming, missing numeric IDs receive a bright yellow PNG with blue
+**MISSING MEDIA IMAGE** lettering and a JSON provenance record. A whole missing
+catalog number occupies one cell; a missing A or B occupies that side's cell.
+Leading zeros stay intact. Limits in the contact tab include gaps before/after
+the available sequence; CLI range limits can also bound placeholder creation.
+
+```sh
+./de-askew "Tape photos" --name-barcode-pairs --preview
+./de-askew --contact-sheet "Tape photos/output" --catalog-title "Media Archives Catalog"
+./de-askew --contact-sheet catalog --catalog-start 104001 --catalog-end 104311
+./de-askew "Prepared photos" --catalog-only --name-barcode-pairs -o catalog
+```
+
+`--catalog-only` prepares copies of existing compositions for barcode cataloging
+without geometric correction. It retains full pixel dimensions, applies EXIF/color
+normalization and the selected finishing options, and exports PNGs. Ordinary
+processing continues to straighten images by default. `--no-gap-placeholders`
+disables dummy creation. See [Contact sheets](CONTACT_SHEETS.md) for ranges,
+missing-side rules, ambiguous captures, and the report's accounting manifest.
 
 ## Finishing, HEIC and metadata
 

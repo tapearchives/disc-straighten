@@ -2,6 +2,7 @@
 import Cocoa
 import UniformTypeIdentifiers
 import WebKit
+import PDFKit
 
 // One palette shared with the Windows interface and the alignment illustration.
 enum Theme {
@@ -247,12 +248,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let comparisons = ComparisonDocument()
     var comparisonCount = 0
     var comparisonCards: [String: ComparisonCard] = [:]
+    var catalogSummary = ""
     let autoContrast = NSButton(checkboxWithTitle: "Contrast", target: nil, action: nil)
     let autoBrightness = NSButton(checkboxWithTitle: "Brightness", target: nil, action: nil)
     let autoColor = NSButton(checkboxWithTitle: "Color", target: nil, action: nil)
     let autoAll = NSButton(checkboxWithTitle: "All adjustments", target: nil, action: nil)
     let keepMetadata = NSButton(checkboxWithTitle: "Keep metadata", target: nil, action: nil)
     let nameBarcodePairs = NSButton(checkboxWithTitle: "Name barcode pairs", target: nil, action: nil)
+    let gapPlaceholders = NSButton(checkboxWithTitle: "Add catalog gap placeholders", target: nil, action: nil)
+    let tabs = NSTabView()
+    var contact: ContactSheetPanel!
     var relativeField: NSTextField!
     var fixedField: NSTextField!
     var mode: NSPopUpButton!
@@ -294,6 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let fileMenu = NSMenu(title: "File")
         fileMenu.addItem(withTitle: "Add Images or Folders…", action: #selector(chooseFiles), keyEquivalent: "o").target = self
         fileMenu.addItem(withTitle: "Processing Comparisons", action: #selector(showComparisons), keyEquivalent: "r").target = self
+        fileMenu.addItem(withTitle: "Create Contact Sheet", action: #selector(showContactSheet), keyEquivalent: "k").target = self
         fileItem.submenu = fileMenu; bar.addItem(fileItem)
         let editItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
         let editMenu = NSMenu(title: "Edit")
@@ -362,7 +368,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let stack = NSStackView()
         stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
-        let content = window.contentView!
+        tabs.translatesAutoresizingMaskIntoConstraints = false
+        let host = window.contentView!; host.addSubview(tabs)
+        NSLayoutConstraint.activate([tabs.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 8),
+            tabs.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -8),
+            tabs.topAnchor.constraint(equalTo: host.topAnchor, constant: 8),
+            tabs.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -8)])
+        let processingTab = NSTabViewItem(identifier: "processing"); processingTab.label = "Straighten images"
+        let content = NSView(); processingTab.view = content; tabs.addTabViewItem(processingTab)
+        contact = ContactSheetPanel(engine: engine)
+        let contactTab = NSTabViewItem(identifier: "contact"); contactTab.label = "Create contact sheet"
+        contactTab.view = contact; tabs.addTabViewItem(contactTab)
         content.addSubview(stack)
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24),
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24),
@@ -413,8 +429,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let secondOptions = NSStackView(views: [autoColor, autoAll]); secondOptions.spacing = 12
         options.addArrangedSubview(firstOptions); options.addArrangedSubview(secondOptions); options.addArrangedSubview(keepMetadata)
         options.addArrangedSubview(nameBarcodePairs)
+        nameBarcodePairs.target = self; nameBarcodePairs.action = #selector(barcodeNamingChanged)
+        gapPlaceholders.state = .on; gapPlaceholders.isEnabled = false
+        gapPlaceholders.font = .systemFont(ofSize: 11)
+        gapPlaceholders.toolTip = "After naming, create yellow dummy images for numeric sequence gaps and unavailable sides. Original photos stay unchanged."
+        options.addArrangedSubview(gapPlaceholders)
         nameBarcodePairs.toolTip = "Sorts by filename. A barcode on a back names it CODEB.png and the immediately preceding front CODEA.png. Originals stay unchanged."
-        options.heightAnchor.constraint(equalToConstant: 70).isActive = true
+        options.heightAnchor.constraint(equalToConstant: 116).isActive = true
         keepMetadata.toolTip = "Copies supported EXIF/XMP/IPTC, including location tags. Requires ExifTool. Defaults off."
         autoAll.toolTip = "Apply contrast, brightness and color to the final cropped pixels. Defaults off."
         sidebar.addArrangedSubview(options)
@@ -443,11 +464,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let sidebarScroll = NSScrollView(); sidebarScroll.hasVerticalScroller = true
         sidebarScroll.autohidesScrollers = true; sidebarScroll.drawsBackground = false
         sidebarScroll.widthAnchor.constraint(equalToConstant: 268).isActive = true
-        let sidebarDocument = ComparisonDocument(frame: NSRect(x: 0, y: 0, width: 248, height: 570))
+        let sidebarDocument = ComparisonDocument(frame: NSRect(x: 0, y: 0, width: 248, height: 635))
         sidebar.translatesAutoresizingMaskIntoConstraints = false; sidebarDocument.addSubview(sidebar)
         NSLayoutConstraint.activate([sidebar.topAnchor.constraint(equalTo: sidebarDocument.topAnchor),
             sidebar.leadingAnchor.constraint(equalTo: sidebarDocument.leadingAnchor),
-            sidebar.heightAnchor.constraint(equalToConstant: 560)])
+            sidebar.heightAnchor.constraint(equalToConstant: 625)])
         sidebarScroll.documentView = sidebarDocument
         body.addArrangedSubview(sidebarScroll); body.addArrangedSubview(review)
         sidebarScroll.heightAnchor.constraint(equalTo: body.heightAnchor).isActive = true
@@ -483,7 +504,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func toggleActivity() { activityScroll.isHidden.toggle() }
     @objc func compactWindow() { window.setContentSize(NSSize(width: 900, height: 720)) }
     @objc func standardWindow() { window.setContentSize(NSSize(width: 1160, height: 800)) }
-    @objc func showComparisons() { window.makeKeyAndOrderFront(nil); window.makeFirstResponder(comparisonsScroll) }
+    @objc func showComparisons() { tabs.selectTabViewItem(at: 0); window.makeKeyAndOrderFront(nil); window.makeFirstResponder(comparisonsScroll) }
+    @objc func showContactSheet() {
+        if contact.folder.stringValue.isEmpty, let latest = latestOutput {
+            contact.folder.stringValue = latest.deletingLastPathComponent().deletingLastPathComponent().path
+        }
+        tabs.selectTabViewItem(at: 1); window.makeKeyAndOrderFront(nil)
+    }
+    @objc func barcodeNamingChanged() {
+        if nameBarcodePairs.state == .on { gapPlaceholders.state = .on }
+        gapPlaceholders.isEnabled = nameBarcodePairs.state == .on && !busy
+    }
     @objc func openResult(_ sender: NSButton) {
         if let path = sender.identifier?.rawValue { NSWorkspace.shared.open(URL(fileURLWithPath: path)) }
     }
@@ -529,7 +560,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !files.isEmpty else { return }
         queue.append(files)
         if initialized {
-            window.makeKeyAndOrderFront(nil)
+            showComparisons()
             append("Added \(files.count) file(s) or folder(s) to the queue.")
             clearQueueButton.isEnabled = busy && !queue.isEmpty
             nextBatch()
@@ -539,7 +570,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard initialized, !busy, !queue.isEmpty, preferencesSheet == nil else { return }
         let files = queue.removeFirst()
         let kind = ["auto", "disc", "cassette"][media.indexOfSelectedItem]
-        busy = true; setBusyUI(true)
+        busy = true; catalogSummary = ""; setBusyUI(true)
         statusLabel.stringValue = "Processing \(files.first!.lastPathComponent)…"
         // '--' keeps a filename from being interpreted as an option.
         var arguments = ["--media", kind, "--preview"]
@@ -547,8 +578,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                 (autoColor, "--auto-color"), (autoAll, "--auto-adjust"), (keepMetadata, "--keep-metadata"), (nameBarcodePairs, "--name-barcode-pairs")] {
             if control.state == .on { arguments.append(flag) }
         }
+        if nameBarcodePairs.state == .on && gapPlaceholders.state == .off { arguments.append("--no-gap-placeholders") }
         arguments += ["--"] + files.map(\.path)
-        showComparisons()
         let failuresBeforeBatch = failedCount
         worker.async {
             let result = self.engine.run(arguments) { line in
@@ -565,12 +596,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         self.addComparison(["input": files[0].path, "error": String(result.text.suffix(450))])
                     }
                 }
+                if !self.catalogSummary.isEmpty { self.statusLabel.stringValue += " " + self.catalogSummary }
                 self.nextBatch()
             }
         }
     }
     func received(_ line: String) {
         if let data = line.data(using: .utf8), let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if json["status"] as? String == "catalog_complete" {
+                catalogSummary = "\(json["placeholders"] ?? 0) catalog gap placeholders added."
+                if let folder = json["folder"] as? String { contact.folder.stringValue = folder }
+                append(catalogSummary + " See catalog-sequence.json for unassigned images."); return
+            }
+            if json["status"] as? String == "catalog_review" {
+                catalogSummary = "Catalog needs review: \(json["error"] ?? "see log")"; append(catalogSummary); return
+            }
             if json["event_id"] != nil { addComparison(json) }
             if let image = json["image"] as? String {
                 latestOutput = URL(fileURLWithPath: image); revealButton.isEnabled = true
@@ -592,13 +632,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func setBusyUI(_ value: Bool) {
         preferencesButton.isEnabled = !value; media.isEnabled = !value
         for control in [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata, nameBarcodePairs] { control.isEnabled = !value }
+        gapPlaceholders.isEnabled = !value && nameBarcodePairs.state == .on
         clearQueueButton.isEnabled = value && !queue.isEmpty
         value ? progress.startAnimation(nil) : progress.stopAnimation(nil)
     }
     @objc func clearQueue() { queue.removeAll(); clearQueueButton.isEnabled = false; append("Pending batches removed. The current batch will finish.") }
     @objc func revealOutput() { if let url = latestOutput { NSWorkspace.shared.activateFileViewerSelecting([url]) } }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard busy || !queue.isEmpty else { return .terminateNow }
+        guard busy || !queue.isEmpty || contact.busy else { return .terminateNow }
         let alert = NSAlert()
         alert.messageText = "Processing is still running"
         alert.informativeText = "Let the current batch finish before quitting. You can remove pending batches with Clear Pending Batches."
@@ -685,6 +726,119 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.saveButton.isEnabled = true
                 if result.code == 0 { self.readPreferences(result.text); self.closePreferences() }
                 else { self.preferenceMessage.stringValue = String(result.text.suffix(350)) }
+            }
+        }
+    }
+}
+
+final class ContactSheetPanel: NSView {
+    let engine: Engine
+    let folder = NSTextField(string: "")
+    let reportTitle = NSTextField(string: "Media Archives Catalog")
+    let subtitle = NSTextField(string: "Audio Cassette Tapes Media Asset ID# {start} - {end}")
+    let credit = NSTextField(string: "Created with de-askew")
+    let first = NSTextField(string: "")
+    let last = NSTextField(string: "")
+    let fit = NSPopUpButton()
+    let message = NSTextField(wrappingLabelWithString: "Choose an output folder to create a paged catalog. Every number is accounted for.")
+    let pdf = PDFView()
+    let make = NSButton(title: "Create contact sheet", target: nil, action: nil)
+    let reveal = NSButton(title: "Show Report Folder", target: nil, action: nil)
+    let progress = NSProgressIndicator()
+    var busy = false
+    var reportURL: URL?
+    let queue = DispatchQueue(label: "org.tapearchives.de-askew.contacts", qos: .userInitiated)
+
+    init(engine: Engine) {
+        self.engine = engine; super.init(frame: .zero)
+        let layout = NSStackView(); layout.orientation = .vertical; layout.alignment = .leading; layout.spacing = 10
+        layout.translatesAutoresizingMaskIntoConstraints = false; addSubview(layout)
+        NSLayoutConstraint.activate([layout.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 22),
+            layout.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -22),
+            layout.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            layout.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18)])
+        let heading = NSTextField(labelWithString: "Create contact sheet")
+        heading.font = .systemFont(ofSize: 23, weight: .semibold); heading.textColor = Theme.color("ink")
+        layout.addArrangedSubview(heading)
+        let note = NSTextField(wrappingLabelWithString: "US Letter · 4 columns × 5 rows · outlined images · yellow markers for missing images")
+        note.font = .systemFont(ofSize: 12); note.textColor = Theme.color("muted"); layout.addArrangedSubview(note)
+        func fieldRow(_ title: String, _ field: NSTextField, extra: NSView? = nil) {
+            let label = NSTextField(labelWithString: title); label.font = .systemFont(ofSize: 12)
+            label.widthAnchor.constraint(equalToConstant: 94).isActive = true
+            field.font = .systemFont(ofSize: 12); field.setAccessibilityLabel(title)
+            field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            var views: [NSView] = [label, field]; if let extra = extra { views.append(extra) }
+            let row = NSStackView(views: views); row.spacing = 9
+            layout.addArrangedSubview(row); row.widthAnchor.constraint(equalTo: layout.widthAnchor).isActive = true
+        }
+        let browse = NSButton(title: "Choose Folder…", target: self, action: #selector(chooseFolder)); browse.bezelStyle = .rounded
+        folder.placeholderString = "Output folder or catalog-named image folder"
+        fieldRow("Input folder", folder, extra: browse)
+        fieldRow("Report title", reportTitle); fieldRow("Subtitle", subtitle); fieldRow("Footer credit", credit)
+        first.placeholderString = "First ID (auto)"; last.placeholderString = "Last ID (auto)"
+        first.setAccessibilityLabel("First catalog number"); last.setAccessibilityLabel("Last catalog number")
+        for field in [first,last] { field.widthAnchor.constraint(equalToConstant: 130).isActive = true }
+        fit.addItems(withTitles: ["Fill frames (reference)", "Fit whole image (discs)"])
+        fit.setAccessibilityLabel("Contact sheet image fit")
+        let rangeLabel = NSTextField(labelWithString: "Catalog range"); rangeLabel.widthAnchor.constraint(equalToConstant: 94).isActive = true
+        let range = NSStackView(views: [rangeLabel, first, last, fit, NSView()]); range.spacing = 9
+        layout.addArrangedSubview(range)
+        make.target = self; make.action = #selector(generate); make.bezelStyle = .rounded; make.contentTintColor = Theme.color("accent")
+        reveal.target = self; reveal.action = #selector(showFolder); reveal.bezelStyle = .rounded; reveal.isEnabled = false
+        progress.style = .spinning; progress.controlSize = .small; progress.isDisplayedWhenStopped = false
+        let actions = NSStackView(views: [make, reveal, progress]); actions.spacing = 12; layout.addArrangedSubview(actions)
+        message.font = .systemFont(ofSize: 12); message.maximumNumberOfLines = 3; layout.addArrangedSubview(message)
+        pdf.autoScales = true; pdf.displayMode = .singlePageContinuous; pdf.backgroundColor = Theme.color("canvas")
+        pdf.setAccessibilityLabel("Contact sheet PDF preview")
+        layout.addArrangedSubview(pdf)
+        for view in [range,message,pdf] as [NSView] { view.widthAnchor.constraint(equalTo: layout.widthAnchor).isActive = true }
+        pdf.setContentHuggingPriority(.defaultLow, for: .vertical)
+        pdf.heightAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @objc func chooseFolder() {
+        guard !busy else { return }
+        let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true
+        panel.beginSheetModal(for: window!) { response in if response == .OK { self.folder.stringValue = panel.url!.path } }
+    }
+    @objc func showFolder() { if let url = reportURL { NSWorkspace.shared.activateFileViewerSelecting([url]) } }
+    @objc func generate() {
+        guard !busy else { return }
+        let path = folder.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty else { message.stringValue = "Choose the output folder first."; window?.makeFirstResponder(folder); return }
+        var args = ["--contact-sheet", (path as NSString).expandingTildeInPath, "--catalog-title", reportTitle.stringValue,
+                    "--catalog-subtitle", subtitle.stringValue, "--catalog-footer", credit.stringValue,
+                    "--contact-fit", fit.indexOfSelectedItem == 0 ? "cover" : "contain"]
+        if !first.stringValue.isEmpty { args += ["--catalog-start", first.stringValue] }
+        if !last.stringValue.isEmpty { args += ["--catalog-end", last.stringValue] }
+        busy = true; make.isEnabled = false; progress.startAnimation(nil)
+        for field in [folder,reportTitle,subtitle,credit,first,last] { field.isEnabled = false }
+        fit.isEnabled = false
+        message.stringValue = "Reading the catalog and preparing page images…"
+        queue.async {
+            var completed: [String: Any]?
+            var failure: String?
+            let result = self.engine.run(args) { line in
+                guard let data = line.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+                if value["status"] as? String == "contact_complete" { completed = value }
+                if value["status"] as? String == "contact_failed" { failure = value["error"] as? String }
+                if value["status"] as? String == "contact_progress" {
+                    DispatchQueue.main.async { self.message.stringValue = "Preparing image \(value["completed"] ?? 0) of \(value["total"] ?? 0)…" }
+                }
+            }
+            DispatchQueue.main.async {
+                self.busy = false; self.make.isEnabled = true; self.progress.stopAnimation(nil)
+                for field in [self.folder,self.reportTitle,self.subtitle,self.credit,self.first,self.last] { field.isEnabled = true }
+                self.fit.isEnabled = true
+                if result.code == 0, let event = completed, let path = event["pdf"] as? String,
+                   let document = PDFDocument(url: URL(fileURLWithPath: path)) {
+                    self.pdf.document = document; self.pdf.autoScales = true
+                    self.reportURL = URL(fileURLWithPath: path); self.reveal.isEnabled = true
+                    let ignored = (event["ignored"] as? [String])?.count ?? 0
+                    self.message.stringValue = "Saved \(event["pages"] ?? 0) pages · \(event["catalogs"] ?? 0) catalog numbers · \(event["missing"] ?? 0) missing image markers." + (ignored > 0 ? " \(ignored) unassigned filenames are listed in the report log." : "")
+                } else {
+                    self.message.stringValue = "Could not create report: " + (failure ?? String(result.text.suffix(300)))
+                }
             }
         }
     }

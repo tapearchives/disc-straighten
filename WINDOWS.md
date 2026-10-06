@@ -175,3 +175,12 @@ Inputs are sorted by filename across all selected folders. Keep consecutive
 front/back photos together in that order. Failed inputs break adjacency; ambiguous
 codes and collisions are logged without overwriting files. All decoded values
 are logged even when naming is off. See the README for pairing rules.
+
+## Create contact sheet
+
+The app has a **Create contact sheet** tab for output folders and catalog-named
+images. It generates a Letter PDF with a 4 × 5 grid, captions, outlined frames
+and yellow missing-image markers. **Name barcode pairs** enables **Add catalog
+gap placeholders** automatically; clear that option if unwanted.
+See [Contact sheets and catalog accounting](CONTACT_SHEETS.md) for the rules,
+CLI examples, range limits, and missing-side review.

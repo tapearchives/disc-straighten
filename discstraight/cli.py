@@ -80,6 +80,10 @@ def parser() -> argparse.ArgumentParser:
   de-askew disc.jpg --ocr none -o visual-deskew
   de-askew mini-cd.jpg --disc-size 80 -o processed
   de-askew tape.jpg --media cassette --angle 0 -o manual
+  de-askew "tape photos" --name-barcode-pairs --preview
+  de-askew "prepared photos" --catalog-only --name-barcode-pairs -o catalog
+  de-askew --contact-sheet catalog --catalog-title "Media Archives Catalog"
+  de-askew --contact-sheet catalog --catalog-start 104001 --catalog-end 104311
 
 Cassettes: fit straight sides, intersect corners, rectify to 100.4:63.8,
 then crop with measured corner arcs, using logged geometry priors for faint corners.
@@ -126,6 +130,17 @@ See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('--auto-color',action='store_true',help='Conservative neutral-pixel color balance after cropping (default off)')
     p.add_argument('--keep-metadata',action='store_true',help='Copy supported EXIF/XMP/IPTC, including GPS, using ExifTool; save complete readable inventory (default off)')
     p.add_argument('--name-barcode-pairs',action='store_true',help='Sort by filename; name each barcode back CODEB.png and its immediately preceding front CODEA.png (default off; originals unchanged)')
+    p.add_argument('--gap-placeholders',action=argparse.BooleanOptionalAction,default=True,help='With barcode naming, add yellow dummy images for numeric catalog gaps and missing sides (default on); disable with --no-gap-placeholders')
+    p.add_argument('--catalog-only',action='store_true',help='Copy/normalize prepared photos for barcode cataloging without geometric correction (originals unchanged)')
+    contact = p.add_argument_group('Contact sheets and catalog range')
+    contact.add_argument('--contact-sheet',type=Path,metavar='FOLDER',help='Create a 4-column, 5-row Letter PDF from an output folder or catalog-named images; does not straighten again')
+    contact.add_argument('--catalog-start',help='Optional first catalog ID, preserving leading zeros; also bounds gap placeholders')
+    contact.add_argument('--catalog-end',help='Optional last catalog ID, preserving leading zeros; also bounds gap placeholders')
+    contact.add_argument('--catalog-title',default='Media Archives Catalog',help='Contact sheet title')
+    contact.add_argument('--catalog-subtitle',default='Audio Cassette Tapes Media Asset ID# {start} - {end}',help='Second heading; {start} and {end} insert the catalog range')
+    contact.add_argument('--catalog-footer',default='Created with de-askew',help='Footer credit; print date and page number are appended')
+    contact.add_argument('--contact-pages',type=int,help='Generate only the first N pages for review; default: the complete catalog')
+    contact.add_argument('--contact-fit',choices=['cover','contain'],default='cover',help='Cover fills each frame, centered like the reference (default); contain shows the entire image, useful for discs. Report only; masters unchanged.')
     p.add_argument('--overwrite',action='store_true',help='Replace this tool\'s existing outputs')
     p.add_argument('--version',action='version',version=__version__)
     p.add_argument('--manual',action='store_true',help='Print the path to the illustrated offline user guide')
@@ -395,6 +410,25 @@ def main(argv: list[str] | None = None) -> int:
     if args.manual:
         print(Path(__file__).resolve().parent/'manual'/'index.html')
         return 0
+    if args.contact_sheet:
+        if args.inputs or args.name_barcode_pairs or args.catalog_only:
+            p.error('Create a contact sheet separately from processing/renaming inputs')
+        from .contact_sheet import create
+        try:
+            event = create(args.contact_sheet, output=args.output, title=args.catalog_title,
+                           subtitle=args.catalog_subtitle, footer=args.catalog_footer,
+                           start=args.catalog_start, end=args.catalog_end, page_limit=args.contact_pages,
+                           image_fit=args.contact_fit,
+                           progress=lambda event: print(json.dumps(event),flush=True))
+            print(json.dumps(event,ensure_ascii=False),flush=True)
+            return 0
+        except (ValueError,RuntimeError,OSError,subprocess.SubprocessError) as error:
+            print(json.dumps(dict(status='contact_failed',error=str(error))),flush=True)
+            return 1
+    if (args.catalog_start or args.catalog_end) and not args.name_barcode_pairs:
+        p.error('Catalog range limits require --name-barcode-pairs or --contact-sheet')
+    if args.catalog_only and not args.name_barcode_pairs:
+        p.error('--catalog-only requires --name-barcode-pairs')
     preference_action = args.show_preferences or args.set_output_relative is not None or args.set_output_fixed is not None
     if preference_action and args.inputs:
         p.error('Change or show preferences separately from processing images')
@@ -447,4 +481,8 @@ def main(argv: list[str] | None = None) -> int:
              for item,name,key in zip(items,names,keys)]
     cache = Path(os.environ.get('DISC_STRAIGHTEN_CACHE',Path.home()/'.cache'/'disc-straighten'))
     from .batch import run_batch
-    return run_batch(items,names,destinations,args,cache,process)
+    processor = process
+    if args.catalog_only:
+        from .catalog import process_catalog_copy
+        processor = process_catalog_copy
+    return run_batch(items,names,destinations,args,cache,processor)

@@ -73,3 +73,21 @@ The illustrated manual now includes the owner-requested sample images.
 per-image licenses, including CC BY-SA for applicable derivatives. These images
 are not MIT-licensed by this program. The icon derives from the public-domain
 DVD-Video_bottom-side photograph identified in that attribution file.
+
+## 0.10.0 contact-sheet dependencies
+
+ReportLab 4.4.10 generates PDF files (BSD); Pillow 12.3.0 creates explicit dummy
+images (HPND-style license); charset-normalizer 3.5.2 is a ReportLab dependency
+(MIT); pypdfium2 5.14.0 renders the actual PDF pages (Apache-2.0 or BSD-3-Clause
+wrapper, PDFium BSD and bundled third-party notices). Installed-wheel notices
+are retained under `licenses/`. The Bitstream Vera font used in placeholders
+has its separate font license there. Dependency wheels install from PyPI and
+retain their platform-specific notices; no codec or PDFium binaries are copied
+into the source kit. The Mac UI uses the system PDFKit framework.
+
+Primary references: https://docs.reportlab.com/ and https://pypi.org/project/reportlab/4.4.10/;
+https://pillow.readthedocs.io/en/stable/about.html;
+https://github.com/jawah/charset_normalizer;
+https://pypdfium2.readthedocs.io/en/stable/misc.html#licensing.
+The WCIU reference PDF, photographs and generated catalogs stay private and
+are excluded from GitHub exports.

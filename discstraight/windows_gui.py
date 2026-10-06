@@ -35,7 +35,10 @@ class App:
         style.configure('Title.TLabel',background=THEME['canvas'],foreground=THEME['ink'],font=('Segoe UI',28,'bold'))
         style.configure('Card.TFrame',background=THEME['surface'])
         style.configure('Card.TLabel',background=THEME['surface'],foreground=THEME['ink'],font=('Segoe UI',9))
-        frame=ttk.Frame(root,padding=20,style='Workbench.TFrame');frame.pack(fill='both',expand=True)
+        self.tabs=ttk.Notebook(root);self.tabs.pack(fill='both',expand=True,padx=8,pady=8)
+        frame=ttk.Frame(self.tabs,padding=20,style='Workbench.TFrame');self.tabs.add(frame,text='Straighten images')
+        from .contact_gui import ContactTab
+        self.contact=ContactTab(self.tabs,THEME);self.tabs.add(self.contact,text='Create contact sheet')
         header=ttk.Frame(frame,style='Workbench.TFrame');header.pack(fill='x')
         heading=ttk.Frame(header,style='Workbench.TFrame');heading.pack(side='left')
         ttk.Label(heading,text='de-askew',style='Title.TLabel').pack(anchor='w')
@@ -65,9 +68,12 @@ class App:
         ttk.Label(sidebar,text='Finishing',style='Heading.TLabel').pack(anchor='w',pady=(18,5))
         options=ttk.Frame(sidebar,style='Workbench.TFrame');options.pack(fill='x')
         for index,(key,label) in enumerate([('auto-contrast','Contrast'),('auto-brightness','Brightness'),('auto-color','Color'),('auto-adjust','All adjustments'),('keep-metadata','Keep metadata'),('name-barcode-pairs','Name barcode pairs')]):
-            ttk.Checkbutton(options,text=label,variable=self.options[key]).grid(
+            ttk.Checkbutton(options,text=label,variable=self.options[key],command=self.barcode_changed if key=='name-barcode-pairs' else None).grid(
                 row=3 if key=='name-barcode-pairs' else index//2,column=0 if key=='name-barcode-pairs' else index%2,
                 columnspan=2 if key=='name-barcode-pairs' else 1,sticky='w',pady=2)
+        self.gaps=tk.BooleanVar(value=True)
+        self.gap_check=ttk.Checkbutton(options,text='Add catalog gap placeholders',variable=self.gaps,state='disabled')
+        self.gap_check.grid(row=4,column=0,columnspan=2,sticky='w',pady=2)
         ttk.Label(sidebar,text='Optional. All off by default.\nChanges apply to the next added batch.',style='Muted.TLabel').pack(anchor='w',pady=6)
         ttk.Label(sidebar,text='Destination',style='Heading.TLabel').pack(anchor='w',pady=(12,5))
         ttk.Label(sidebar,textvariable=self.destination,wraplength=240,style='Muted.TLabel').pack(anchor='w')
@@ -99,7 +105,7 @@ class App:
         from tkinterdnd2 import DND_FILES
         for target in (root,drop,self.canvas):
             target.drop_target_register(DND_FILES)
-            target.dnd_bind('<<Drop>>',lambda event:self.enqueue(root.tk.splitlist(event.data)))
+            target.dnd_bind('<<Drop>>',lambda event:self.dropped(root.tk.splitlist(event.data)))
         icon=Path(__file__).resolve().parent/'manual'/'images'/'app-icon.png'
         if icon.exists():
             self.icon=tk.PhotoImage(file=str(icon));root.iconphoto(True,self.icon)
@@ -128,19 +134,33 @@ class App:
     def files(self):
         self.enqueue(filedialog.askopenfilenames(title='Select media images',filetypes=[('Images','*.jpg *.jpeg *.png *.tif *.tiff *.webp *.bmp *.heic *.heif'),('All files','*')]))
 
+    def dropped(self, paths):
+        if self.tabs.select()==str(self.contact):
+            if not self.contact.busy and len(paths)==1 and Path(paths[0]).is_dir():
+                self.contact.fields['folder'].set(paths[0])
+            else:self.contact.message.set('Drop one output folder here, or use Choose Folder.')
+        else:self.enqueue(paths)
+
     def folder(self):
         path=filedialog.askdirectory(title='Select a folder (includes subfolders)')
         if path:self.enqueue([path])
 
     def enqueue(self, paths):
         if not paths:return
+        self.tabs.select(0)
         flags=['--'+key for key,value in self.options.items() if value.get()]
+        if self.options['name-barcode-pairs'].get() and not self.gaps.get():flags.append('--no-gap-placeholders')
         flags += ['--media',{'Automatic':'auto','Optical disc':'disc','Compact cassette':'cassette'}[self.media.get()]]
         self.pending.append((list(paths),flags));self.clear_button.configure(state='normal');self.next_batch()
 
+    def barcode_changed(self):
+        enabled=self.options['name-barcode-pairs'].get()
+        if enabled:self.gaps.set(True)
+        self.gap_check.configure(state='normal' if enabled else 'disabled')
+
     def next_batch(self):
         if self.busy or not self.pending:return
-        self.busy=True;paths,flags=self.pending.pop(0)
+        self.busy=True;paths,flags=self.pending.pop(0);self.catalog_summary=''
         self.progress.start();self.preferences_button.configure(state='disabled')
         self.clear_button.configure(state='normal' if self.pending else 'disabled')
         self.status.set('Processing '+str(len(paths))+' selection(s)…')
@@ -168,13 +188,18 @@ class App:
             except queue.Empty:break
             if 'done' in event:
                 self.progress.stop();self.preferences_button.configure(state='normal')
-                self.busy=False;self.status.set('Finished. '+('Review notices or failures below.' if event['done'] else 'Images saved.'))
+                self.busy=False;self.status.set('Finished. '+('Review notices or failures below.' if event['done'] else 'Images saved.')+' '+self.catalog_summary)
                 if event.get('error'):self.card(event)
                 self.next_batch()
             elif event.get('status') in ['queued','input_preview','preview_unavailable','processing','renamed','accepted','review_required','failed']:
                 self.card(event)
                 if event.get('status')=='processing':self.status.set('Processing '+Path(event['input']).name)
             elif event.get('activity'):self.status.set(event['activity'])
+            elif event.get('status')=='catalog_complete':
+                self.catalog_summary=f"{event['placeholders']} catalog gap placeholders added. {len(event['unassigned'])} unassigned images; see catalog log."
+                self.contact.fields['folder'].set(event['folder'])
+            elif event.get('status')=='catalog_review':
+                self.catalog_summary='Catalog needs review: '+event['error']
         self.root.after(100,self.poll)
 
     def image_menu(self,event,model,side):
@@ -270,7 +295,7 @@ class App:
     def help(self):webbrowser.open((Path(__file__).resolve().parent/'manual'/'index.html').as_uri())
 
     def close(self):
-        if self.busy:
+        if self.busy or self.contact.busy:
             messagebox.showinfo('de-askew','A batch is still processing. Close this window after it finishes.');return
         self.root.destroy()
 
@@ -279,10 +304,20 @@ def main():
     from tkinterdnd2 import TkinterDnD
     root=TkinterDnD.Tk();app=App(root)
     if '--smoke-test' in sys.argv:
+        callback_errors=[]
+        def callback_error(kind,value,trace):
+            import traceback
+            traceback.print_exception(kind,value,trace)
+            callback_errors.append(value);root.destroy()
+        root.report_callback_exception=callback_error
         assert root.title()=='de-askew'
         assert not any(v.get() for v in app.options.values())
         assert (Path(__file__).resolve().parent/'manual'/'index.html').is_file()
         assert app.media.get()=='Automatic'
+        assert len(app.tabs.tabs())==2 and app.gaps.get()
+        app.options['name-barcode-pairs'].set(True);app.barcode_changed()
+        assert str(app.gap_check.cget('state'))=='normal' and app.gaps.get()
+        app.options['name-barcode-pairs'].set(False);app.barcode_changed()
         preview=str(Path(__file__).parent/'manual/images/app-icon.png')
         app.card(dict(event_id='test:0',input='synthetic-preview.png',status='queued'))
         app.card(dict(event_id='test:0',input='synthetic-preview.png',status='input_preview',before_preview=preview))
@@ -300,9 +335,33 @@ def main():
         assert app.canvas.winfo_height()>100, (
             f"Review area {app.canvas.winfo_width()}x{app.canvas.winfo_height()} "
             f"inside window {root.winfo_width()}x{root.winfo_height()}")
-        root.after(300,root.destroy)
+        import tempfile,time
+        from PIL import Image
+        scratch=tempfile.TemporaryDirectory(prefix='de-askew-contact-gui-')
+        images=Path(scratch.name)/'images';images.mkdir()
+        for name in ['001A.png','001B.png','003B.png']:
+            Image.new('RGB',(300,190),'teal').save(images/name)
+        app.tabs.select(app.contact)
+        app.dropped([str(images)])
+        assert app.contact.fields['folder'].get()==str(images)
+        app.contact.generate();assert app.contact.busy
+        deadline=time.monotonic()+40
+        def check_contact():
+            if app.contact.busy and time.monotonic()<deadline:
+                root.after(100,check_contact);return
+            try:
+                assert not app.contact.busy and app.contact.result,app.contact.message.get()
+                assert app.contact.result['missing']==2
+                assert app.contact.page_label.cget('text')=='Page 1 of 1'
+                assert str(app.contact.generate_button.cget('state'))=='normal'
+                assert app.contact.canvas.winfo_height()>100
+            except BaseException:
+                root.destroy();scratch.cleanup();raise
+            root.destroy();scratch.cleanup()
+        root.after(100,check_contact)
     elif len(sys.argv)>1:app.enqueue(sys.argv[1:])
     root.mainloop()
+    if '--smoke-test' in sys.argv and callback_errors:raise SystemExit(1)
 
 
 if __name__=='__main__':main()

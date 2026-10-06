@@ -402,3 +402,12 @@ pairing never crosses batches. Ambiguous or unsafe codes and collisions retain
 existing output names with a logged reason. Previews and JSON companions follow
 the new names, while original paths and hashes remain in JSON. Originals are
 never renamed. See README.md and the offline guide for examples and limits.
+
+## Create contact sheet
+
+The app has a **Create contact sheet** tab for output folders and catalog-named
+images. It generates a Letter PDF with a 4 × 5 grid, captions, outlined frames
+and yellow missing-image markers. **Name barcode pairs** enables **Add catalog
+gap placeholders** automatically; clear that option if unwanted.
+See [Contact sheets and catalog accounting](CONTACT_SHEETS.md) for the rules,
+CLI examples, range limits, and missing-side review.

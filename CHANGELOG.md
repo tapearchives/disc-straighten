@@ -1,5 +1,18 @@
 # Changes
 
+
+## 0.10.0 — Contact sheets and catalog gaps
+
+- Add a Create contact sheet tab to macOS/Windows, with asynchronous generation,
+  in-app PDF previews, title/footer/range controls and report-folder access.
+- Match the supplied Letter reference: four columns, five rows, rounded dotted
+  outlines, captions and blue MISSING MEDIA IMAGE text on yellow placeholders.
+- Enable catalog-gap placeholders with barcode pair naming; preserve isolated
+  decoded B sides, mark absent sides, and log unresolved/conflicting filenames.
+- Add CLI report controls and a catalog-only mode for prepared compositions.
+- Preserve original images, leading zeros and prior reports; keep private
+  photographic examples out of the public kit.
+
 ## 0.9.0 — faint shell edges, live input queue and barcode pairs
 
 - Use the nominal cassette aspect ratio, other body lines and reel evidence to

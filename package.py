@@ -46,7 +46,7 @@ PUBLIC_FILES = (
     'discstraight/manual/images/10-before.jpg',
     'discstraight/manual/images/11-before.jpg',
     'de-askew', 'de-askew.cmd', 'un-askew', 'un-askew.cmd', 'disc-straighten', 'disc-straighten.cmd', 'bootstrap.py', 'WINDOWS.md', 'MACOS.md', 'build_macos.py', 'pyproject.toml', 'requirements.lock.txt', 'README.md',
-    'USAGE.md', 'CASSETTES.md', 'LENS_AND_DEPTH.md', 'IPHONE_CAMERAS.md', 'CONTRIBUTING.md', 'RELEASING.md', 'LICENSE',
+    'USAGE.md', 'CONTACT_SHEETS.md', 'CASSETTES.md', 'LENS_AND_DEPTH.md', 'IPHONE_CAMERAS.md', 'CONTRIBUTING.md', 'RELEASING.md', 'LICENSE',
     'THIRD_PARTY_NOTICES.md', 'PERSPECTIVE.md', 'PERFORMANCE.md', 'STANDARDS.md',
     'CHANGELOG.md', 'cassette-validation-summary.json', 'validation-report.json', 'package.py', '.gitignore', '.gitattributes',
     '.github/workflows/ci.yml', 'docs/cassette-reference.svg', 'docs/lens-and-depth.svg',

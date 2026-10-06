@@ -57,6 +57,13 @@ dates use local time, with the platform's customary presentation.
 
 ## Layout
 
+Native tabs separate **Straighten images** from **Create contact sheet**, preserving
+each pane's state. Contact controls sit over an expanding PDF preview. Generation
+disables its primary action; progress and errors use one stable status region.
+Catalog rules belong to the shared Python engine and CONTACT_SHEETS.md. Barcode
+naming checks/enables its subordinate gap option, which can then be unchecked.
+Yellow/blue missing-image colors belong to the archival report, not the app palette.
+
 One main window, approximately 1160 × 800. A 248-point control column sits beside
 the independently scrolling before/after history. Minimum window size 900 × 720
 keeps controls available. Native file pickers are the keyboard alternative to
@@ -103,6 +110,7 @@ pressed states remain OS-owned. No motion beyond the native progress indicator.
 | Form | OutputPreferences and native controls | discstraight/preferences.py | AppKit sheet and Tk modal | Empty field, cancel and persistence tests |
 | Select/Listbox | NSPopUpButton and ttk.Combobox | Native platform widgets | OS-owned popup | Keyboard open/select/dismiss |
 | Scrollbar | NSScrollView and ttk.Scrollbar | Native platform widgets | Separate result history and activity regions | Multiple result scroll and retained position |
+| Contact sheet | ContactSheetPanel / ContactTab | contact_sheet.py and catalog.py | PDFKit pages / rendered PDF page navigation | Empty, invalid folder, progress, success, narrow window and report tests |
 
 ## Do's and Don'ts
 
