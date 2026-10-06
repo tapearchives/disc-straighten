@@ -10,7 +10,7 @@ import numpy as np
 
 from .cassette import plane_to_source
 from .cassette_crop import crop_alpha
-from .imaging import run, standardize_png_metadata
+from .imaging import alpha_canvas_bounds, run, standardize_png_metadata
 from .ocr import recognize, OCRUnavailableError
 
 
@@ -112,7 +112,7 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
     left,top,right,bottom=crop['bounds_px'];pad=max(2,math.ceil(feather/2)+1)
     if flip:
         left,top,right,bottom=bw-right,bh-bottom,bw-left,bh-top
-    # Two transparent pixels for file consumers, no millimeter-wide dark frame.
+    # Temporary working room for the centered feather; never exported as padding.
     origin=np.array([left-pad,top-pad])
     ow,oh=math.ceil(right-left)+2*pad+1,math.ceil(bottom-top)+2*pad+1
     if ow*oh>40_000_000:raise ValueError('Cassette output would exceed 40 MP')
@@ -151,6 +151,10 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
     bgra=output[:,:,[2,1,0,3]]
     if depth==8:bgra=np.rint(bgra.astype(float)/257).astype('uint8')
     bgra[:,:,:3][bgra[:,:,3]==0]=0
+    x0,y0,x1,y1=alpha_canvas_bounds(bgra[...,3])
+    trimmed=dict(left=x0,top=y0,right=ow-x1,bottom=oh-y1)
+    bgra=bgra[y0:y1,x0:x1]
+    origin+=np.array([x0,y0]);ow=x1-x0;oh=y1-y0
     if not cv2.imwrite(str(target),bgra,[cv2.IMWRITE_PNG_COMPRESSION,6]):raise RuntimeError('Could not encode cassette PNG')
     standardize_png_metadata(target)
     return dict(width=ow,height=oh,source_boundary_clipped_pixels=source_clipped,
@@ -158,8 +162,10 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
                 source_pixels_masked_before_warp=False,
                 alpha_depends_on_image_colors=False,
                 body_frame_px=dict(left=-origin[0],top=-origin[1],width=bw,height=bh),
-                alpha_frame_px=dict(left=pad,top=pad,width=right-left,height=bottom-top),
-                output_origin_in_rectified_plane_px=origin.tolist(),transparent_padding_px=pad,
+                alpha_frame_px=dict(left=left-origin[0],top=top-origin[1],width=right-left,height=bottom-top),
+                output_origin_in_rectified_plane_px=origin.tolist(),transparent_padding_px=0,
+                working_canvas_trim_px=trimmed,
+                canvas_policy='Tight nonzero-alpha bounds; no added border; all feather pixels preserved.',
                 pixels_per_mm=geometry['pixels_per_mm'],body_aspect_ratio=100.4/63.8,
                 source_to_output_is_homography_only=not(geometry['lens']['applied'] or geometry['conformance']['applied']),
                 flip_180_degrees=flip,source_to_plane_matrix=geometry['source_to_plane_matrix'],

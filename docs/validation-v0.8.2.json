@@ -1,7 +1,7 @@
 {
   "version": "0.8.2",
   "date": "2026-10-06",
-  "unit_tests": 101,
+  "unit_tests": 103,
   "unit_result": "passed",
   "real_cassette_corner_regression": {
     "count": 10,
@@ -159,11 +159,12 @@
         "media": "cassette",
         "status": "review_required"
       }
-    ]
+    ],
+    "post_padding_change": "Jonathan Chao processed again through default CLI auto routing with the new tight canvas; review_required, 3474x2208, no empty border. Native app rebuild uses the same verified processor."
   },
   "synthetic_smoke": {
-    "disc": "passed local Vision",
-    "cassette": "passed local Vision"
+    "disc": "passed local default OCR fallback",
+    "cassette": "passed local automatic workflow"
   },
   "ui": {
     "mac": "Native AppKit: folder intake, three successful real-image outputs with review notices, default-off options, busy state, failure/review cards, empty preferences validation and Escape verified. Standard 1160x800 and compact 900x720 layouts inspected.",
@@ -175,5 +176,12 @@
     "Steep-view heuristic is not a calibrated camera pose.",
     "Flexplay still requires manual geometry; failed sample remains documented.",
     "App is ad-hoc signed, not notarized."
-  ]
+  ],
+  "padding_regression": {
+    "count": 10,
+    "all_retained_rgba_values_identical": true,
+    "all_empty_exterior_rows_columns_removed": true,
+    "preview_border_removed": true,
+    "method": "Regenerated through the shared production renderer; exact decoded-pixel hashes compared with the old outputs after removing only alpha-zero exterior rows and columns."
+  }
 }

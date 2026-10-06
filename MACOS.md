@@ -34,6 +34,9 @@ the controls column also scrolls. Finishing and metadata copying start off.
 Use **View → Compact Window** (Command-Shift-0) for a 900 × 720 layout,
 or **Standard Window** (Command-0) to restore the larger workbench.
 Command-R returns to comparisons; Command-L toggles Activity.
+Saved PNGs and previews have no added border. After the final geometric crop,
+only completely transparent outer rows and columns are removed; rounded corners
+and every nonzero feather pixel remain. Logs use the resulting canvas coordinates.
 
 ## Output preferences
 

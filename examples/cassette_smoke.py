@@ -46,7 +46,8 @@ def smoke(folder: Path) -> dict:
     png=output/log['output']['file'];pixels=cv2.imread(str(png),cv2.IMREAD_UNCHANGED)
     assert pixels.dtype==np.uint16 and pixels.shape[2]==4
     assert not pixels[:,:,:3][pixels[:,:,3]==0].any()
-    assert not pixels[0,:,3].any() and not pixels[-1,:,3].any()
+    for edge in (pixels[0,:,3],pixels[-1,:,3],pixels[:,0,3],pixels[:,-1,3]):
+        assert edge.any(), 'No empty padding outside the final rounded rectangle'
     assert hashlib.sha256(png.read_bytes()).hexdigest()==log['output']['sha256']
     assert hashlib.sha256(source.read_bytes()).hexdigest()==log['source']['sha256']
     report=dict(tool_version=log['tool']['version'],media=log['media'],status=log['status'],

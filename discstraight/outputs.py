@@ -47,7 +47,7 @@ def before_preview(normalized: Path, path: Path) -> None:
 
 def after_preview(image: Path, path: Path) -> None:
     """Show real transparency over checks; never bake a matte into the master."""
-    run(['magick',str(image),'-resize','700x500>','-bordercolor','none','-border','6',
+    run(['magick',str(image),'-resize','700x500>',
          '(', '+clone','-alpha','opaque','-fill','pattern:checkerboard','-draw','color 0,0 reset',
          '-fill','#eef3f5','-colorize','65',')',
          '+swap','-compose','over','-composite','-alpha','off','-strip','-depth','8',str(path)])

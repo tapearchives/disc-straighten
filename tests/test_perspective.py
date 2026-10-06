@@ -109,9 +109,9 @@ class PerspectiveRenderingTests(unittest.TestCase):
             mapped=render(source,target,outer,hole,21,size=292,feather=1,rectification_matrix=matrix)
             self.assertEqual(target.read_bytes()[24:26],bytes([16,6]))
             raw=run(['magick',str(target),'-depth','16','-endian','LSB','rgba:-'],binary=True)
-            result=np.frombuffer(raw,dtype='<u2').reshape(292,292,4)
+            result=np.frombuffer(raw,dtype='<u2').reshape(mapped['height'],mapped['width'],4)
             expected=transform(centers,np.array(mapped['source_to_output_matrix']))
-            yy,xx=np.mgrid[:292,:292]
+            yy,xx=np.mgrid[:mapped['height'],:mapped['width']]
             for channel,(cx,cy) in enumerate(expected):
                 weights=result[:,:,channel].astype(float)
                 measured=np.array([(weights*xx).sum(),(weights*yy).sum()])/weights.sum()
@@ -119,8 +119,9 @@ class PerspectiveRenderingTests(unittest.TestCase):
             alpha=result[:,:,3]/65535
             self.assertLess(abs(alpha.sum()/(math.pi*(137.3**2-17.2**2))-1),.0002)
             self.assertFalse(result[:,:,:3][result[:,:,3]==0].any())
-            self.assertFalse(alpha[0].any())
-            self.assertEqual(alpha[146,146],0)
+            self.assertTrue(alpha[0].any())
+            hx,hy=map(round,mapped['spindle_circle']['center_px'])
+            self.assertEqual(alpha[hy,hx],0)
 
 
 if __name__=='__main__':

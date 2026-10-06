@@ -250,9 +250,13 @@ def main():
         app.card(dict(input='synthetic-preview.png',status='review_required',before_preview=preview,preview=preview,image=preview))
         app.card(dict(input='invalid-test.jpg',status='failed',error='Intentional smoke-test failure'))
         assert (app.saved_count,app.review_count,app.failed_count)==(1,1,1)
-        root.geometry('900x720');root.update_idletasks()
+        # Native Windows resize/configure events must run before measuring
+        # widgets; idle-only updates can still report an unmapped 1-pixel view.
+        root.geometry('900x720');root.update()
         assert app.clear_button.winfo_y()+app.clear_button.winfo_height()<=app.clear_button.master.winfo_height()
-        assert app.canvas.winfo_height()>100
+        assert app.canvas.winfo_height()>100, (
+            f"Review area {app.canvas.winfo_width()}x{app.canvas.winfo_height()} "
+            f"inside window {root.winfo_width()}x{root.winfo_height()}")
         root.after(300,root.destroy)
     elif len(sys.argv)>1:app.enqueue(sys.argv[1:])
     root.mainloop()

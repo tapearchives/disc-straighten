@@ -262,7 +262,7 @@ class OuterBoundaryTests(unittest.TestCase):
                 self.assertLess(float(on_white.mean(axis=1).min()*255),225)
                 x,y=np.rint(positions[2]).astype(int)
                 self.assertEqual(pix[y,x,3],65535)
-                self.assertFalse(pix[0,:,3].any())
+                self.assertTrue(pix[0,:,3].any())
                 self.assertFalse(pix[:,:,:3][pix[:,:,3]==0].any())
 
 
@@ -316,14 +316,16 @@ class CassetteSamplingTests(unittest.TestCase):
                 pixels=cv2.imread(str(target),cv2.IMREAD_UNCHANGED)
                 self.assertEqual(pixels.dtype,np.uint8 if depth==8 else np.uint16)
                 self.assertFalse(pixels[:,:,:3][pixels[:,:,3]==0].any())
-                self.assertEqual(int(pixels[0,:,3].max()),0)
+                for edge in (pixels[0,:,3],pixels[-1,:,3],pixels[:,0,3],pixels[:,-1,3]):
+                    self.assertTrue(edge.any(), 'No wholly transparent padding may remain')
                 self.assertGreater(int(pixels[:,:,3].max()),0)
                 maximum=255 if depth==8 else 65535
                 # Inspect encoded pixels inside every virtual rectangle corner,
                 # not merely the already-transparent padding outside the body.
-                for x,y in [(3,3),(102,3),(102,65),(3,65)]:
+                ph,pw=pixels.shape[:2]
+                for x,y in [(1,1),(pw-2,1),(pw-2,ph-2),(1,ph-2)]:
                     self.assertEqual(int(pixels[y,x,3]),0)
-                for x,y in [(13,13),(93,13),(93,57),(13,57)]:
+                for x,y in [(11,11),(pw-12,11),(pw-12,ph-12),(11,ph-12)]:
                     self.assertEqual(int(pixels[y,x,3]),maximum)
                 edge=(pixels[:,:,3]>0)&(pixels[:,:,3]<maximum)
                 colors=pixels[:,:,:3][edge]/(maximum/255)
@@ -363,7 +365,7 @@ class CassetteSamplingTests(unittest.TestCase):
             np.testing.assert_array_equal(alphas[0],alphas[1])
             np.testing.assert_array_equal(alphas[0][10],alphas[0][50])
             np.testing.assert_array_equal(alphas[0][:,10],alphas[0][:,90])
-            self.assertTrue((alphas[0][3:65,3:102]==65535).all())
+            self.assertTrue((alphas[0][2:-2,2:-2]==65535).all())
 
 
 if __name__=='__main__':unittest.main()

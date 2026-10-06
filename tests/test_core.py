@@ -136,12 +136,14 @@ class RenderingTests(unittest.TestCase):
             mapped=render(source,target,outer,hole,37,size=240,feather=1)
             self.assertEqual(target.read_bytes()[24:26],bytes([16,6]))
             raw=run(['magick',str(target),'-depth','16','-endian','LSB','rgba:-'],binary=True)
-            pixels=np.frombuffer(raw,dtype='<u2').reshape(240,240,4)
+            pixels=np.frombuffer(raw,dtype='<u2').reshape(mapped['height'],mapped['width'],4)
             alpha=pixels[:,:,3]/65535
             expected=math.pi*(110.3**2-14.7**2)
             self.assertLess(abs(alpha.sum()/expected-1),.0002)
             self.assertFalse(pixels[:,:,0:3][pixels[:,:,3]==0].any())
-            self.assertFalse(alpha[0].any())
+            for edge in (alpha[0],alpha[-1],alpha[:,0],alpha[:,-1]):
+                self.assertTrue(edge.any(), 'No wholly transparent padding may remain')
+            self.assertEqual(mapped['transparent_padding_px'],0)
             x,y=map(round,mapped['spindle_circle']['center_px'])
             self.assertEqual(alpha[y,x],0)
             self.assertEqual(pixels.dtype,np.dtype('<u2'))

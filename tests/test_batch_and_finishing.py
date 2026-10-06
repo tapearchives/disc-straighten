@@ -110,11 +110,12 @@ class TransparentDerivativeTests(unittest.TestCase):
             pixels=np.full((256,256,4),255,np.uint8)
             pixels[80:100,80:100,3]=0;pixels[150:180,150:180,3]=128
             cv2.imwrite(str(source),pixels)
-            render(source,output,dict(center_px=[127.5,127.5],radius_px=110),
+            mapped=render(source,output,dict(center_px=[127.5,127.5],radius_px=110),
                    dict(center_px=[127.5,127.5],radius_px=13.75),0,size=256,feather=1)
             result=cv2.imread(str(output),cv2.IMREAD_UNCHANGED)
-            self.assertEqual(result[90,90,3],0)
-            self.assertLess(abs(int(result[165,165,3])-32896),100)
-            self.assertEqual(result[128,128,3],0)
+            dx=mapped['working_canvas_trim_px']['left'];dy=mapped['working_canvas_trim_px']['top']
+            self.assertEqual(result[90-dy,90-dx,3],0)
+            self.assertLess(abs(int(result[165-dy,165-dx,3])-32896),100)
+            self.assertEqual(result[128-dy,128-dx,3],0)
             self.assertEqual(result[0,0,3],0)
             self.assertFalse(result[...,:3][result[...,3]==0].any())

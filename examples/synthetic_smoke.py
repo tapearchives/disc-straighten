@@ -86,8 +86,8 @@ with patch('discstraight.ocr.platform.system', return_value='Windows'), \\
     if unavailable_ocr:
         assert 'ocr_unavailable' in data['warnings']
         assert data['rotation']['ocr']['requested_backend'] == 'auto'
-    assert not alpha[0].any() and not alpha[-1].any()
-    assert not alpha[:, 0].any() and not alpha[:, -1].any()
+    assert alpha[0].any() and alpha[-1].any(), 'No empty top/bottom padding'
+    assert alpha[:, 0].any() and alpha[:, -1].any(), 'No empty left/right padding'
     report = dict(tool_version=data['tool']['version'], input='original synthetic disc',
                   clockwise_rotation_degrees=angle, angle_error_degrees=error,
                   status=data['status'], review_reasons=data['warnings'],

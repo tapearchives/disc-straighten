@@ -133,7 +133,9 @@ the depth parallax of a raised lip, recessed reel, or hole wall.
 Final pixels come from one composed warp of the original, in linear RGB with
 premultiplied alpha: native EWA Lanczos3 for discs; continuous-phase Lanczos3 with
 bounded footprint supersampling for cassettes. The default is 16-bit RGBA with
-slightly feathered boundaries. Source transparency is retained. No missing detail is synthesized.
+slightly feathered boundaries. Saved PNGs and previews add no padding: only wholly
+transparent outer rows and columns are removed, with every nonzero feather pixel
+retained and logged coordinates updated. Source transparency is retained. No missing detail is synthesized.
 
 Straight-edge selection uses long-span gradient evidence, avoiding short guide
 rails and faint divergent background fringes. Rounded corners do not locate the

@@ -64,13 +64,16 @@ def verify(folder: Path) -> dict:
         raw_file = image.read_bytes()
         assert hashlib.sha256(raw_file).hexdigest()==data['output']['sha256']
         assert raw_file[24:26]==bytes([16,6]), 'PNG must actually be 16-bit RGBA'
-        size = data['output']['width']
+        width,height = data['output']['width'],data['output']['height']
         raw = subprocess.check_output(['magick',str(image),'-depth','16','-endian','LSB','rgba:-'])
-        pixels = np.frombuffer(raw,dtype='<u2').reshape(size,size,4)
+        pixels = np.frombuffer(raw,dtype='<u2').reshape(height,width,4)
         alpha = pixels[:,:,3]/65535
         assert not pixels[:,:,:3][pixels[:,:,3]==0].any(), 'Hidden RGB must be zero'
-        assert not alpha[0].any() and not alpha[-1].any()
-        assert not alpha[:,0].any() and not alpha[:,-1].any()
+        if data['output'].get('transparent_padding_px')==0:
+            assert all(edge.any() for edge in (alpha[0],alpha[-1],alpha[:,0],alpha[:,-1]))
+        else:
+            assert not alpha[0].any() and not alpha[-1].any()
+            assert not alpha[:,0].any() and not alpha[:,-1].any()
         x,y = map(round,data['output']['spindle_circle']['center_px'])
         assert alpha[y,x]==0
         ro = data['output']['outer_circle']['radius_px']; rh = data['output']['spindle_circle']['radius_px']

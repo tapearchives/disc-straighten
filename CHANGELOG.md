@@ -7,6 +7,9 @@
   corners and template disagreement. Preserve straight edges and crop last.
 - Show alpha over checkerboard previews for both cassettes and discs; masters
   remain transparent 16-bit PNGs. Add perspective and encoded-alpha regressions.
+- Export tightly framed PNGs for both media types. Remove only fully transparent
+  working rows/columns, preserve every nonzero feather pixel, update logged
+  coordinates, and omit the extra preview border.
 - Put Mac comparisons in the main workbench, with scrolling controls, result
   counts, failure cards, full-resolution access and an expandable activity log.
 - Align the Windows workbench; preserve separate output preference fields and

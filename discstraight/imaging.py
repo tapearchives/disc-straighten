@@ -9,6 +9,7 @@ import subprocess
 import struct
 import zlib
 
+import cv2
 import numpy as np
 
 SRGB = Path('/System/Library/ColorSync/Profiles/sRGB Profile.icc')
@@ -142,6 +143,15 @@ def standardize_png_metadata(path: Path) -> None:
     temporary.replace(path)
 
 
+def alpha_canvas_bounds(alpha: np.ndarray) -> tuple[int, int, int, int]:
+    """Tight canvas around encoded nonzero alpha; never trace or alter an edge."""
+    rows = np.flatnonzero(np.any(alpha != 0, axis=1))
+    columns = np.flatnonzero(np.any(alpha != 0, axis=0))
+    if not len(rows) or not len(columns):
+        raise ValueError('Rendered image has no visible pixels')
+    return int(columns[0]), int(rows[0]), int(columns[-1]+1), int(rows[-1]+1)
+
+
 def render(source: Path, target: Path, outer: dict, hole: dict, angle: float,
            *, size: int, feather: float, depth: int = 16,
            rectification_matrix: np.ndarray | None = None) -> dict:
@@ -169,8 +179,24 @@ def render(source: Path, target: Path, outer: dict, hole: dict, angle: float,
             '-depth', str(depth), '-define', f'png:bit-depth={depth}',
             '-define', 'png:color-type=6', str(target)]
     run(args)
+    # The warp's working margin is not part of the deliverable. Slice only
+    # fully transparent rows/columns; keep every feather and source-alpha pixel.
+    pixels = cv2.imread(str(target), cv2.IMREAD_UNCHANGED)
+    if pixels is None or pixels.ndim != 3 or pixels.shape[2] != 4:
+        raise ValueError('Renderer did not produce an RGBA image')
+    left, top, right, bottom = alpha_canvas_bounds(pixels[...,3])
+    if (left, top, right, bottom) != (0, 0, size, size):
+        if not cv2.imwrite(str(target), pixels[top:bottom,left:right], [cv2.IMWRITE_PNG_COMPRESSION,6]):
+            raise RuntimeError('Could not encode tightly framed disc PNG')
+    shift = np.array([[1.,0,-left],[0,1,-top],[0,0,1]])
+    matrix = shift@matrix
+    for circle in (out_outer, out_hole):
+        circle['center_px'] = (np.array(circle['center_px'])-[left,top]).tolist()
     standardize_png_metadata(target)
-    return dict(outer_circle=out_outer, spindle_circle=out_hole, width=size, height=size,
+    return dict(outer_circle=out_outer, spindle_circle=out_hole, width=right-left, height=bottom-top,
+                transparent_padding_px=0,
+                working_canvas_trim_px=dict(left=left,top=top,right=size-right,bottom=size-bottom),
+                canvas_policy='Tight nonzero-alpha bounds; no added border; all feather pixels preserved.',
                 source_to_output_matrix=matrix.tolist())
 
 
