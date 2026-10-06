@@ -119,7 +119,7 @@ See README.md, WINDOWS.md and USAGE.md for setup and examples.''')
     p.add_argument('--outer-inset',type=finite,default=0,help='Disc outer-radius reduction in pixels (default: 0)')
     p.add_argument('--hole-expansion',type=finite,default=0,help='Disc hole-radius increase in pixels (default: 0)')
     p.add_argument('--depth',type=int,choices=[8,16],default=16,help='PNG bits per channel (default: 16)')
-    p.add_argument('--preview',action='store_true',help='Also export a small preview (white background for cassettes)')
+    p.add_argument('--preview',action='store_true',help='Also export before/after previews; checkerboard shows output transparency')
     p.add_argument('--auto-adjust',action='store_true',help='Enable automatic contrast, brightness and color together (default off)')
     p.add_argument('--auto-contrast',action='store_true',help='Adjust contrast using only the final cropped image (default off)')
     p.add_argument('--auto-brightness',action='store_true',help='Adjust exposure using only the final cropped image (default off)')
@@ -253,7 +253,7 @@ def measure_geometry(gray: np.ndarray, args: argparse.Namespace) -> tuple[dict,d
 
 
 def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict:
-    from .outputs import targets as make_targets, before_preview
+    from .outputs import targets as make_targets, before_preview, after_preview
     from .finishing import finish
     targets = make_targets(args.output,stem)
     if not args.overwrite and any(path.exists() for path in targets.values()):
@@ -326,8 +326,7 @@ def process(item: str, stem: str, args: argparse.Namespace, cache: Path) -> dict
         make_preview = args.preview or (args.overwrite and targets['preview'].exists())
         if make_preview:
             before_preview(normalized,work/'before.png')
-            run(['magick',str(output),'-background','#20252c','-alpha','remove','-alpha','off',
-                 '-resize','700x500>','-strip','-depth','8',str(preview)])
+            after_preview(output,preview)
         warnings = geometry['warnings']+orientation.get('reasons',[])
         summary = {k:v for k,v in orientation.items() if k!='unique_text_regions'}
         profile = geometry['disc_profile']

@@ -156,7 +156,7 @@ apply. A mathematically rectangular output alone does not validate the input fit
 
 The current cassette path keeps all source pixels through one composed geometry
 warp. The full nominal body rectangle is cropped only in the final corrected
-plane. Alpha comes from four straight sides, independently measured corner arcs, and a slight centered
+plane. Alpha comes from four straight sides, a shared circular corner template, and a slight centered
 smoothstep feather (`--feather`, at least one output pixel). No color key,
 exterior flood fill, silhouette trace, unlogged corner arc, safety inset, or
 opaque retention band modifies alpha. Color and edge contrast may estimate the
@@ -174,16 +174,24 @@ the homography. Its nominal ratio is 100.4/63.8 (1.5736677) with a 5% relative
 tolerance. Perspective can invalidate that input ratio even for a real cassette;
 the tag is a bounded heuristic alongside the existing reel and edge checks.
 
-For all rectified cassettes, `--cassette-crop auto` samples each corner in the rectified
-plane, mapping samples back to the unmasked source. It finds the outermost
-broadly supported gradient arc and refines a tangent quarter ellipse. It does
-not copy a universal corner radius or use an interior screw's high contrast as
-the shell outline. Small outward uncertainty protects the edge. Each fit logs
-its radii, source points, support and residual. Unresolved corners inherit a measured sibling radius (bounded to 4.5% of
-body height), or a 2 mm nominal prior. The log identifies these as inferred
-and produces `some_corner_arcs_inferred_from_geometry_review_crop`.
-The prior is a conservative default, not a verified universal shell dimension. The rectangle-only mode
-is available as `--cassette-crop rectangle`.
+For all rectified cassettes, `--cassette-crop auto` samples unmasked source
+pixels through the inverse plane mapping. It searches 0.8–4.5 mm circular radii,
+requires broad angular support, and combines equal corner votes into one shared
+radius. All four arcs are tangent to their adjoining straight body edges.
+Dark screws cannot win merely by having stronger contrast. If the joint search
+has no supported peak, a logged 2 mm size prior supplies all four corners.
+These search bounds and the prior are heuristics, not manufacturing tolerances.
+
+Near-frontal photographs always use identical radii. A tilt proxy of at least
+30 degrees permits a local scalar adjustment only when arc coverage and residuals
+support it and the change is within 8% of the shared radius. The proxy is not a
+calibrated camera pose. Perspective alone does not justify unequal corners: a
+correct homography restores the shared planar geometry even at steep angles.
+Large disagreement flags a possible frame/depth error instead of enlarging a crop.
+The JSON records `corner_template`, applied radius, tangent points, evidence,
+residuals and each local adjustment. Unsupported arcs are tagged **inferred**
+and produce review warnings. `--cassette-crop rectangle` remains available for
+comparison. Alpha is applied after the pixel warp; it never follows a color key.
 
 Short guide projections outside the main-body
 frame are discarded. Enclosed whites, hub teeth, windows, and backing remain
@@ -237,7 +245,7 @@ remains, one homography cannot make every point on that curve straight; log the
 residual and review the reference plane or obtain a calibrated lens profile.
 
 The final alpha is analytic geometry: straight sides plus supported quarter
-ellipses, never a pixel-wise color mask. Weak corner evidence in a small JPEG
+circles, never a pixel-wise color mask. Weak corner evidence in a small JPEG
 uses explicitly logged radius priors for unresolved corners. Background noise, a shadow, or a molded bevel
 can still mislead any single-photo detector; review the corner-fit diagnostics.
 Experimental boundary conformance remains a 2D approximation, not calibrated

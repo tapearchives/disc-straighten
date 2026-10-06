@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "de-askew"
-version = "0.8.1"
+version = "0.8.2"
 description = "Archival disc and cassette image rectification, transparent derivatives, and geometry logs"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -31,4 +31,4 @@ Issues = "https://github.com/tapearchives/disc-straighten/issues"
 packages = ["discstraight"]
 
 [tool.setuptools.package-data]
-discstraight = ["vision.swift", "manual/*.html", "manual/*.json", "manual/*.md", "manual/images/*.jpg", "manual/images/*.png"]
+discstraight = ["vision.swift", "ui_theme.json", "manual/*.html", "manual/*.json", "manual/*.md", "manual/images/*.jpg", "manual/images/*.png"]

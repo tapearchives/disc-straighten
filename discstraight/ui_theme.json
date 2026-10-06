@@ -1,0 +1,10 @@
+{
+  "ink": "#203243",
+  "muted": "#526673",
+  "canvas": "#eef3f5",
+  "surface": "#ffffff",
+  "accent": "#176b72",
+  "line": "#c7d4da",
+  "warning": "#845321",
+  "danger": "#a52e39"
+}

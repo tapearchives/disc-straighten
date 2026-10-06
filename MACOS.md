@@ -1,29 +1,39 @@
 # Mac drag-and-drop app
 
-de-askew 0.8.1 includes a native macOS app and the existing command line.
+de-askew 0.8.2 includes a native macOS app and the existing command line.
 They use the same image processor and saved output preferences.
 
 ## Open and use
 
 Open **de-askew.app**. Drop images or folders into its large drop area,
 or onto its Finder/Dock icon. **Choose Images or Folders…** does the same thing.
-Folders are scanned once, without descending into subfolders. JPEG, PNG, TIFF,
-WebP and BMP are supported; HEIC and raw camera files need conversion first.
+Folders include nested folders; generated output trees are skipped. JPEG, PNG,
+TIFF, WebP, BMP and HEIC/HEIF are supported. HEIC requires ImageMagick libheif.
 
 The app starts processing on drop. Choose **Automatic**, **Optical disc**, or
 **Compact cassette** before adding a batch. Automatic identification remains
-experimental. The command line retains its compatibility default of optical disc.
-Processing is sequential. Additional drops wait in a queue; **Finish Current
-Batch Only** removes waiting batches and lets the active batch finish safely.
+experimental. The command line also defaults to Automatic.
+Processing is sequential. Additional drops wait in a queue; **Clear Pending Batches** removes waiting batches and lets the active batch finish safely.
 Preferences and media selection are locked while processing. Quitting waits for
 you to finish processing rather than interrupting the image writer.
 
 Results include the transparent PNG, geometry JSON, orientation JSON, and a
 preview. **Review needed** means results were saved with uncertainty flags;
-read the JSON before accepting them. **Show Latest Output in Finder** selects
-the latest saved PNG. Originals are never modified. Existing output names are
-protected; choose a new destination, move previous results, or use CLI
-`--overwrite` deliberately.
+read the JSON before accepting them. **Show Latest Output** selects
+the latest saved PNG. Originals are never modified. Existing destinations get a timestamp suffix automatically; the CLI
+`--overwrite` option explicitly permits reuse.
+
+## Review workbench
+
+Before/after cards appear in the main window, with filename, local completion
+time and a persistent saved/review/failed status. Checkerboard previews reveal
+the actual PNG alpha; the master contains no checkerboard. **Open PNG** opens
+a full-resolution derivative. Scrolling up to inspect an earlier result pauses
+automatic following. **Activity** expands diagnostics. At small window heights,
+the controls column also scrolls. Finishing and metadata copying start off.
+Use **View → Compact Window** (Command-Shift-0) for a 900 × 720 layout,
+or **Standard Window** (Command-0) to restore the larger workbench.
+Command-R returns to comparisons; Command-L toggles Activity.
 
 ## Output preferences
 
@@ -37,7 +47,8 @@ Open **Preferences…** (Command-comma):
   `/Volumes/Archive/Prepared`. The folder is created when an image is processed.
 - **Use Default**, then **Save**, restores the relative `output` setting.
 
-Both JSON logs stay beside their image. Inputs with the same basename may use
+PNG files go in `output-images`, previews in `output-previews`, and logs in
+`output-json` under the reserved destination. Inputs with the same basename may use
 separate destination folders. Names that collide in one destination are rejected
 before processing that batch. The app never silently replaces previous results.
 

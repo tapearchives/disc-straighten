@@ -1,5 +1,19 @@
 # Changes
 
+## 0.8.2 — shared corner geometry and review workbench
+
+- Replace independent corner ellipses with one joint circular radius after
+  rectangle rectification. Bound steep-view local changes to 8%; log unsupported
+  corners and template disagreement. Preserve straight edges and crop last.
+- Show alpha over checkerboard previews for both cassettes and discs; masters
+  remain transparent 16-bit PNGs. Add perspective and encoded-alpha regressions.
+- Put Mac comparisons in the main workbench, with scrolling controls, result
+  counts, failure cards, full-resolution access and an expandable activity log.
+- Align the Windows workbench; preserve separate output preference fields and
+  protect option-like input filenames with the CLI end-of-options separator.
+- Add a shared alignment illustration, native UI design contract, and updated
+  Commons-photo app icon with dedicated small-size ICNS/ICO variants.
+
 ## 0.8.1 — clear cassette shell rectangle
 
 - Recover the physical boundary of a clear cassette when strong internal seams

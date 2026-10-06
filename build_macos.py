@@ -38,7 +38,7 @@ def build(destination: Path, replace: bool = False) -> None:
         engine.mkdir(parents=True)
         (engine / 'discstraight').mkdir()
         for source in (ROOT / 'discstraight').iterdir():
-            if source.suffix in {'.py', '.swift'} and source.is_file() and not source.is_symlink():
+            if source.suffix in {'.py', '.swift', '.json'} and source.is_file() and not source.is_symlink():
                 shutil.copy2(source, engine / 'discstraight' / source.name)
         for name in ['de-askew', 'un-askew', 'disc-straighten', 'requirements.lock.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md']:
             shutil.copy2(ROOT / name, engine / name)

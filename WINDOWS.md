@@ -1,6 +1,6 @@
 # Windows CMD quick start
 
-de-askew 0.8.1 runs from the ordinary Windows Command Prompt (`cmd.exe`).
+de-askew 0.8.2 runs from the ordinary Windows Command Prompt (`cmd.exe`).
 It uses Python, ImageMagick and local Tesseract OCR. No WSL, Apple frameworks or
 cloud OCR account is needed. The download is a source kit with a `.cmd` launcher,
 not a self-contained `.exe`.
@@ -68,6 +68,11 @@ de-askew.cmd --show-preferences
 
 Settings live in `%APPDATA%\Disc Straighten\preferences.json`. `-o` overrides them
 for one run. Run `de-askew-gui.cmd` for the Windows drag-and-drop interface.
+The workbench has a controls column, mixed-media detection, a scrolling comparison
+history, checkerboard previews, result counts and individual failure cards.
+**Open PNG** opens a full-resolution result. Options are captured when a batch
+is added; all finishing switches start off. Preferences preserve separate
+relative and fixed locations.
 
 Automatic OCR uses Tesseract on Windows. `--ocr tesseract` also selects it on
 macOS for comparison; `--ocr vision` is macOS-only. `eng`/`rus` and `en-US`/`ru-RU`
@@ -88,7 +93,7 @@ de-askew.cmd disc.jpg --angle -17 -o reviewed
 
 Cassette angles select 0 or 180 degrees **after** body rectification. Disc angles
 are clockwise corrections in degrees. `--cassette-crop rectangle` disables the
-measured corner-arc mask for a comparison.
+shared circular corner mask for a comparison.
 
 ## Exit codes and batch files
 

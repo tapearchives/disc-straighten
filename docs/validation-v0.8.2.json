@@ -1,0 +1,179 @@
+{
+  "version": "0.8.2",
+  "date": "2026-10-06",
+  "unit_tests": 101,
+  "unit_result": "passed",
+  "real_cassette_corner_regression": {
+    "count": 10,
+    "scope": "Fixed verified plane geometry from prior releases; new corner estimator and full 16-bit raster render from original normalized pixels. Not an independent detection benchmark.",
+    "results": [
+      {
+        "sample": "cassette-5",
+        "radius_mm": 3.5097599388594465,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "cassette-1",
+        "radius_mm": 3.530041746957836,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "cassette-4",
+        "radius_mm": 2.871809289343267,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "cassette-2",
+        "radius_mm": 3.1184272443745495,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "cassette-3",
+        "radius_mm": 2.46586615982705,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "IMG_2794",
+        "radius_mm": 3.753496909069515,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "Audio-Kassette_und_IPod",
+        "radius_mm": 1.9491301980608848,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "IMG_2726",
+        "radius_mm": 2.9092459758727878,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "CPT_4200_cassette",
+        "radius_mm": 1.793701281116643,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      },
+      {
+        "sample": "Compact_Cassette_07",
+        "radius_mm": 3.0739203772146473,
+        "equal_four_radii": true,
+        "inside_virtual_corner_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "intermediate_feather_alpha": true
+      }
+    ]
+  },
+  "full_pipeline": {
+    "method": "Final native Mac app, folder picker, Automatic media, finishing and metadata off",
+    "samples": [
+      {
+        "sample": "DVD",
+        "tool": {
+          "name": "de-askew",
+          "version": "0.8.2"
+        },
+        "media": "disc",
+        "status": "review_required"
+      },
+      {
+        "sample": "Denon",
+        "tool": {
+          "name": "de-askew",
+          "version": "0.8.2"
+        },
+        "media": "cassette",
+        "status": "review_required"
+      },
+      {
+        "sample": "Jonathan-Chao",
+        "tool": {
+          "name": "de-askew",
+          "version": "0.8.2"
+        },
+        "media": "cassette",
+        "status": "review_required"
+      }
+    ]
+  },
+  "synthetic_smoke": {
+    "disc": "passed local Vision",
+    "cassette": "passed local Vision"
+  },
+  "ui": {
+    "mac": "Native AppKit: folder intake, three successful real-image outputs with review notices, default-off options, busy state, failure/review cards, empty preferences validation and Escape verified. Standard 1160x800 and compact 900x720 layouts inspected.",
+    "windows": "Tk workbench smoke test covers default options, success/failure cards and compact layout; see the hosted Windows check for the release commit.",
+    "static_audit": "No findings for product source; excludes third-party research captures"
+  },
+  "limitations": [
+    "Shared radius is estimated, not a universally standardized cassette corner dimension.",
+    "Steep-view heuristic is not a calibrated camera pose.",
+    "Flexplay still requires manual geometry; failed sample remains documented.",
+    "App is ad-hoc signed, not notarized."
+  ]
+}

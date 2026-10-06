@@ -5,7 +5,7 @@
     "before": "01-before.jpg",
     "after": "01-after.png",
     "status": "review required",
-    "note": "cassette single plane approximation; cassette edge incomplete; residual edge alignment requires review. Corner arcs: 4 measured; 0 inferred.",
+    "note": "Shared circular corner template: 1.95 mm. 0 corners support the template locally; 4 inferred. Single-plane and edge-alignment review remains necessary.",
     "credit": {
       "file": "Audio-Kassette_und_IPod.jpg",
       "author": "Martina",
@@ -31,7 +31,7 @@
     "before": "02-before.jpg",
     "after": "02-after.png",
     "status": "review required",
-    "note": "cassette single plane approximation; cassette edge incomplete. Corner arcs: 4 measured; 0 inferred.",
+    "note": "Shared circular corner template: 1.79 mm. 1 corners support the template locally; 3 inferred. Single-plane and edge-alignment review remains necessary.",
     "credit": {
       "file": "CPT_4200_cassette.jpg",
       "author": "That-RickWeller",
@@ -56,7 +56,7 @@
     "before": "03-before.jpg",
     "after": "03-after.png",
     "status": "review required",
-    "note": "Physical outer shell recovered from agreement between two texture scales; the previous inner-seam fit clipped the upper-left rivet. Four measured corner arcs. Single-plane and residual-alignment review still required.",
+    "note": "Shared circular corner template: 3.07 mm. 0 corners support the template locally; 4 inferred. Single-plane and edge-alignment review remains necessary.",
     "credit": {
       "file": "Compact_Cassette_07.jpg",
       "author": "Shams948",
@@ -175,7 +175,7 @@
     "before": "08-before.jpg",
     "after": "08-after.png",
     "status": "review required",
-    "note": "cassette single plane approximation; cassette edge incomplete; some corner arcs inferred from geometry review crop. Corner arcs: 2 measured; 2 inferred.",
+    "note": "Shared circular corner template: 2.91 mm. 2 corners support the template locally; 2 inferred. Single-plane and edge-alignment review remains necessary.",
     "credit": {
       "file": "IMG_2726.jpg",
       "author": "Provided by TapeArchives",
@@ -201,7 +201,7 @@
     "before": "09-before.jpg",
     "after": "09-after.png",
     "status": "review required",
-    "note": "cassette single plane approximation; cassette edge incomplete; some corner arcs inferred from geometry review crop. Corner arcs: 3 measured; 1 inferred.",
+    "note": "Shared circular corner template: 3.75 mm. 0 corners support the template locally; 4 inferred. Single-plane and edge-alignment review remains necessary.",
     "credit": {
       "file": "IMG_2794.jpg",
       "author": "Provided by TapeArchives",
@@ -247,14 +247,14 @@
   },
   {
     "id": "11",
-    "source_file": "Đĩa_DVD.jpg",
+    "source_file": "\u0110\u0129a_DVD.jpg",
     "before": "11-before.jpg",
     "after": null,
     "status": "Automatic geometry unresolved",
     "note": "The hole is obscured by a support. Its larger visible hub ring can be mistaken for an 80 mm-disc aperture. A complete visible physical hole is needed; a perfect output mask would not prove a correct calibration.",
     "credit": {
-      "file": "Đĩa_DVD.jpg",
-      "author": "Lê Huỳnh Bộ",
+      "file": "\u0110\u0129a_DVD.jpg",
+      "author": "L\u00ea Hu\u1ef3nh B\u1ed9",
       "license": "CC BY-SA 4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
       "source": "https://commons.wikimedia.org/wiki/File:%C4%90%C4%A9a_DVD.jpg",

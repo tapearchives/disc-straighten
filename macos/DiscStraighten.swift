@@ -3,8 +3,32 @@ import Cocoa
 import UniformTypeIdentifiers
 import WebKit
 
+// One palette shared with the Windows interface and the alignment illustration.
+enum Theme {
+    static let palette: [String: String] = {
+        let url = Bundle.main.resourceURL!.appendingPathComponent("engine/discstraight/ui_theme.json")
+        guard let data = try? Data(contentsOf: url),
+              let colors = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return colors
+    }()
+    static func color(_ name: String) -> NSColor {
+        guard let hex = palette[name], let value = UInt32(hex.dropFirst(), radix: 16) else { return .labelColor }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 255)/255,
+                       green: CGFloat((value >> 8) & 255)/255, blue: CGFloat(value & 255)/255, alpha: 1)
+    }
+}
+
 final class ComparisonDocument: NSView {
     override var isFlipped: Bool { true }
+}
+
+final class ComparisonScroll: NSScrollView {
+    override func tile() {
+        super.tile()
+        if let document = documentView, abs(document.frame.width - contentSize.width) > 0.5 {
+            document.setFrameSize(NSSize(width: contentSize.width, height: document.frame.height))
+        }
+    }
 }
 
 struct CommandResult {
@@ -107,7 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let worker = DispatchQueue(label: "org.tapearchives.disc-straighten.processing", qos: .userInitiated)
     var window: NSWindow!
     let destinationLabel = NSTextField(wrappingLabelWithString: "Output: output inside each input folder · separate image, preview and JSON folders")
-    let statusLabel = NSTextField(labelWithString: "Ready. Originals stay unchanged.")
+    let statusLabel = NSTextField(wrappingLabelWithString: "Ready. Originals stay unchanged.")
     let activity = NSTextView()
     let progress = NSProgressIndicator()
     let media = NSPopUpButton()
@@ -121,7 +145,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var saved: [String: Any] = [:]
     var preferencesSheet: NSWindow?
     var helpWindow: NSWindow?
-    var comparisonsWindow: NSWindow?
+    var activityScroll: NSScrollView!
+    var emptyReview: NSTextField?
+    let resultCount = NSTextField(labelWithString: "No images processed yet")
+    var savedCount = 0
+    var reviewCount = 0
+    var failedCount = 0
     var comparisonsScroll: NSScrollView?
     let comparisons = ComparisonDocument()
     var comparisonCount = 0
@@ -153,7 +182,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.busy = false
                 self.setBusyUI(false)
                 if result.code == 0 { self.readPreferences(result.text); self.statusLabel.stringValue = "Ready. Drop photos to begin." }
-                else { self.append(result.text); self.statusLabel.stringValue = "Setup needs attention. See activity below." }
+                else { self.append(result.text); self.statusLabel.stringValue = "Setup needs attention. Open Activity for details." }
                 self.nextBatch()
             }
         }
@@ -178,6 +207,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             editMenu.addItem(withTitle: name, action: selector, keyEquivalent: key)
         }
         editItem.submenu = editMenu; bar.addItem(editItem)
+        let viewItem = NSMenuItem(title: "View", action: nil, keyEquivalent: "")
+        let viewMenu = NSMenu(title: "View")
+        viewMenu.addItem(withTitle: "Standard Window", action: #selector(standardWindow), keyEquivalent: "0").target = self
+        let compact = viewMenu.addItem(withTitle: "Compact Window", action: #selector(compactWindow), keyEquivalent: "0")
+        compact.keyEquivalentModifierMask = [.command, .shift]; compact.target = self
+        viewMenu.addItem(withTitle: "Show or Hide Activity", action: #selector(toggleActivity), keyEquivalent: "l").target = self
+        viewItem.submenu = viewMenu; bar.addItem(viewItem)
         let helpItem = NSMenuItem(title: "Help", action: nil, keyEquivalent: "")
         let helpMenu = NSMenu(title: "Help")
         helpMenu.addItem(withTitle: "de-askew User Guide", action: #selector(showHelp), keyEquivalent: "?").target = self
@@ -209,147 +245,208 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func button(_ title: String, _ action: Selector) -> NSButton {
         NSButton(title: title, target: self, action: action)
     }
+    func label(_ text: String, size: CGFloat = 12, muted: Bool = false) -> NSTextField {
+        let field = NSTextField(wrappingLabelWithString: text)
+        field.font = .systemFont(ofSize: size)
+        field.textColor = Theme.color(muted ? "muted" : "ink")
+        return field
+    }
+    func section(_ text: String) -> NSTextField {
+        let field = label(text, size: 13)
+        field.font = .systemFont(ofSize: 13, weight: .semibold)
+        return field
+    }
     func makeWindow() {
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 660),
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1160, height: 800),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "de-askew"
-        window.minSize = NSSize(width: 660, height: 520)
+        window.minSize = NSSize(width: 900, height: 720)
+        window.appearance = NSAppearance(named: .aqua)
+        window.backgroundColor = Theme.color("canvas")
         window.isReleasedWhenClosed = false
         window.center()
         let stack = NSStackView()
-        stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 14
+        stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
         let content = window.contentView!
         content.addSubview(stack)
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24),
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24),
-            stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 22),
-            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -22)])
-        let title = NSTextField(labelWithString: "de-askew")
-        title.font = .systemFont(ofSize: 23, weight: .semibold)
-        stack.addArrangedSubview(title)
-        let subtitle = NSTextField(wrappingLabelWithString: "A Media Image Straightener · Drop a selection of photos or folders. Each image is identified automatically.")
-        subtitle.textColor = .secondaryLabelColor
-        stack.addArrangedSubview(subtitle)
+            stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 16),
+            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -16)])
+        let heading = NSStackView(); heading.orientation = .vertical; heading.alignment = .leading; heading.spacing = 5
+        let title = label("de-askew", size: 30); title.font = .systemFont(ofSize: 30, weight: .semibold)
+        heading.addArrangedSubview(title)
+        heading.addArrangedSubview(label("Bring your media into alignment.", size: 14, muted: true))
+        heading.addArrangedSubview(label("DISC + CASSETTE  /  TAPEARCHIVES", size: 10, muted: true))
+        let art = NSImageView()
+        art.image = NSImage(contentsOf: Bundle.main.resourceURL!.appendingPathComponent("manual/images/alignment.png"))
+        art.imageScaling = .scaleProportionallyUpOrDown
+        art.setAccessibilityLabel("A tilted disc and cassette aligned to their geometric templates")
+        art.widthAnchor.constraint(equalToConstant: 290).isActive = true
+        art.heightAnchor.constraint(equalToConstant: 98).isActive = true
+        let header = NSStackView(views: [heading, NSView(), art]); header.spacing = 20
+        stack.addArrangedSubview(header)
+        let rule = NSBox(); rule.boxType = .separator; stack.addArrangedSubview(rule)
+        let body = NSStackView(); body.orientation = .horizontal; body.alignment = .top; body.spacing = 24
+        let sidebar = NSStackView(); sidebar.orientation = .vertical; sidebar.alignment = .leading; sidebar.spacing = 10
+        sidebar.widthAnchor.constraint(equalToConstant: 248).isActive = true
         let drop = DropView(frame: .zero)
         drop.receive = { [weak self] urls in self?.enqueue(urls) }
-        let dropText = NSTextField(labelWithString: "Drop images or folders here")
-        dropText.font = .systemFont(ofSize: 19, weight: .medium)
-        dropText.translatesAutoresizingMaskIntoConstraints = false
-        drop.addSubview(dropText)
-        NSLayoutConstraint.activate([drop.heightAnchor.constraint(equalToConstant: 100),
-            dropText.centerXAnchor.constraint(equalTo: drop.centerXAnchor), dropText.centerYAnchor.constraint(equalTo: drop.centerYAnchor)])
-        stack.addArrangedSubview(drop)
-        let controls = NSStackView()
-        controls.spacing = 12
-        controls.addArrangedSubview(button("Choose Images or Folders…", #selector(chooseFiles)))
-        controls.addArrangedSubview(NSTextField(labelWithString: "Media:"))
+        let dropContents = NSStackView(); dropContents.orientation = .vertical; dropContents.spacing = 7
+        let symbol = NSImageView(image: NSImage(systemSymbolName: "square.and.arrow.down", accessibilityDescription: nil)!)
+        symbol.contentTintColor = Theme.color("accent")
+        symbol.heightAnchor.constraint(equalToConstant: 26).isActive = true
+        dropContents.addArrangedSubview(symbol)
+        dropContents.addArrangedSubview(section("Drop photos or folders"))
+        dropContents.addArrangedSubview(label("Selections and subfolders welcome", size: 11, muted: true))
+        dropContents.translatesAutoresizingMaskIntoConstraints = false; drop.addSubview(dropContents)
+        NSLayoutConstraint.activate([drop.heightAnchor.constraint(equalToConstant: 122),
+            dropContents.centerXAnchor.constraint(equalTo: drop.centerXAnchor),dropContents.centerYAnchor.constraint(equalTo: drop.centerYAnchor)])
+        sidebar.addArrangedSubview(drop)
+        let choose = button("Choose Images or Folders…", #selector(chooseFiles))
+        choose.bezelStyle = .rounded; choose.controlSize = .large; choose.contentTintColor = Theme.color("accent")
+        sidebar.addArrangedSubview(choose)
+        sidebar.addArrangedSubview(label("JPEG · PNG · TIFF · WebP · BMP · HEIC", size: 10, muted: true))
+        sidebar.setCustomSpacing(18, after: sidebar.arrangedSubviews.last!)
+        sidebar.addArrangedSubview(section("Media type"))
         media.addItems(withTitles: ["Automatic", "Optical disc", "Compact cassette"])
-        media.setAccessibilityLabel("Media type")
-        controls.addArrangedSubview(media)
-        preferencesButton = button("Preferences…", #selector(showPreferences))
-        controls.addArrangedSubview(preferencesButton)
-        stack.addArrangedSubview(controls)
-        let options = NSStackView(views: [autoContrast, autoBrightness, autoColor, autoAll, keepMetadata])
-        options.spacing = 12
+        media.setAccessibilityLabel("Media type"); sidebar.addArrangedSubview(media)
+        sidebar.setCustomSpacing(16, after: media)
+        sidebar.addArrangedSubview(section("Finishing"))
+        let options = NSStackView(); options.orientation = .vertical; options.alignment = .leading; options.spacing = 5
+        let firstOptions = NSStackView(views: [autoContrast, autoBrightness]); firstOptions.spacing = 12
+        let secondOptions = NSStackView(views: [autoColor, autoAll]); secondOptions.spacing = 12
+        options.addArrangedSubview(firstOptions); options.addArrangedSubview(secondOptions); options.addArrangedSubview(keepMetadata)
+        options.heightAnchor.constraint(equalToConstant: 70).isActive = true
         keepMetadata.toolTip = "Copies supported EXIF/XMP/IPTC, including location tags. Requires ExifTool. Defaults off."
-        autoAll.toolTip = "Apply all three adjustments to the final cropped pixels. Defaults off."
-        stack.addArrangedSubview(options)
-        destinationLabel.font = .systemFont(ofSize: 12)
-        destinationLabel.textColor = .secondaryLabelColor
-        stack.addArrangedSubview(destinationLabel)
-        progress.style = .bar; progress.isIndeterminate = true; progress.isDisplayedWhenStopped = false
-        stack.addArrangedSubview(progress)
-        stack.addArrangedSubview(statusLabel)
-        let scroll = NSScrollView()
-        scroll.hasVerticalScroller = true; scroll.borderType = .bezelBorder
+        autoAll.toolTip = "Apply contrast, brightness and color to the final cropped pixels. Defaults off."
+        sidebar.addArrangedSubview(options)
+        sidebar.addArrangedSubview(label("Optional adjustments. All off by default.", size: 11, muted: true))
+        sidebar.setCustomSpacing(16, after: sidebar.arrangedSubviews.last!)
+        sidebar.addArrangedSubview(section("Destination"))
+        destinationLabel.font = .systemFont(ofSize: 11); destinationLabel.textColor = Theme.color("muted")
+        sidebar.addArrangedSubview(destinationLabel)
+        preferencesButton = button("Output Preferences…", #selector(showPreferences)); sidebar.addArrangedSubview(preferencesButton)
+        sidebar.addArrangedSubview(label("Originals stay unchanged. Every batch gets a fresh output folder.", size: 11, muted: true))
+        let support = NSStackView(views: [button("User Guide", #selector(showHelp)), button("Activity", #selector(toggleActivity))]); support.spacing = 10
+        sidebar.addArrangedSubview(support)
+        for view in [drop, choose, media, destinationLabel] as [NSView] { view.widthAnchor.constraint(equalTo: sidebar.widthAnchor).isActive = true }
+        for view in sidebar.arrangedSubviews { view.widthAnchor.constraint(lessThanOrEqualTo: sidebar.widthAnchor).isActive = true }
+        let review = NSStackView(); review.orientation = .vertical; review.alignment = .leading; review.spacing = 8
+        review.addArrangedSubview(section("Before & after"))
+        review.addArrangedSubview(label("Checkerboard shows transparency. Open a result to inspect full resolution.", size: 11, muted: true))
+        let scroll = ComparisonScroll(); scroll.hasVerticalScroller = true; scroll.hasHorizontalScroller = true
+        scroll.autohidesScrollers = false; scroll.borderType = .noBorder; scroll.backgroundColor = Theme.color("canvas")
+        comparisons.frame = NSRect(x: 0, y: 0, width: 0, height: 310)
+        scroll.documentView = comparisons; comparisonsScroll = scroll
+        emptyReview = label("Your images will appear here.\n\n1   Drop photos or folders\n2   Let geometry straighten each image\n3   Review the transparent PNG and its log", size: 15, muted: true)
+        emptyReview!.frame = NSRect(x: 28, y: 80, width: 430, height: 170)
+        comparisons.addSubview(emptyReview!)
+        review.addArrangedSubview(scroll); scroll.widthAnchor.constraint(equalTo: review.widthAnchor).isActive = true
+        let sidebarScroll = NSScrollView(); sidebarScroll.hasVerticalScroller = true
+        sidebarScroll.autohidesScrollers = true; sidebarScroll.drawsBackground = false
+        sidebarScroll.widthAnchor.constraint(equalToConstant: 268).isActive = true
+        let sidebarDocument = ComparisonDocument(frame: NSRect(x: 0, y: 0, width: 248, height: 570))
+        sidebar.translatesAutoresizingMaskIntoConstraints = false; sidebarDocument.addSubview(sidebar)
+        NSLayoutConstraint.activate([sidebar.topAnchor.constraint(equalTo: sidebarDocument.topAnchor),
+            sidebar.leadingAnchor.constraint(equalTo: sidebarDocument.leadingAnchor),
+            sidebar.heightAnchor.constraint(equalToConstant: 560)])
+        sidebarScroll.documentView = sidebarDocument
+        body.addArrangedSubview(sidebarScroll); body.addArrangedSubview(review)
+        sidebarScroll.heightAnchor.constraint(equalTo: body.heightAnchor).isActive = true
+        review.widthAnchor.constraint(equalTo: body.widthAnchor, constant: -292).isActive = true
+        review.heightAnchor.constraint(equalTo: body.heightAnchor).isActive = true
+        stack.addArrangedSubview(body)
+        activityScroll = NSScrollView(); activityScroll.hasVerticalScroller = true; activityScroll.borderType = .bezelBorder
         activity.isEditable = false; activity.isSelectable = true
-        activity.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-        activity.textColor = .labelColor
-        activity.textContainerInset = NSSize(width: 10, height: 10)
-        activity.isVerticallyResizable = true; activity.isHorizontallyResizable = false
-        activity.autoresizingMask = [.width]
-        activity.textContainer?.widthTracksTextView = true
-        activity.setAccessibilityLabel("Processing activity")
-        scroll.documentView = activity
-        scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
-        stack.addArrangedSubview(scroll)
-        let bottom = NSStackView(); bottom.spacing = 12
-        revealButton = button("Show Latest Output in Finder", #selector(revealOutput)); revealButton.isEnabled = false
-        clearQueueButton = button("Finish Current Batch Only", #selector(clearQueue)); clearQueueButton.isEnabled = false
-        bottom.addArrangedSubview(revealButton); bottom.addArrangedSubview(clearQueueButton)
-        stack.addArrangedSubview(bottom)
-        for view in [subtitle, drop, destinationLabel, progress, scroll] as [NSView] {
-            view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
-        }
-        append("JPEG, PNG, TIFF, WebP, BMP and HEIC/HEIF. Folders include subfolders; generated outputs are excluded.\nEach batch uses a fresh output folder with separate image, preview and JSON folders. Adjustments and metadata copying are off by default.")
+        activity.font = .monospacedSystemFont(ofSize: 11, weight: .regular); activity.textColor = .labelColor
+        activity.textContainerInset = NSSize(width: 10, height: 10); activity.isVerticallyResizable = true
+        activity.isHorizontallyResizable = false; activity.autoresizingMask = [.width]; activity.textContainer?.widthTracksTextView = true
+        activity.setAccessibilityLabel("Processing activity"); activityScroll.documentView = activity
+        activityScroll.heightAnchor.constraint(equalToConstant: 110).isActive = true
+        stack.addArrangedSubview(activityScroll); activityScroll.isHidden = true
+        progress.style = .spinning; progress.controlSize = .small; progress.isIndeterminate = true; progress.isDisplayedWhenStopped = false
+        progress.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        statusLabel.font = .systemFont(ofSize: 12); statusLabel.maximumNumberOfLines = 2
+        statusLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let statusRow = NSStackView(views: [progress, statusLabel]); statusRow.spacing = 10
+        let footer = NSStackView(); footer.orientation = .vertical; footer.alignment = .leading; footer.spacing = 6
+        footer.addArrangedSubview(statusRow)
+        resultCount.font = .systemFont(ofSize: 11); resultCount.textColor = Theme.color("muted")
+        revealButton = button("Show Latest Output", #selector(revealOutput)); revealButton.isEnabled = false
+        clearQueueButton = button("Clear Pending Batches", #selector(clearQueue)); clearQueueButton.isEnabled = false
+        let actions = NSStackView(views: [resultCount, NSView(), revealButton, clearQueueButton]); actions.spacing = 10
+        footer.addArrangedSubview(actions); actions.widthAnchor.constraint(equalTo: footer.widthAnchor).isActive = true
+        stack.addArrangedSubview(footer)
+        for view in [header, rule, body, activityScroll!, footer] as [NSView] { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
+        body.setContentHuggingPriority(.defaultLow, for: .vertical)
+        scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
+        append("Originals are preserved. Folders include subfolders; generated outputs are excluded.\nPNG masters retain alpha. Checks appear only in previews. Geometry warnings remain available in JSON logs.")
     }
-
-    @objc func showComparisons() {
-        if comparisonsWindow == nil {
-            let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 790),
-                                 styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-            panel.title = "de-askew · Processing Comparisons"
-            panel.isReleasedWhenClosed = false
-            panel.minSize = NSSize(width: 540, height: 360)
-            let scroll = NSScrollView(frame: panel.contentView!.bounds)
-            scroll.autoresizingMask = [.width, .height]
-            scroll.hasVerticalScroller = true
-            scroll.hasHorizontalScroller = true
-            scroll.autohidesScrollers = false
-            comparisons.frame = NSRect(x: 0, y: 0, width: scroll.contentSize.width, height: 0)
-            comparisons.autoresizingMask = [.width]
-            scroll.documentView = comparisons
-            panel.contentView!.addSubview(scroll)
-            comparisonsWindow = panel
-            comparisonsScroll = scroll
-            panel.center()
-        }
-        comparisonsWindow!.makeKeyAndOrderFront(nil)
+    @objc func toggleActivity() { activityScroll.isHidden.toggle() }
+    @objc func compactWindow() { window.setContentSize(NSSize(width: 900, height: 720)) }
+    @objc func standardWindow() { window.setContentSize(NSSize(width: 1160, height: 800)) }
+    @objc func showComparisons() { window.makeKeyAndOrderFront(nil); window.makeFirstResponder(comparisonsScroll) }
+    @objc func openResult(_ sender: NSButton) {
+        if let path = sender.identifier?.rawValue { NSWorkspace.shared.open(URL(fileURLWithPath: path)) }
     }
-
     func addComparison(_ json: [String: Any]) {
-        guard let before = json["before_preview"] as? String,
-              let after = json["preview"] as? String else { return }
-        if comparisonsWindow == nil { showComparisons() }
-        let card = NSStackView()
-        card.orientation = .vertical; card.alignment = .leading; card.spacing = 4
-        card.wantsLayer = true
-        card.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
-        card.layer?.cornerRadius = 8
-        card.edgeInsets = NSEdgeInsets(top: 8, left: 10, bottom: 8, right: 10)
-        let filename = URL(fileURLWithPath: json["input"] as? String ?? "Image").lastPathComponent
+        guard let scroll = comparisonsScroll else { return }
+        let follow = comparisons.bounds.height <= scroll.contentSize.height || scroll.documentVisibleRect.maxY >= comparisons.bounds.height - 24
+        emptyReview?.removeFromSuperview(); emptyReview = nil
+        let failed = json["error"] as? String
+        let review = json["status"] as? String == "review_required"
+        let card = NSStackView(); card.orientation = .vertical; card.alignment = .leading; card.spacing = 5
+        card.wantsLayer = true; card.layer?.backgroundColor = Theme.color("surface").cgColor; card.layer?.cornerRadius = 10
+        card.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        let filename = URL(fileURLWithPath: json["input"] as? String ?? "Processing error").lastPathComponent
         let time = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .medium)
         let header = NSTextField(labelWithString: "\(filename)  ·  \(time)")
-        header.font = .systemFont(ofSize: 12, weight: .semibold)
-        card.addArrangedSubview(header)
-        let pair = NSStackView(); pair.distribution = .fillEqually; pair.spacing = 10
-        for (label, path) in [("Before", before), ("After", after)] {
-            let column = NSStackView(); column.orientation = .vertical; column.spacing = 2
-            let caption = NSTextField(labelWithString: label); caption.font = .systemFont(ofSize: 11)
-            let image = NSImageView()
-            image.image = NSImage(contentsOfFile: path)
-            image.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-            image.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            image.imageScaling = .scaleProportionallyUpOrDown
-            image.heightAnchor.constraint(equalToConstant: 150).isActive = true
-            image.setAccessibilityLabel("\(label): \(filename)")
-            column.addArrangedSubview(caption); column.addArrangedSubview(image)
-            image.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true
-            pair.addArrangedSubview(column)
+        header.font = .systemFont(ofSize: 12, weight: .semibold); header.lineBreakMode = .byTruncatingMiddle
+        header.toolTip = "\(filename)  ·  \(time)"; card.addArrangedSubview(header)
+        let pair = NSStackView(); pair.distribution = .fillEqually; pair.spacing = 12
+        if let error = failed {
+            let explanation = error.contains("insufficient image data") || error.contains("improper image header")
+                ? "The file is damaged or is not a supported image." : String(error.prefix(450))
+            let message = label("Could not process this image.\n\(explanation)\n\nCheck the source and add it again to retry. Details are in Activity.", muted: true)
+            pair.addArrangedSubview(message); failedCount += 1
+        } else {
+            for (caption, key) in [("BEFORE", "before_preview"), ("AFTER · TRANSPARENT PNG", "preview")] {
+                let column = NSStackView(); column.orientation = .vertical; column.spacing = 3
+                column.addArrangedSubview(label(caption, size: 10, muted: true))
+                let image = NSImageView(); image.imageScaling = .scaleProportionallyUpOrDown
+                if let path = json[key] as? String { image.image = NSImage(contentsOfFile: path) }
+                image.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                image.setContentHuggingPriority(.defaultLow, for: .horizontal)
+                image.heightAnchor.constraint(equalToConstant: 142).isActive = true
+                image.setAccessibilityLabel("\(caption): \(filename)")
+                column.addArrangedSubview(image); image.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true
+                pair.addArrangedSubview(column)
+            }
+            savedCount += 1; if review { reviewCount += 1 }
         }
         card.addArrangedSubview(pair)
-        card.translatesAutoresizingMaskIntoConstraints = false
-        comparisons.addSubview(card)
-        card.topAnchor.constraint(equalTo: comparisons.topAnchor, constant: 12 + CGFloat(comparisonCount) * 214).isActive = true
-        card.leadingAnchor.constraint(equalTo: comparisons.leadingAnchor, constant: 12).isActive = true
-        card.heightAnchor.constraint(equalToConstant: 204).isActive = true
-        card.widthAnchor.constraint(equalTo: comparisons.widthAnchor, constant: -24).isActive = true
-        pair.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -20).isActive = true
+        let notice = label(failed != nil ? "Failed · original preserved" : review ? "Saved · review geometry or orientation" : "Saved", size: 11)
+        notice.textColor = Theme.color(failed != nil ? "danger" : review ? "warning" : "accent")
+        notice.toolTip = (json["warnings"] as? [String])?.joined(separator: "\n")
+        let bottom = NSStackView(views: [notice, NSView()]); bottom.spacing = 6
+        if let path = json["image"] as? String {
+            let open = button("Open PNG", #selector(openResult(_:))); open.identifier = NSUserInterfaceItemIdentifier(path)
+            open.controlSize = .small; bottom.addArrangedSubview(open)
+        }
+        card.addArrangedSubview(bottom); card.translatesAutoresizingMaskIntoConstraints = false; comparisons.addSubview(card)
+        NSLayoutConstraint.activate([card.topAnchor.constraint(equalTo: comparisons.topAnchor, constant: 8 + CGFloat(comparisonCount) * 242),
+            card.leadingAnchor.constraint(equalTo: comparisons.leadingAnchor, constant: 4),
+            card.heightAnchor.constraint(equalToConstant: 232),card.widthAnchor.constraint(equalTo: comparisons.widthAnchor, constant: -8),
+            header.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24),
+            pair.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24),
+            bottom.widthAnchor.constraint(equalTo: card.widthAnchor, constant: -24)])
         comparisonCount += 1
-        comparisons.setFrameSize(NSSize(width: comparisonsScroll!.contentSize.width, height: 24 + CGFloat(comparisonCount) * 214))
+        resultCount.stringValue = "\(savedCount) saved  ·  \(reviewCount) to review  ·  \(failedCount) failed"
+        comparisons.setFrameSize(NSSize(width: scroll.contentSize.width, height: 16 + CGFloat(comparisonCount) * 242))
         comparisons.layoutSubtreeIfNeeded()
-        card.scrollToVisible(card.bounds)
+        if follow { card.scrollToVisible(card.bounds) }
     }
 
     @objc func chooseFiles() {
@@ -387,6 +484,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         arguments += ["--"] + files.map(\.path)
         showComparisons()
+        let failuresBeforeBatch = failedCount
         worker.async {
             let result = self.engine.run(arguments) { line in
                 DispatchQueue.main.async { self.received(line) }
@@ -396,8 +494,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 switch result.code {
                 case 0: self.statusLabel.stringValue = "Batch complete. Images and logs saved."
                 case 2: self.statusLabel.stringValue = "Batch complete — review needed. Images and logs saved."
-                default: self.statusLabel.stringValue = "Batch finished with errors. See activity below."
-                    self.append(result.text.suffix(1800).description)
+                default: self.statusLabel.stringValue = "Batch finished with errors. See result cards or Activity."
+                    if self.failedCount == failuresBeforeBatch {
+                        self.append(result.text.suffix(1800).description)
+                        self.addComparison(["input": files[0].path, "error": String(result.text.suffix(450))])
+                    }
                 }
                 self.nextBatch()
             }
@@ -411,7 +512,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 append("\(review ? "Review needed" : "Saved"): \(image)")
                 addComparison(json)
                 if let warnings = json["warnings"] as? [String], !warnings.isEmpty { append("  " + warnings.joined(separator: ", ")) }
-            } else if let error = json["error"] as? String { append("Could not process \(json["input"] ?? "image"): \(error)") }
+            } else if let error = json["error"] as? String { append("Could not process \(json["input"] ?? "image"): \(error)"); addComparison(json) }
             else if json["status"] as? String == "processing", let input = json["input"] as? String {
                 statusLabel.stringValue = "Processing \(URL(fileURLWithPath: input).lastPathComponent)…"
             }
@@ -434,7 +535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard busy || !queue.isEmpty else { return .terminateNow }
         let alert = NSAlert()
         alert.messageText = "Processing is still running"
-        alert.informativeText = "Let the current batch finish before quitting. You can remove pending batches with Finish Current Batch Only."
+        alert.informativeText = "Let the current batch finish before quitting. You can remove pending batches with Clear Pending Batches."
         alert.addButton(withTitle: "Keep Processing")
         alert.runModal()
         return .terminateCancel

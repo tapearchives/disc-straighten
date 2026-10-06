@@ -4,7 +4,7 @@ A TapeArchives project for archival image preparation. Straighten optical discs 
 compact-cassette photographs, choose a readable text orientation, and export
 transparent PNG derivatives with reproducible geometry and review logs.
 
-**Version 0.8.1 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
+**Version 0.8.2 · macOS and Windows apps · CLI · MIT · beta.** Cassette processing always
 requires review. Keep the original capture as the preservation master.
 
 Repository: [tapearchives/disc-straighten](https://github.com/tapearchives/disc-straighten).
@@ -118,10 +118,12 @@ The cassette default (`--debow off`) fits four straight main-body lines and
 intersects adjacent lines to obtain the corners. One homography maps that frame
 to the nominal rectangle, followed by the final crop and feather. A detected
 pre-warp aspect ratio within 5% of **1.5736677:1** is tagged **compact cassette AR**.
-Each corner is matched independently after rectification, even when perspective
-changes the source ratio. Faint arcs get three sensitivity passes. Unresolved
-corners use a measured sibling radius or a conservative 2 mm size prior,
-explicitly tagged **inferred** for review. This is not a universal shell standard. `--cassette-crop rectangle`
+All four corners start from one equal circular radius in the rectified plane.
+Broad arc support votes equally across corners, reducing the influence of dark
+rivets and internal seams. Unresolved corners retain the shared template and
+are tagged **inferred**. A 2 mm fallback is a heuristic, not a universal shell
+standard. Only supported steep-view residuals allow local adjustments, capped
+at 8%; larger disagreements flag the frame for review. `--cassette-crop rectangle`
 provides the previous rectangle-only comparison. No lens or
 nonlinear bow correction is applied. Explicit experimental `auto` and `conform`
 modes remain available for reviewed comparisons. A single plane cannot remove

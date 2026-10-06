@@ -13,9 +13,12 @@ from discstraight import __version__
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC_FILES = (
+    'DESIGN.md', 'premium-ui.json', 'discstraight/ui_theme.json', 'assets/alignment.svg',
+    'discstraight/manual/images/alignment.png',
     'tests/fixtures/gradient.heic', 'tests/fixtures/README.md',
     'docs/validation-v0.8.0.json',
     'docs/validation-v0.8.1.json',
+    'docs/validation-v0.8.2.json',
     'discstraight/manual/images/03-after.png',
     'de-askew-gui.cmd', 'install-windows.ps1', 'assets/de-askew.svg',
     'assets/de-askew.png', 'assets/de-askew.ico', 'assets/de-askew.icns',

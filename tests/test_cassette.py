@@ -306,7 +306,7 @@ class CassetteSamplingTests(unittest.TestCase):
     def test_encoded_alpha_and_color_are_valid_at_both_depths(self):
         geometry=simple_geometry()
         image=np.full((90,130,3),[70,120,180],np.uint8)
-        crop=dict(bounds_px=[2,1.5,98.4,62.3],corner_radii_px=[3]*4)
+        crop=dict(bounds_px=[0,0,100.4,63.8],corner_fits=[dict(applied=True,radii_xy_px=[8,8])]*4)
         # Constant-color radiometry through the unmasked warp and final crop.
         with tempfile.TemporaryDirectory() as temp:
             source=Path(temp)/'source.png';cv2.imwrite(str(source),image)
@@ -319,6 +319,12 @@ class CassetteSamplingTests(unittest.TestCase):
                 self.assertEqual(int(pixels[0,:,3].max()),0)
                 self.assertGreater(int(pixels[:,:,3].max()),0)
                 maximum=255 if depth==8 else 65535
+                # Inspect encoded pixels inside every virtual rectangle corner,
+                # not merely the already-transparent padding outside the body.
+                for x,y in [(3,3),(102,3),(102,65),(3,65)]:
+                    self.assertEqual(int(pixels[y,x,3]),0)
+                for x,y in [(13,13),(93,13),(93,57),(13,57)]:
+                    self.assertEqual(int(pixels[y,x,3]),maximum)
                 edge=(pixels[:,:,3]>0)&(pixels[:,:,3]<maximum)
                 colors=pixels[:,:,:3][edge]/(maximum/255)
                 np.testing.assert_allclose(colors,np.broadcast_to([70,120,180],colors.shape),atol=1)

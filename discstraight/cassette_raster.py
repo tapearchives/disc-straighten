@@ -154,7 +154,7 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
     if not cv2.imwrite(str(target),bgra,[cv2.IMWRITE_PNG_COMPRESSION,6]):raise RuntimeError('Could not encode cassette PNG')
     standardize_png_metadata(target)
     return dict(width=ow,height=oh,source_boundary_clipped_pixels=source_clipped,
-                exterior_background_removal='final body rectangle and supported measured corner arcs',
+                exterior_background_removal='final body rectangle and shared circular corner template',
                 source_pixels_masked_before_warp=False,
                 alpha_depends_on_image_colors=False,
                 body_frame_px=dict(left=-origin[0],top=-origin[1],width=bw,height=bh),
@@ -164,6 +164,6 @@ def render_cassette(normalized: Path, target: Path, source_shape: tuple[int,int]
                 source_to_output_is_homography_only=not(geometry['lens']['applied'] or geometry['conformance']['applied']),
                 flip_180_degrees=flip,source_to_plane_matrix=geometry['source_to_plane_matrix'],
                 map_metrics=metrics,
-                resampling='One warp of unmasked original pixels in linear RGB; continuous-phase Lanczos3 with bounded footprint supersampling; analytic body and measured-corner alpha applied only after warp.',
+                resampling='One warp of unmasked original pixels in linear RGB; continuous-phase Lanczos3 with bounded footprint supersampling; analytic body and shared-corner alpha applied only after warp.',
                 mapping='Output plus logged plane origin -> optional 180-degree flip -> logged boundary blend -> inverse homography -> inverse division lens model -> source',
-                feather_policy='Centered transition at the final body rectangle and fitted corner arcs; no color key, pixel silhouette, or body inset.')
+                feather_policy='Centered transition at the final body rectangle and template corner circles; no color key, pixel silhouette, or body inset.')

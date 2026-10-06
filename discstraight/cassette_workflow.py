@@ -54,7 +54,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     output=work/'output.png'
     mapped=render_cassette(normalized,output,gray.shape,geometry,mask,flip=flip,feather=args.feather,depth=args.depth)
     from .finishing import finish
-    from .outputs import before_preview
+    from .outputs import before_preview, after_preview
     source=next(p for p in work.glob('input.*') if p.is_file())
     finishing=finish(source,output,args,work)
     if finishing['metadata']['enabled']:
@@ -63,7 +63,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
     preview=work/'preview.png';make_preview=args.preview or (args.overwrite and targets['preview'].exists())
     if make_preview:
         before_preview(normalized,work/'before.png')
-        run(['magick',str(output),'-background','white','-alpha','remove','-alpha','off','-resize','700x500>','-strip','-depth','8',str(preview)])
+        after_preview(output,preview)
     for edge,points in zip(geometry['edges'],geometry['diagnostics']['edge_source_points_px']):
         corrected=source_to_plane(np.array(points),geometry)
         i=['top','right','bottom','left'].index(edge['side']);axis=1 if i%2==0 else 0
@@ -81,6 +81,8 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
         warnings.append('residual_edge_alignment_requires_review')
     if any(f.get('evidence')=='inferred' for f in mask['corner_fits']):
         warnings.append('some_corner_arcs_inferred_from_geometry_review_crop')
+    if any(f.get('template_mismatch') for f in mask['corner_fits']):
+        warnings.append('corner_evidence_disagrees_with_shared_template_review_frame')
     result=dict(schema_version=7,tool=dict(name='de-askew',version=__version__),
                 created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),media='cassette',
                 media_selection=dict(requested=args.media,selected='cassette',score=geometry['detection_score'],
@@ -93,7 +95,7 @@ def process_cassette(normalized: Path, source_log: dict, gray: np.ndarray, args,
                 output=dict(file=targets['image'].relative_to(args.output).as_posix(),sha256=sha256(output),depth=args.depth,color_space='sRGB',alpha='straight/unassociated RGBA',**mapped),
                 mask=mask,
                 transform_notes=['Main shell face is corner-pinned to nominal 100.4 by 63.8 mm.',
-                                 'All original pixels are warped before the final feathered body crop. Measured and inferred corner arcs are identified separately; no color-key or pixel silhouette alpha.',
+                                 'Original pixels are warped before the final feathered crop. All corners share a circular radius; only supported steep-view residuals permit bounded adjustments. Measured and inferred evidence is logged; no color-key or pixel silhouette alpha.',
                                  'Raised front, recessed reels and visible sidewalls retain depth parallax.',
                                  'Closed transparent material and photographed content behind openings are retained.',
                                  'No hidden geometry, texture, or sharp detail is synthesized.']+

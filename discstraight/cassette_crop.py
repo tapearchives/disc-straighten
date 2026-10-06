@@ -1,4 +1,4 @@
-"""Final analytic body crop with independently measured corner arcs.
+"""Final analytic body crop with a shared circular corner template.
 
 Image colors may help estimate geometry, but never determine output alpha.
 """
@@ -27,6 +27,7 @@ def body_crop(gray: np.ndarray, geometry: dict, *, minimum_source_scale: float,
                 inset_xy_px=[0., 0.], inset_fraction_per_side=0.,
                 corner_radii_xy_px=[f.get('radii_xy_px',[0.,0.]) for f in fits] if fits else [[0.,0.]]*4,
                 corner_fits=fits,corner_policy=corners,
+                corner_template=fits[0]['shared_template'] if fits else None,
                 feather_alignment='centered_on_rectangle', feather_px=feather,
                 alpha_depends_on_image_colors=False,
                 source_pixels_masked_before_warp=False,
@@ -34,7 +35,7 @@ def body_crop(gray: np.ndarray, geometry: dict, *, minimum_source_scale: float,
                 outer_boundary_refitted=bool(geometry.get('outer_boundary')),
                 projection_policy='Long main-body edges define the plane; short guide projections outside the final rectangle are cropped.',
                 internal_apertures_removed=False, matte_baked_into_master=False,
-                note='Warp original pixels first. Apply the body rectangle and four tangent corner ellipses. Faint edges use adaptive sensitivity; unresolved arcs use logged sibling or shell-size priors. No pixel silhouette or color-key alpha.')
+                note='Warp original pixels first. Apply the body rectangle and four equal tangent circular corners. Only supported steep-view residuals permit at most 8 percent local radius adjustment. Unresolved edges use the logged shared template; no pixel silhouette or color-key alpha.')
 
 
 def crop_alpha(x: np.ndarray, y: np.ndarray, crop: dict, feather: float = 1.) -> np.ndarray:

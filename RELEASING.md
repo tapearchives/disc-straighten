@@ -13,10 +13,10 @@ From the source directory on a supported Mac:
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python examples/synthetic_smoke.py
 .venv/bin/python examples/cassette_smoke.py
-.venv/bin/python package.py --export-tree ../de-askew-github-v0.8.1
+.venv/bin/python package.py --export-tree ../de-askew-github-v0.8.2
 ```
 
-The last command creates `dist/de-askew-0.8.1-source.zip` and a separate
+The last command creates `dist/de-askew-0.8.2-source.zip` and a separate
 clean source directory. The export destination must not already exist. Both
 contain SHA-256 manifests. The ZIP preserves the launcher's executable mode.
 No wheels, environments, downloaded standards/patents, original source photos, private

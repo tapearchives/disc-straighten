@@ -1,0 +1,8 @@
+{
+  "profile": "product-admin",
+  "canonicalMap": "DESIGN.md",
+  "sourceRoots": ["discstraight", "macos"],
+  "requiredCapabilities": ["Form", "Select/Listbox", "Scrollbar"],
+  "commands": {"tests": ".venv/bin/python -m unittest discover -s tests -v", "build": ".venv/bin/python build_macos.py --replace"},
+  "requiredCommands": ["tests", "build"]
+}
