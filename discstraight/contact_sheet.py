@@ -18,9 +18,16 @@ COLUMNS, ROWS = 4, 5
 LEFT, TOP, WIDTH, HEIGHT, ROW_STEP = 36, 96, 135, 88, 123.5
 
 
+def frame_fit(width: int, height: int, requested: str) -> str:
+    """Reference fill may trim background, but must not cut a portrait photo in half."""
+    ratio = (width / height) / (WIDTH / HEIGHT)
+    retained_fraction = min(ratio, 1 / ratio)
+    return 'contain' if requested == 'cover' and retained_fraction < .8 else requested
+
+
 def thumbnail(source: Path, target: Path) -> None:
     raster = str(source) + '[0]'
-    profiles = run(['magick', 'identify', '-format', '%[profiles]', raster])
+    profiles = run(['magick', 'identify', '-ping', '-format', '%[profiles]', raster])
     command = ['magick', raster, '-auto-orient']
     if 'icc' in profiles.lower() or 'icm' in profiles.lower():
         command += ['-profile', str(srgb_profile())]
@@ -83,7 +90,11 @@ def create(folder: Path, *, output: Path | None = None, title: str = 'Media Arch
                         thumbnail(source, thumb)
                         with Image.open(thumb) as image:
                             w, h = image.size
-                            scale = (max if image_fit=='cover' else min)(WIDTH/w, HEIGHT/h)
+                            fit = frame_fit(w, h, image_fit)
+                            entry['frame_fit'] = fit
+                            if fit != image_fit:
+                                entry['display_note'] = 'Whole image fit: frame filling would hide more than 20% of the photograph; no rotation inferred.'
+                            scale = (max if fit=='cover' else min)(WIDTH/w, HEIGHT/h)
                             dw, dh = w*scale, h*scale
                             c.setFillColorRGB(1, 1, 1); c.rect(x, y, WIDTH, HEIGHT, fill=1, stroke=0)
                             # The reference fills each frame, centered in both axes.

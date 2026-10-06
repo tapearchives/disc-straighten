@@ -1,7 +1,7 @@
 {
   "version": "0.10.0",
   "date": "2026-10-06",
-  "unit_tests": 123,
+  "unit_tests": 124,
   "unit_result": "passed",
   "layout": {
     "page_points": [
@@ -13,7 +13,8 @@
       5
     ],
     "reference_pages": 2,
-    "visually_checked": true
+    "visually_checked": true,
+    "portrait_inputs_preserved": true
   },
   "lightbox": {
     "source_photos": 342,

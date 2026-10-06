@@ -9,6 +9,8 @@
   in-app PDF previews, title/footer/range controls and report-folder access.
 - Match the supplied Letter reference: four columns, five rows, rounded dotted
   outlines, captions and blue MISSING MEDIA IMAGE text on yellow placeholders.
+- Fit portrait and unusually wide photos whole when filling a frame would hide
+  more than 20% of the image; record the display choice without guessing rotation.
 - Enable catalog-gap placeholders with barcode pair naming; preserve isolated
   decoded B sides, mark absent sides, and log unresolved/conflicting filenames.
 - Add CLI report controls and a catalog-only mode for prepared compositions.

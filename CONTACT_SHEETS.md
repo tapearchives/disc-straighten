@@ -14,7 +14,10 @@ and the footer up to 11.75 points. Long headings shrink to stay on the page.
 
 `{start}` and `{end}` in the subtitle insert the selected catalog range. The
 current print date and page number follow the footer credit. **Fill frames
-(reference)** centers and clips photos within their report frames. **Fit whole
+(reference)** centers and clips photos within their report frames. If filling
+would hide more than 20% of a photo (for example, portrait or unusually wide
+inputs), it automatically fits the whole image and records that choice in the
+report log. It does not guess a rotation. **Fit whole
 image (discs)** contains the entire photo, leaving white space as needed. These
 display choices never alter the input or master image.
 

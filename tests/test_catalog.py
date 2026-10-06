@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 import pypdfium2 as pdfium
 
 from discstraight.catalog import inventory, materialize_gaps, sequence
-from discstraight.contact_sheet import create
+from discstraight.contact_sheet import create, frame_fit
 from discstraight.barcode_pairs import rename_back
 from test_barcodes import record
 
@@ -101,6 +101,19 @@ class CatalogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):create(Path(tmp))
             self.assertFalse((Path(tmp)/'contact-sheet').exists())
+
+    def test_reference_fill_preserves_portrait_and_unusually_wide_photos(self):
+        self.assertEqual(frame_fit(4032,3024,'cover'),'cover')
+        self.assertEqual(frame_fit(3024,4032,'cover'),'contain')
+        self.assertEqual(frame_fit(6000,1000,'cover'),'contain')
+        self.assertEqual(frame_fit(4032,3024,'contain'),'contain')
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            Image.new('RGB',(120,300),'blue').save(root/'001A.png')
+            result=create(root)
+            manifest=json.loads(Path(result['log']).read_text())
+            self.assertEqual(manifest['entries'][0]['frame_fit'],'contain')
+            self.assertIn('no rotation inferred',manifest['entries'][0]['display_note'])
 
     def test_nonstandard_names_are_reported_not_guessed(self):
         with tempfile.TemporaryDirectory() as tmp:
